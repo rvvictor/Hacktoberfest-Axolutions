@@ -1,4 +1,4 @@
-# PROJECT · <event name> (sprint mode)
+# PROJECT · Hacktoberfest (sprint mode)
 
 > Filled in by `/uak-setup` with the human at minute 0. uak reads the flat fields of the last block from
 > the remote `main`, so a stale worktree can never change permissions.
@@ -6,27 +6,27 @@
 ## Event
 | Field | Value |
 |---|---|
-| Event / challenge | `<name, number, official URL>` |
-| Start | `<YYYY-MM-DD HH:MM IANA zone>` |
-| Official deadline | `<YYYY-MM-DD HH:MM IANA zone>` · platforms: `<platform, form, repo>` |
-| Freeze | `uak clock START DEADLINE ZONE --write` (15% of the event, 30 min to 6 h) → `Freeze-Epoch` |
-| Clean rehearsal / plan B | `<deadline − 2 h>` |
-| Internal submission | `<deadline − 1 h>` |
-| Humans | `<name: role>` · submission owner: `<name>` (starts at T−8 h) |
-| Agents | `<name-1, name-2>` per human (max 2) |
+| Event / challenge | Hacktoberfest: Hack Day in Mexico City, Build Day + Demos (MLH) · https://events.mlh.com/events/14760-hacktoberfest-hack-day-in-mexico-city-build-day-demos · challenge: TBD (idea under discussion) |
+| Start | 2026-10-27 15:30 America/Mexico_City |
+| Official deadline | 2026-10-28 19:00 America/Mexico_City · platforms: probably the MLH event page (to be confirmed) |
+| Freeze | 2026-10-28 14:52 (Freeze-Epoch 1793220750) · design lock Tue 16:30 · first claim by Tue 17:30 · walking skeleton Tue 17:30 · plan-B video Wed 05:15 |
+| Clean rehearsal / plan B | 2026-10-28 17:00 |
+| Internal submission | 2026-10-28 18:00 |
+| Humans | Victor, Sebas, Dylan, Fer, Jabi (Jabi uses Codex; the rest Claude Code) · submission owner: Victor (starts at T−8 h) |
+| Agents | victor-1, victor-2, sebas-1, sebas-2, dylan-1, dylan-2, fer-1, fer-2, jabi-1, jabi-2 · all are reviewers |
 | Machines | `<laptop, Jetson…>` · ports already taken: `<8000…>` |
 
 ## Official rubric (weights sum to 100)
 | ID | Criterion | Weight | Evidence in the demo |
 |---|---|---:|---|
-| C1 | `<criterion>` | `<%>` | `<step or artifact>` |
+| C1 | TBD: official rubric not published yet | - | - |
 
 ## Event rules
 | Topic | Confirmed rule | Source |
 |---|---|---|
-| AI use / prior code | `<...>` | `<URL>` |
-| Data and licenses | `<...>` | `<URL>` |
-| Format and video limits | `<...>` | `<URL>` |
+| AI use / prior code | AI allowed · prior code allowed | organizers (verbal) |
+| Data and licenses | TBD | - |
+| Format and video limits | TBD (video limit not announced yet) | - |
 
 ## Plan B
 - A video of the whole flow at `<path>` (v1 at T−50%, final at T−2 h). Use it if `<network, mic, external API>` fails.
@@ -42,7 +42,7 @@ Autonomy: yes
 Auto-Merge: yes
 Review-Mode: claims
 Plan-Channel: claims
-Freeze-Epoch: 0
+Freeze-Epoch: 1793220750
 Lease-Seconds: 2700
 Review-Lease-Seconds: 14400
 Events-Per-Session: 100
