@@ -1,0 +1,11 @@
+# fer-2
+Agent: fer-2
+Started: 1793159803
+Events: 1
+Events-Since-Checkpoint: 1
+Checkpoints: 0
+Sessions: 1
+Last-Checkpoint: 0
+Human: FerVarg24
+Last-Session: fer-2-1793159803
+Updated: 1793159803
