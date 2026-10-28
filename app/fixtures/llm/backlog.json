@@ -1,0 +1,5 @@
+{"items": [
+{"epic": "Gastos", "title": "Registrar un gasto con comprobante", "acceptance": ["El empleado sube un comprobante y un monto", "El gasto queda en estado pendiente"], "external_id": "BL-001"},
+{"epic": "Aprobaciones", "title": "Aprobar o rechazar un gasto", "acceptance": ["El aprobador ve los gastos pendientes de su área", "Rechazar exige un comentario"], "external_id": "BL-002"},
+{"epic": "Alertas", "title": "Alertar al superar el límite", "acceptance": ["Se envía un correo cuando el total del área supera su límite"], "external_id": "BL-003"}
+]}
