@@ -23,3 +23,5 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793164000 | HACK-015 | local contract.ts+demo replay | Why: HACK-002 not on main
 - 1793164244 | HACK-014 | local contract.ts, demo fallback | Why: HACK-002 not on main
 - 1793164360 | HACK-016 | local contract.ts until HACK-002 integrates | Why: HACK-002 not on main
+- 1793164497 | deadline lease/HACK-008/1793164303 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
+- 1793164497 | deadline lease/HACK-011/1793164305 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.

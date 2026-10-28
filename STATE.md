@@ -1,12 +1,12 @@
 # STATE
 
 Phase: execution
-Updated: 1793164525
-AVAILABLE: HACK-017 HACK-020 HACK-021 HACK-022 HACK-023 HACK-024 HACK-009 
-CLAIMED: HACK-006 HACK-007 HACK-008 HACK-011 HACK-013 HACK-018 HACK-019 
+Updated: 1793164497
+AVAILABLE: HACK-017 HACK-020 HACK-021 HACK-022 HACK-023 HACK-024 HACK-009 
+CLAIMED: HACK-006 HACK-007 HACK-008 HACK-011 HACK-013 HACK-018 HACK-019 
 BLOCKED: -
-REVIEW: HACK-005 HACK-012 HACK-014 HACK-015 HACK-016 
-INTEGRATED: HACK-001 HACK-002 HACK-003 HACK-004 HACK-010 
+REVIEW: HACK-005 HACK-012 HACK-014 HACK-015 HACK-016 
+INTEGRATED: HACK-001 HACK-002 HACK-003 HACK-004 HACK-010 
 CANCELLED: -
 
 Claims (first 24; status --task ID shows detail):
@@ -25,11 +25,11 @@ HACK-019 | CLAIMED | jabi-1 | until 1793166916
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
-- 1793162656 | deadline lease/HACK-007/1793162595 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
-- 1793163805 | deadline queue-lock/hack.47kElW-jabi-2-HACK-003/1793163805 | HUMAN | Lock lease expired; revalidate before merging
 - 1793164000 | HACK-015 | local contract.ts+demo replay | Why: HACK-002 not on main
 - 1793164244 | HACK-014 | local contract.ts, demo fallback | Why: HACK-002 not on main
 - 1793164360 | HACK-016 | local contract.ts until HACK-002 integrates | Why: HACK-002 not on main
+- 1793164497 | deadline lease/HACK-008/1793164303 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
+- 1793164497 | deadline lease/HACK-011/1793164305 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 
 Global next step: available P0; else review PRs, tests, demo, rehearsal.
 Why: bounded snapshot to resume without rereading history.
