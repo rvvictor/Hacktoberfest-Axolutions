@@ -9,14 +9,17 @@ Priority: P0
 Paths: app/services/research.py, app/fixtures/research/, app/tests/test_research.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_research.py`
-Lease-Until: 1793175250
-Updated: 1793160850
+Lease-Until: 1793179840
+Updated: 1793165440
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: Humano: Smoke red or product unverified: PRODUCT_FAIL: adapter exit=1 (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-005-smoke-1793164419.log)
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/4
 Evidence: scratch overlay of origin/feat/hack-001+hack-002 + this branch: bash .uak/bin/q uv run pytest -q app/tests/test_research.py exit 0 (11 passed)
-Events: 8
+Events: 9
 Checkpoints: 0
 Sessions: 6
 Last-Checkpoint: 0
 Task-Tip: 462cc652971400f864057409aaf081317c26d015
+Progress: 25 commit(s) since the claim · last: 3e894df fix(HACK-005): merge main and clear ruff errors so the product smoke passes (3 minutes ago) · 0 uncommitted tracked file(s) · at 1793165440
+Progress-Head: 3e894df/4294967295
+Progress-Changed: 1793165440
