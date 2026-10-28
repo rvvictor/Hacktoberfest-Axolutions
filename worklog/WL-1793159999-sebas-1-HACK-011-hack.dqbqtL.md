@@ -16,3 +16,4 @@
 - 1793165098 | CLAIMED | sebas-1 | heartbeat; lease until 1793167798
 - 1793167889 | AVAILABLE | victor-2 | release; claim released by victor-2; reason: -; summary kept
 - 1793167895 | CLAIMED | victor-2 | claim; next: wait for HACK-001/002 INTEGRATED, then uak done HACK-011; hunter router owns /api/hunter/outreach/{id}/callback and must call verify_callback + apply_callback (not in my Paths)
+- 1793167911 | CLAIMED | victor-2 | heartbeat; lease until 1793170611

@@ -9,13 +9,16 @@ Priority: P1
 Paths: n8n/, app/services/outreach.py, app/fixtures/outreach/, app/tests/test_outreach.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_outreach.py`
-Lease-Until: 1793170595
-Updated: 1793167895
+Lease-Until: 1793170611
+Updated: 1793167911
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: wait for HACK-001/002 INTEGRATED, then uak done HACK-011; hunter router owns /api/hunter/outreach/{id}/callback and must call verify_callback + apply_callback (not in my Paths)
 PR: -
 Evidence: -
-Events: 7
+Events: 8
 Checkpoints: 1
 Sessions: 4
 Last-Checkpoint: 1793160148
+Progress: 79 commit(s) since the claim · last: f9d26ef Merge remote-tracking branch 'origin/feat/hack-011' into feat/hack-011 (1 second ago) · 0 uncommitted tracked file(s) · at 1793167911
+Progress-Head: f9d26ef/4294967295
+Progress-Changed: 1793167911
