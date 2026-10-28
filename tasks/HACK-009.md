@@ -9,16 +9,16 @@ Priority: P0
 Paths: app/services/memory.py, app/fixtures/memory/, app/tests/test_memory.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_memory.py`
-Lease-Until: 1793164262
-Updated: 1793161562
+Lease-Until: 1793164437
+Updated: 1793161737
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: Ship checks, draft PR, report missing live recording
 PR: -
 Evidence: -
-Events: 3
+Events: 4
 Checkpoints: 1
 Sessions: 1
 Last-Checkpoint: 1793161562
-Progress: 0 commit(s) since the claim · last: 3eaff8c plan: rename product to SpeedHack (43 minutes ago) · 0 uncommitted tracked file(s) · at 1793160829
-Progress-Head: 3eaff8c/4294967295
-Progress-Changed: 1793160829
+Progress: 6 commit(s) since the claim · last: 3f1298c Merge remote-tracking branch 'origin/main' into feat/hack-009 (3 minutes ago) · 2 uncommitted tracked file(s) · at 1793161737
+Progress-Head: 3f1298c/3311359744
+Progress-Changed: 1793161737
