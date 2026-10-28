@@ -149,3 +149,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Run view: guard JSON.parse on the named 'error' SSE event; when the stream closes it fires JSON.parse(undefined)
 - **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint`
+
+## HACK-035 · n8n Cloud: read N8N_WEBHOOK_SECRET and SPEEDHACK_API_URL from $vars instead of $env (follow-up of HACK-011)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-011
+- **Follow-up of:** HACK-011
+- **Paths:** n8n/, app/services/outreach.py, app/fixtures/outreach/, app/tests/test_outreach.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - n8n Cloud: read N8N_WEBHOOK_SECRET and SPEEDHACK_API_URL from $vars instead of $env
+- **Verify:** `uv run pytest -q app/tests/test_outreach.py`

@@ -68,3 +68,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793207852 | HACK-033 | copied the run view's listen() instead of editing lib/sse.ts | Why: lib/sse.ts is owned by HACK-001, outside Paths
 - 1793209191 | HACK-034 | same guard as delivery listen() | Why: browser error event has no data when the stream closes
 - 1793209299 | HACK-032 | offline flag separate from demo_data badge | Why: demo_data is true for real runs under DEMO_MODE, so it cannot signal the offline sample
+- 1793213990 | HACK-035 | follow-up of HACK-011 by dylan-1: n8n Cloud: read N8N_WEBHOOK_SECRET and SPEEDHACK_API_URL from $vars instead of $env | Why: same Paths, no scope change
