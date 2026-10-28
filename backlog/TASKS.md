@@ -137,3 +137,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Delivery: subscribe with named SSE events so the gate, prototype and quality events arrive and 'Aprobar entrega' appears (lib/sse.ts only handles unnamed events)
 - **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint`
+
+## HACK-034 · Run view: guard JSON.parse on the named 'error' SSE event; when the stream closes it fires JSON.parse(undefined) (follow-up of HACK-015)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-015
+- **Follow-up of:** HACK-015
+- **Paths:** web/src/features/run/
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Run view: guard JSON.parse on the named 'error' SSE event; when the stream closes it fires JSON.parse(undefined)
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint`
