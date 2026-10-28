@@ -1,0 +1,9 @@
+{
+  "demo_data": true,
+  "note": "Recorded AI drafts, used when DEMO_MODE is on or no ANTHROPIC_API_KEY is set. Fictitious prospects.",
+  "drafts": {
+    "pros-barberia-001": "Hola, equipo de Barbería Ejemplo Norte: vimos reseñas públicas que piden reservar por WhatsApp fuera de horario. Armamos una demo de agenda en línea para barberías como la suya y con gusto se la mostramos en 15 minutos.",
+    "pros-barberia-002": "Hola, equipo de Barbería Ejemplo Sur: su página pública no muestra precios de corte. Armamos una demo de catálogo con precios para barberías como la suya.",
+    "pros-barberia-003": "Hola, equipo de Barbería Ejemplo Centro: en su Instagram público se ve una lista de espera manual. Armamos una demo de reservas para barberías como la suya."
+  }
+}
