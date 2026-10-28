@@ -1,18 +1,18 @@
 # STATE
 
 Phase: execution
-Updated: 1793208678
+Updated: 1793208697
 AVAILABLE: HACK-025 HACK-032 HACK-034 
-CLAIMED: HACK-033 
+CLAIMED: -
 BLOCKED: -
-REVIEW: HACK-029 HACK-031 
+REVIEW: HACK-029 HACK-031 HACK-033 
 INTEGRATED: (27; last 12) ... HACK-016 HACK-017 HACK-018 HACK-019 HACK-020 HACK-021 HACK-022 HACK-023 HACK-024 HACK-026 HACK-027 HACK-028 
 CANCELLED: HACK-030 
 
 Claims (first 24; status --task ID shows detail):
 HACK-029 | REVIEW | sebas-2 | until 1793222864
 HACK-031 | REVIEW | sebas-1 | until 1793223001
-HACK-033 | CLAIMED | sebas-1 | until 1793210552
+HACK-033 | REVIEW | sebas-1 | until 1793223097
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):

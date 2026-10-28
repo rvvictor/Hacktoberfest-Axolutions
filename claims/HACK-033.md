@@ -1,6 +1,6 @@
 # HACK-033
 ID: HACK-033
-State: CLAIMED
+State: REVIEW
 Owner: sebas-1
 Branch: feat/hack-033
 Worktree: /Users/sebastian/Desktop/Hackathones/Hacktoberfest-Axolutions-wt/hack-033
@@ -9,9 +9,9 @@ Priority: P1
 Paths: web/src/features/delivery/
 Depends: HACK-018
 Verify: `npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793210552
-Updated: 1793207852
+Lease-Until: 1793223097
+Updated: 1793208697
 Task-Base: fa2f0ffdf9b68fb2f442b9a12160498f954df5cd
-Next: open PR, uak done
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/30; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/30
 Evidence: -
