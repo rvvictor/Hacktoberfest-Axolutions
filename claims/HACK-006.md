@@ -9,8 +9,8 @@ Priority: P0
 Paths: app/services/miro.py, app/fixtures/miro/, app/tests/test_miro.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_miro.py`
-Lease-Until: 1793162321
-Updated: 1793159621
+Lease-Until: 1793162476
+Updated: 1793159776
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: spike: crear un board con un sticky note en Miro y registrar la respuesta
 PR: -
