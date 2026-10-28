@@ -10,3 +10,4 @@
 
 ## History
 - 1793159084 | CLAIMED | victor-2 | claim; next: spike `settings.LLM_MODEL` with one real call and record it; then write `clarify`.
+- 1793159096 | CLAIMED | victor-2 | heartbeat; lease until 1793161796
