@@ -29,7 +29,7 @@ from app.schemas import (
     RunStatus,
     StageEvent,
 )
-from app.services import store
+from app.services import memory, pitch, store
 
 log = logging.getLogger(__name__)
 
@@ -132,10 +132,44 @@ def _produce(ctx: StageContext) -> tuple[Produced, bool]:
     return _fixture(ctx.stage), True
 
 
+def _remember(run_id: str, kind: str, text: str, source: str) -> None:
+    """Feed the pitch room's source-checked memory; a memory failure never stops the run."""
+    try:
+        memory.remember(run_id, kind, text, source)
+    except Exception:
+        log.exception("memory.remember failed for run %s", run_id)
+
+
+def _remember_spec(run_id: str, spec: dict[str, Any]) -> None:
+    source = f"spec:v{spec['version']}"
+    _remember(run_id, "spec", json.dumps(spec, ensure_ascii=False), source)
+    # Readable passages so Q&A can quote the spec; the JSON above stays the source for the deck.
+    _remember(run_id, "spec_note", f"Problema: {spec['problem']}", source)
+    if spec.get("users"):
+        _remember(run_id, "spec_note", "Usuarios: " + "; ".join(spec["users"]), source)
+    for feature in spec.get("mvp_features", []):
+        _remember(run_id, "spec_note", f"Funcionalidad del MVP: {feature}", source)
+
+
+def _deck_from_memory(run_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """A pitch with no slides (the recorded fixture) is replaced by one built from this run's memory."""
+    try:
+        deck = pitch.deck(run_id)
+    except Exception:
+        log.exception("pitch deck from memory failed for run %s", run_id)
+        return payload
+    return {**payload, **deck.model_dump(mode="json")} if deck.slides else payload
+
+
 def _record(run_id: str, stage: int, etype: EventType, payload: dict[str, Any]) -> dict[str, Any]:
     """Persist what later stages and the spec of record need; returns the payload to emit."""
     if etype is EventType.spec_ready:
         payload = {**payload, "version": store.add_spec(run_id, payload)}
+        _remember_spec(run_id, payload)
+    elif etype is EventType.research_item:
+        _remember(run_id, "research", json.dumps(payload, ensure_ascii=False), payload["url"])
+    elif etype is EventType.pitch_ready and not payload.get("slides"):
+        payload = _deck_from_memory(run_id, payload)
     elif etype is EventType.miro_item and payload.get("miro_id"):
         store.set_external(run_id, stage, f"miro:{payload['title']}", payload["miro_id"])
     elif etype is EventType.linear_issue and payload.get("linear_id"):

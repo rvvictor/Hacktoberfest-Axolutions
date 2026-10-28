@@ -129,7 +129,7 @@ def deck(run_id):
                     "title": "La propuesta",
                     "bullets": spec.mvp_features
                     or ["Pregúntale a la memoria del proyecto."],
-                    "sources": spec.sources,
+                    "sources": spec.sources or [p["source"] for p in passages],
                 },
             ],
             demo_data=True,
@@ -161,6 +161,11 @@ def ask(run_id, question):
         and p.get("source")
         and _words(question) & _words(p.get("text", ""))
     ]
+    # Pipeline runs store readable notes next to the raw spec JSON; quote a note, never the JSON.
+    notes = [p for p in records if p.get("kind") == "spec_note"]
+    quotable = bool(notes) and settings.DEMO_MODE
+    if quotable:
+        records = notes
     demo = llm._demo() or any(p.get("demo_data") for p in records)
     passages = [llm.Passage(text=p["text"], source=p["source"]) for p in records]
     entry = (
@@ -172,12 +177,12 @@ def ask(run_id, question):
     valid = bool(entry.sources) and set(entry.sources) <= allowed
     explicit_no_data = entry.answer.strip().lower().rstrip(".") == NO_DATA
     if (
-        run_id == DEMO_RUN
-        and settings.DEMO_MODE
+        settings.DEMO_MODE
+        and (run_id == DEMO_RUN or quotable)
         and passages
         and not valid
         and not explicit_no_data
-        and _words(question) <= _words(passages[0].text)
+        and (quotable or _words(question) <= _words(passages[0].text))
     ):
         # Recorded LLM answers may describe a different fixture. Quote this
         # demo's evidence verbatim instead of presenting that unrelated answer.

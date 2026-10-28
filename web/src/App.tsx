@@ -1,3 +1,4 @@
+import { viewHref } from "./lib/runId";
 import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
 
@@ -36,7 +37,7 @@ export default function App() {
         {features.map(({ path: href, label }) => (
           <a
             key={href}
-            href={`#${href}`}
+            href={viewHref(`#${href}`)}
             aria-current={href === active?.path ? "page" : undefined}
             className="flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-sm aria-[current=page]:font-semibold aria-[current=page]:underline underline-offset-4"
           >

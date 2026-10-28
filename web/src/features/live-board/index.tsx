@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { api } from "../../lib/api";
+import { currentRunId } from "../../lib/runId";
 import { Button, DemoBadge, MetroLine, Panel, Title } from "../../lib/ui";
 import { IssueFeed } from "./IssueFeed";
 import { MirrorCanvas } from "./MirrorCanvas";
@@ -12,7 +13,7 @@ export const label = "Tablero en vivo";
 export const order = 30;
 
 function runFromUrl(): string | null {
-  return new URLSearchParams(window.location.search).get("run");
+  return currentRunId();
 }
 
 export default function LiveBoard() {
