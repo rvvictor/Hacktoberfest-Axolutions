@@ -9,9 +9,9 @@ Priority: P0
 Paths: README.md, docs/demo/
 Depends: HACK-013, HACK-016, HACK-019
 Verify: `test -s README.md && test -s docs/demo/script.md && bash .uak/bin/smoke`
-Lease-Until: 1793188553
-Updated: 1793185853
+Lease-Until: 1793189344
+Updated: 1793186644
 Task-Base: 375c1f01c1e4754d17b2b49c1bcb888842461a7a
-Next: write `docs/demo/script.md` from `IDEA.md` §4.
+Next: Finish recording, clean-clone rehearsal, Verify, commit and ship
 PR: -
 Evidence: -

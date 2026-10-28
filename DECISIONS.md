@@ -47,3 +47,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793167906 | HACK-008 | httpx direct to ElevenLabs REST; DEMO_MODE fixtures placeholders | Why: no API key; offline tests
 - 1793167966 | HACK-011 | my outreach.py is canonical vs HACK-021 | Why: owner of Paths
 - 1793185780 | deadline lease/HACK-024/1793171205 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
+- 1793186644 | HACK-024 | Capture independent labeled demo fixtures | Why: No keys required and live continuity is not established
