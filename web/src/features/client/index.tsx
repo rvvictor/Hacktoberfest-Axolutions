@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { api } from "../../lib/api";
-import { Button, Chip, DemoBadge, Item, Panel, Stat, Title } from "../../lib/ui";
+import { Button, Chip, DemoBadge, Item, Panel, Title } from "../../lib/ui";
 import "./client.css";
 import { FALLBACK_JOURNEY, type Journey } from "./fixture";
 
@@ -30,7 +30,11 @@ function AudioGuide({ guide }: { guide: Journey["audio_guide"] }) {
     }
     const voice = new SpeechSynthesisUtterance(guide.transcript.join(" "));
     voice.lang = "es-MX";
+    const match = window.speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith("es-mx")) ?? window.speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith("es"));
+    if (match) voice.voice = match;
     voice.onend = () => setSpeaking(false);
+    voice.onerror = () => setSpeaking(false);
+    window.speechSynthesis.cancel();
     window.speechSynthesis.speak(voice);
     setSpeaking(true);
   }
@@ -42,18 +46,41 @@ function AudioGuide({ guide }: { guide: Journey["audio_guide"] }) {
           <audio controls src={guide.src} aria-label={guide.title} />
         ) : (
           canSpeak && (
-            <Button variant="secondary" onClick={toggle}>
-              {speaking ? "Detener audio" : "Escuchar la guía"}
+            <Button variant="secondary" onClick={toggle} aria-pressed={speaking}>
+              {speaking ? "Detener" : "Escuchar la guía"}
             </Button>
           )
         )}
-        {!guide.recorded && <p>{guide.note}</p>}
+        {speaking && <Chip tone="rosa">Reproduciendo…</Chip>}
       </div>
       <ol className="cl-transcript" aria-label="Texto de la guía">
         {guide.transcript.map((line) => (
           <li key={line}>{line}</li>
         ))}
       </ol>
+      {!guide.recorded && <small className="cl-note">La voz es la de su navegador hasta que exista la grabación.</small>}
+    </Panel>
+  );
+}
+
+function LinkCard({ app }: { app: Journey["published_app"] }) {
+  const [copied, setCopied] = useState(false);
+  function copy() {
+    navigator.clipboard
+      ?.writeText(app.url)
+      .then(() => setCopied(true))
+      .catch(() => undefined);
+  }
+  return (
+    <Panel title="Su página en internet" meta="Enlace de ejemplo">
+      <a className="cl-link" href={app.url} onClick={(e) => e.preventDefault()}>
+        {app.url}
+      </a>
+      <div className="cl-audio">
+        <Button variant="primary" onClick={copy}>Copiar enlace</Button>
+        {copied && <Chip tone="ok">Enlace copiado</Chip>}
+      </div>
+      <small className="cl-note">{app.note}</small>
     </Panel>
   );
 }
@@ -98,7 +125,7 @@ function StepContent({ step, j }: { step: number; j: Journey }) {
     );
   if (step === 2)
     return (
-      <div className="cl-body">
+      <div className="cl-body cl-body--wa">
         <Panel title="Cómo va su página">
           <div className="cl-big">
             <b>{j.progress.percent}%</b>
@@ -127,13 +154,7 @@ function StepContent({ step, j }: { step: number; j: Journey }) {
     );
   return (
     <div className="cl-body">
-      <Panel title="Su página en internet" meta="Enlace de ejemplo">
-        <a className="cl-link" href={j.published_app.url} onClick={(e) => e.preventDefault()}>
-          {j.published_app.url}
-        </a>
-        <p>{j.published_app.note}</p>
-        <Stat value={`${j.screens.length}`} label="pantallas dibujadas para sus clientes" />
-      </Panel>
+      <LinkCard app={j.published_app} />
       <AudioGuide guide={j.audio_guide} />
     </div>
   );
