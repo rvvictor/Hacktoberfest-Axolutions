@@ -17,3 +17,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793160307 | HACK-010 | Prompt built only from Spec/BacklogItem fields; plan B url = LOVABLE_PREBUILT_URL or /fixtures/generator/planb/index.html (router must serve it) | Why: no raw web content in prompt; honest demo_data
 - 1793161562 | HACK-009 | Missing key uses process-local keyword cache and honest local demo recording | Why: No Backboard key or prior recording exists; preserve source provenance and never invent live evidence
 - 1793161993 | HACK-009 | Keep draft and BLOCKED; no false claim of real Backboard evidence | Why: No configured key and no pre-existing provider recording
+- 1793162281 | deadline lease/HACK-013/1793162002 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
