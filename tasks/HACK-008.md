@@ -9,13 +9,16 @@ Priority: P0
 Paths: app/services/voice.py, app/routers/voice.py, app/fixtures/voice/, app/tests/test_voice.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_voice.py`
-Lease-Until: 1793162595
-Updated: 1793159895
+Lease-Until: 1793163479
+Updated: 1793160779
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: after HACK-001/002 integrate: git merge origin/main, /uak-ship; record real fixtures when key exists
 PR: -
 Evidence: -
-Events: 2
+Events: 3
 Checkpoints: 1
-Sessions: 1
+Sessions: 2
 Last-Checkpoint: 1793159895
+Progress: 5 commit(s) since the claim · last: 141d2a4 feat(voice): STT/TTS/session endpoints with DEMO_MODE fixtures (HACK-008) (15 minutes ago) · 0 uncommitted tracked file(s) · at 1793160779
+Progress-Head: 141d2a4/4294967295
+Progress-Changed: 1793160779
