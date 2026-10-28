@@ -9,9 +9,9 @@ Priority: P1
 Paths: app/routers/hunter.py, app/fixtures/hunter/, app/tests/test_hunter.py, web/src/features/hunter/
 Depends: HACK-003
 Verify: `uv run pytest -q app/tests/test_hunter.py && npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793182315
-Updated: 1793167915
+Lease-Until: 1793182764
+Updated: 1793168364
 Task-Base: 9c7e27306e7a6412169c009d2071e439c03c4c42
-Next: Humano: New file outside Paths: app/fixtures/outreach/drafts.json. Move it into the task's Paths, or a human adds its dir to Additive-Paths in PROJECT.md (new files there need no reservation)
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/15; run .uak/bin/smoke
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/15
 Evidence: -
