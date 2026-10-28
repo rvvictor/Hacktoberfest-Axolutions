@@ -42,3 +42,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793166634 | HACK-019 | Explicit demo fixture and source-checked run-scoped Q&A; design critic SHIP; architect GO | Why: Offline usable pitch room without unsupported model claims
 - 1793167756 | deadline lease/HACK-008/1793167687 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793167840 | deadline lease/HACK-011/1793167798 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
+- 1793167852 | plan | Victor/Victor | tasks added: HACK-026 | Why: backlog without PR (Plan-Channel: claims)
