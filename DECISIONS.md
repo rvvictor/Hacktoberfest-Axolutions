@@ -38,3 +38,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793165941 | plan | Victor/Victor | tasks added: HACK-025 | Why: backlog without PR (Plan-Channel: claims)
 - 1793166215 | HACK-007 | fixtures hand-written demo_data | Why: no LINEAR_API_KEY
 - 1793166134 | HACK-019 | Explicit demo-pitch fixture, run-scoped evidence, provider errors 503 | Why: Offline demo with visible provenance and no unsupported guesses
+- 1793166374 | HACK-006 | spike fixtures left as-is, flagged unverified in PR | Why: no MIRO_ACCESS_TOKEN to confirm they are real
