@@ -11,3 +11,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793159885 | HACK-006 | tests con asyncio.run, sin pytest-asyncio | Why: evitar tocar pyproject compartido
 - 1793159895 | HACK-007 | fixtures hand-written, no LINEAR key | Why: cannot record real call
 - 1793159895 | HACK-008 | httpx direct to ElevenLabs REST (respx-mocked), not SDK; fixtures are placeholders marked demo_data | Why: no API key yet; keeps tests offline
+- 1793160123 | HACK-012 | CI-only checks (build, lint, gitleaks, npm audit, smoke) are named in report.details, not reported as passed; QualityCheck has no 'skipped' state | Why: run() cannot build or scan a generated repo in-process without installing its deps; a passed=True for unrun checks would be a false green (IDEA.md §5 honest validation)
