@@ -15,7 +15,7 @@ Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: run `/uak-design-lock` with `IDEA.md` §0 and §4.
 PR: -
 Evidence: -
-Events: 1
+Events: 2
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
