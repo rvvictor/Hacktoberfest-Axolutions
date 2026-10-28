@@ -9,9 +9,9 @@ Priority: P0
 Paths: README.md, docs/demo/
 Depends: HACK-013, HACK-016, HACK-019
 Verify: `test -s README.md && test -s docs/demo/script.md && bash .uak/bin/smoke`
-Lease-Until: 1793189428
-Updated: 1793186728
+Lease-Until: 1793189870
+Updated: 1793187170
 Task-Base: 375c1f01c1e4754d17b2b49c1bcb888842461a7a
-Next: Finish recording, clean-clone rehearsal, Verify, commit and ship
+Next: Complete capture and Verify, commit remaining docs, open PR with deployment gap explicit
 PR: -
 Evidence: -

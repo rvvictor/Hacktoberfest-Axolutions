@@ -9,16 +9,16 @@ Priority: P0
 Paths: README.md, docs/demo/
 Depends: HACK-013, HACK-016, HACK-019
 Verify: `test -s README.md && test -s docs/demo/script.md && bash .uak/bin/smoke`
-Lease-Until: 1793189428
-Updated: 1793186728
+Lease-Until: 1793189870
+Updated: 1793187170
 Task-Base: 375c1f01c1e4754d17b2b49c1bcb888842461a7a
-Next: Finish recording, clean-clone rehearsal, Verify, commit and ship
+Next: Complete capture and Verify, commit remaining docs, open PR with deployment gap explicit
 PR: -
 Evidence: -
-Events: 5
-Checkpoints: 1
+Events: 6
+Checkpoints: 2
 Sessions: 3
-Last-Checkpoint: 1793186644
+Last-Checkpoint: 1793187170
 Progress: 9 commit(s) since the claim · last: 174dcce Merge HACK-008 reviewed by victor-2 (5 hours ago) · 1 uncommitted tracked file(s) · at 1793186728
 Progress-Head: 174dcce/1109247938
 Progress-Changed: 1793186728
