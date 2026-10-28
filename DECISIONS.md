@@ -57,3 +57,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793196289 | HACK-030 | cancel: premise already satisfied by HACK-022 | Why: real runs show cost 0 because no service calls ctx.add_cost; those files are outside HACK-030 Paths
 - 1793196300 | HACK-031 | follow-up of HACK-013 by sebas-1: Cost wiring: services report usd via ctx.add_cost so real runs show non-zero cost in /api/ops (llm, voice, generator, research...) | Why: same Paths, no scope change
 - 1793196816 | HACK-024 | Ship verified recorded public demo | Why: User supplied deployment; browser and API checks pass
+- 1793197570 | HACK-024 | Ship verified recorded demo on existing Render service | Why: All acceptance criteria and exact Verify pass
