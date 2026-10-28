@@ -6,7 +6,7 @@
 - Why: changing breaks useBoardEvents
 - Failing: none
 - Commands: uv run pytest -q app/tests/test_pipeline.py
-- Next: Wait for review of SHA 7302ba5
+- Next: Integrated in main: 42f6a18a13278798772d2abfb998aa3d43178c77
 
 ## History
 - 1793159079 | CLAIMED | victor-1 | claim; next: write `store.py`, then a pipeline that replays `run.jsonl`; swap in real services one by one.
@@ -19,3 +19,4 @@
 - 1793165539 | REVIEW | victor-1 | heartbeat; lease until 1793179939
 - 1793165922 | REVIEW | dylan-2 | review; approve; SHA 7302ba577ac3e75c682df2cd9101ffbb6553539a; reviewer dylan-2
 - 1793166185 | REVIEW | victor-1 | heartbeat; lease until 1793180585
+- 1793166499 | INTEGRATED | victor-2 | merge; smoke and Verify PASS; commit 42f6a18a13278798772d2abfb998aa3d43178c77; reviewer dylan-2
