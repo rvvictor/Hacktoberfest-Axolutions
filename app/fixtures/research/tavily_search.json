@@ -1,0 +1,11 @@
+{
+  "demo_data": true,
+  "note": "SIMULATED recorded-shape response. No TAVILY_API_KEY was available; replace with a real recording (python -m app.services.research --record) once a key exists. Do not cite these figures.",
+  "query": "corporate expense management software pricing Mexico",
+  "results": [
+    {"title": "Simulated competitor A", "url": "https://example.invalid/research/a", "content": "Simulated: expense cards and approvals. Pricing: not verified."},
+    {"title": "Simulated competitor B", "url": "https://example.invalid/research/b", "content": "Simulated: receipt capture and reimbursements. Pricing: not verified."},
+    {"title": "Simulated competitor C", "url": "https://example.invalid/research/c", "content": "Simulated: CFDI invoice matching. Pricing: not verified."},
+    {"title": "Simulated item without url", "url": "", "content": "Dropped by the service."}
+  ]
+}

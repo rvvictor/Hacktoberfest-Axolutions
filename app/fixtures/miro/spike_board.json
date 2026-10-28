@@ -1,0 +1,26 @@
+{
+  "_note": "Real POST /v2/boards response (201), redacted: user/org/team ids and names replaced.",
+  "id": "uXjVEUwdkzY=",
+  "type": "board",
+  "name": "SpeedHack spike",
+  "description": "",
+  "links": {
+    "self": "https://api.miro.com/v2/boards/uXjVEUwdkzY%3D",
+    "related": "https://api.miro.com/v2/boards/uXjVEUwdkzY%3D/members?limit=20&offset=0"
+  },
+  "organization": {"id": "REDACTED", "type": "organization"},
+  "createdAt": "2026-10-28T04:25:21Z",
+  "createdBy": {"id": "REDACTED", "type": "user", "name": "REDACTED"},
+  "currentUserMembership": {"id": "REDACTED", "type": "board_member", "name": "REDACTED", "role": "owner"},
+  "modifiedAt": "2026-10-28T04:25:21Z",
+  "owner": {"id": "REDACTED", "type": "user", "name": "REDACTED"},
+  "sharingPolicy": {
+    "access": "private",
+    "accessPasswordRequired": false,
+    "inviteToAccountAndBoardLinkAccess": "no_access",
+    "organizationAccess": "private",
+    "teamAccess": "private"
+  },
+  "team": {"id": "REDACTED", "type": "team", "name": "REDACTED"},
+  "viewLink": "https://miro.com/app/board/uXjVEUwdkzY="
+}

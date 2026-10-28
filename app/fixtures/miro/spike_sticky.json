@@ -1,0 +1,14 @@
+{
+  "_note": "Real POST /v2/boards/{id}/sticky_notes response (201), redacted: user ids replaced.",
+  "id": "3458764688655646048",
+  "type": "sticky_note",
+  "data": {"content": "Login", "shape": "square"},
+  "style": {"fillColor": "yellow", "textAlign": "center", "textAlignVertical": "middle"},
+  "geometry": {"width": 199.99999999999997, "height": 229.14572864321605},
+  "position": {"x": 0.0, "y": 0.0, "origin": "center", "relativeTo": "canvas_center"},
+  "links": {"self": "https://api.miro.com/v2/boards/uXjVEUwdkzY%3D/sticky_notes/3458764688655646048"},
+  "createdAt": "2026-10-28T04:25:21Z",
+  "createdBy": {"id": "REDACTED", "type": "user"},
+  "modifiedAt": "2026-10-28T04:25:21Z",
+  "modifiedBy": {"id": "REDACTED", "type": "user"}
+}

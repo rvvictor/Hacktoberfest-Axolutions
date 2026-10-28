@@ -1,0 +1,34 @@
+{
+  "demo_data": true,
+  "provider": "local_keyword",
+  "live_backboard_recording": false,
+  "remember": {
+    "args": [
+      "demo-memory",
+      "decision",
+      "Use Python for the booking calendar",
+      "decision:stack"
+    ],
+    "result": {
+      "run_id": "demo-memory",
+      "kind": "decision",
+      "text": "Use Python for the booking calendar",
+      "source": "decision:stack",
+      "demo_data": true
+    }
+  },
+  "recall": {
+    "run_id": "demo-memory",
+    "query": "Python calendar",
+    "k": 5,
+    "result": [
+      {
+        "run_id": "demo-memory",
+        "kind": "decision",
+        "text": "Use Python for the booking calendar",
+        "source": "decision:stack",
+        "demo_data": true
+      }
+    ]
+  }
+}
