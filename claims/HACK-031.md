@@ -1,6 +1,6 @@
 # HACK-031
 ID: HACK-031
-State: CLAIMED
+State: REVIEW
 Owner: sebas-1
 Branch: feat/hack-031
 Worktree: /Users/sebastian/Desktop/Hackathones/Hacktoberfest-Axolutions-wt/hack-031
@@ -9,9 +9,9 @@ Priority: P1
 Paths: app/routers/runs.py, app/services/pipeline.py, app/services/store.py, app/tests/test_pipeline.py
 Depends: HACK-013
 Verify: `uv run pytest -q app/tests/test_pipeline.py`
-Lease-Until: 1793202355
-Updated: 1793199655
+Lease-Until: 1793223001
+Updated: 1793208601
 Task-Base: fa2f0ffdf9b68fb2f442b9a12160498f954df5cd
-Next: open PR, uak done
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/29; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/29
 Evidence: -
