@@ -1,6 +1,6 @@
 # HACK-027
 ID: HACK-027
-State: REVIEW
+State: INTEGRATED
 Owner: victor-2
 Branch: feat/hack-027
 Worktree: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions-wt/hack-027
@@ -9,13 +9,13 @@ Priority: P0
 Paths: web/src/features/run/, web/src/features/live-board/, web/src/features/delivery/, web/src/features/intake/, web/src/features/pitch/
 Depends: None
 Verify: `npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793209140
-Updated: 1793194740
+Lease-Until: 0
+Updated: 1793198331
 Task-Base: 8ea0211a065f113b370633897abcad824b16f449
-Next: Humano: Smoke red or product unverified: PRODUCT_FAIL: adapter exit=127 (log: C:/Users/javis/Desktop/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-027-smoke-1793196706.log)
+Next: Integrated in main: dd39bd1f454c90738abaf0eb90c12df63bba0f17
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/26
 Evidence: npm build && design-lint exit 0; smoke PASS; ?run= kept across run links, board, delivery, pitch
-Events: 5
+Events: 6
 Checkpoints: 0
 Sessions: 3
 Last-Checkpoint: 0
@@ -23,3 +23,7 @@ Progress: 0 commit(s) since the claim · last: 8ea0211 Merge pull request #24 fr
 Progress-Head: 8ea0211/4294967295
 Progress-Changed: 1793194611
 Task-Tip: a083efbc768657b70f469836dad8818ddf6a9270
+Merge-Commit: dd39bd1f454c90738abaf0eb90c12df63bba0f17
+Reviewer: sebas-2
+Integration-Proof: ancestry
+Merged-By: jabi-2
