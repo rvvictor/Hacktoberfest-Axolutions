@@ -6,7 +6,7 @@
 - Why: contract for downstream tasks
 - Failing: literal uv run pytest needs HACK-001 pyproject
 - Commands: uv run --no-project --python 3.12 --with pydantic --with pytest pytest -q app/tests/test_schemas.py
-- Next: Humano: Smoke red or product unverified: PRODUCT_UNVERIFIED: missing .uak/bin/smoke-project; exit 2. (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-002-smoke-1793160449.log)
+- Next: Humano: Smoke red or product unverified: PRODUCT_FAIL: adapter exit=1 (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-002-smoke-1793163805.log)
 
 ## History
 - 1793158422 | CLAIMED | victor-2 | claim; next: write `app/schemas/run.py` (Run, StageEvent) first, then announce it with `uak msg all --kind contract`.
@@ -18,3 +18,4 @@
 - 1793160217 | REVIEW | victor-2 | heartbeat; lease until 1793174617
 - 1793160286 | REVIEW | sebas-2 | merge rechazado; Smoke red or product unverified: PRODUCT_UNVERIFIED: missing .uak/bin/smoke-project; exit 2. (log: /Users/sebastian/Desktop/Hackathones/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-002-smoke-1793160286.log)
 - 1793160449 | REVIEW | victor-2 | merge rechazado; Smoke red or product unverified: PRODUCT_UNVERIFIED: missing .uak/bin/smoke-project; exit 2. (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-002-smoke-1793160449.log)
+- 1793163805 | REVIEW | victor-2 | merge rechazado; Smoke red or product unverified: PRODUCT_FAIL: adapter exit=1 (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-002-smoke-1793163805.log)

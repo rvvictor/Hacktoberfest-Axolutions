@@ -12,10 +12,10 @@ Verify: `uv run pytest -q app/tests/test_schemas.py`
 Lease-Until: 1793174617
 Updated: 1793160217
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: Humano: Smoke red or product unverified: PRODUCT_UNVERIFIED: missing .uak/bin/smoke-project; exit 2. (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-002-smoke-1793160449.log)
+Next: Humano: Smoke red or product unverified: PRODUCT_FAIL: adapter exit=1 (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-002-smoke-1793163805.log)
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/1
 Evidence: pytest test_schemas via uv --no-project (pydantic,pytest) exit 0, 4 passed; literal Verify blocked until HACK-001 pyproject; smoke unavailable
-Events: 9
+Events: 10
 Checkpoints: 1
 Sessions: 6
 Last-Checkpoint: 1793158535
