@@ -9,9 +9,9 @@ Priority: P2
 Paths: app/routers/ops.py, app/services/costs.py, app/tests/test_ops.py, web/src/features/ops/
 Depends: None
 Verify: `uv run pytest -q app/tests/test_ops.py && npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793198865
-Updated: 1793196165
+Lease-Until: 1793198989
+Updated: 1793196289
 Task-Base: 8ea0211a065f113b370633897abcad824b16f449
-Next: read the cost fields `app/services/store.py` saves per run, then replace the fixture in `app/services/costs.py`.
+Next: followup: instrument services with ctx.add_cost
 PR: -
 Evidence: -
