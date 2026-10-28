@@ -36,3 +36,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793165665 | HACK-005 | fixtures simulated (demo_data, example.invalid) until keys exist | Why: no TAVILY/FIRECRAWL keys
 - 1793165764 | deadline lease/HACK-006/1793165698 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793165941 | plan | Victor/Victor | tasks added: HACK-025 | Why: backlog without PR (Plan-Channel: claims)
+- 1793166215 | HACK-007 | fixtures hand-written demo_data | Why: no LINEAR_API_KEY

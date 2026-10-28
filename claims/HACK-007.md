@@ -9,9 +9,9 @@ Priority: P0
 Paths: app/services/linear.py, app/fixtures/linear/, app/tests/test_linear.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_linear.py`
-Lease-Until: 1793180610
-Updated: 1793166210
+Lease-Until: 1793180615
+Updated: 1793166215
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/20; run .uak/bin/smoke
+Next: Wait for review of SHA a55c830
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/20
 Evidence: -
