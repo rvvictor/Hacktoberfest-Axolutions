@@ -9,9 +9,9 @@ Priority: P0
 Paths: app/schemas/, app/fixtures/demo/, app/tests/test_schemas.py, web/src/lib/types.ts, web/src/lib/mock.ts
 Depends: None
 Verify: `uv run pytest -q app/tests/test_schemas.py`
-Lease-Until: 1793172932
-Updated: 1793158532
+Lease-Until: 1793172935
+Updated: 1793158535
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/1; run .uak/bin/smoke
+Next: Wait for review of SHA 82fa2e9
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/1
 Evidence: -

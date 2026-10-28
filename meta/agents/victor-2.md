@@ -1,11 +1,11 @@
 # victor-2
 Agent: victor-2
 Started: 1793158422
-Events: 3
-Events-Since-Checkpoint: 3
-Checkpoints: 0
+Events: 4
+Events-Since-Checkpoint: 0
+Checkpoints: 1
 Sessions: 1
-Last-Checkpoint: 0
+Last-Checkpoint: 1793158535
 Human: rvvictor
 Last-Session: victor-2-1793158422
-Updated: 1793158532
+Updated: 1793158535
