@@ -14,7 +14,7 @@
 .delivery__facts { display: grid; gap: 6px; margin: 12px 0 0; }
 .delivery__facts div { display: flex; justify-content: space-between; gap: 12px; }
 .delivery__facts dt { color: var(--sh-muted); }
-.delivery__facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; text-align: right; }
+.delivery__facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; text-align: right; font-size: var(--sh-text-sm); }
 .delivery__check { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; }
 .delivery__fail { border-left-color: var(--sh-error); }
 .delivery__gate { display: flex; flex-direction: column; gap: 10px; }

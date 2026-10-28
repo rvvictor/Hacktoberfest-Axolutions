@@ -32,7 +32,7 @@ export default function App() {
 
   return (
     <div className="min-h-[100dvh] font-sans">
-      <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 py-2 [scrollbar-width:none]" aria-label="Vistas">
+      <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 py-0 [scrollbar-width:none]" aria-label="Vistas">
         {features.map(({ path: href, label }) => (
           <a
             key={href}

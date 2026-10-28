@@ -18,6 +18,7 @@ function RunOpsView({ run }: { run: RunOps }) {
   const pct = Math.min(100, Math.round(run.budget_used * 100));
   return (
     <div className="ops__run">
+      <div className="ops__top">
       <div className="ops__stats">
         <Stat value={usd(run.total_usd)} label="Costo del proyecto" />
         <Stat value={`${Math.round(run.duration_s)} s`} label="Duración" />
@@ -29,6 +30,7 @@ function RunOpsView({ run }: { run: RunOps }) {
           <span style={{ width: `${pct}%` }} />
         </div>
       </Panel>
+      </div>
       <div className="ops__cols">
         <Panel title="Costo por paso" meta={`${run.steps.length} pasos`}>
           {run.steps.map((s) => (
