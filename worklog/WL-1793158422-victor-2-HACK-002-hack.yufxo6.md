@@ -10,3 +10,4 @@
 
 ## History
 - 1793158422 | CLAIMED | victor-2 | claim; next: write `app/schemas/run.py` (Run, StageEvent) first, then announce it with `uak msg all --kind contract`.
+- 1793158430 | CLAIMED | victor-2 | heartbeat; lease until 1793161130
