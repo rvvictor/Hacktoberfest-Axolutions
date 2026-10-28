@@ -12,3 +12,4 @@
 - 1793194597 | CLAIMED | victor-2 | claim; next: in `web/src/features/run/index.tsx` build the three links with the current run id, then make `live-board/useBoardEvents.ts` subscribe to `/api/runs/{id}/events` when `?run=` is present.
 - 1793194611 | CLAIMED | victor-2 | heartbeat; lease until 1793197311
 - 1793194740 | REVIEW | victor-2 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/26; evidence: npm build && design-lint exit 0; smoke PASS; ?run= kept across run links, board, delivery, pitch; reviewer: -
+- 1793196245 | REVIEW | sebas-2 | review; approve; SHA a083efbc768657b70f469836dad8818ddf6a9270; reviewer sebas-2
