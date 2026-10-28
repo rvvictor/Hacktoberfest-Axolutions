@@ -1,0 +1,59 @@
+{"run_id": "run_demo_001", "stage": 1, "type": "stage_started", "payload": {"name": "intake"}, "ts": 1.0, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 1, "type": "stage_done", "payload": {"name": "intake"}, "ts": 1.6, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 2, "type": "stage_started", "payload": {"name": "clarify"}, "ts": 2.6, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 2, "type": "question", "payload": {"text": "¿Habrá varias empresas (multiempresa) en la misma instalación?", "mode": "dev"}, "ts": 3.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 2, "type": "question", "payload": {"text": "¿Qué roles necesita: empleado, aprobador, finanzas?", "mode": "dev"}, "ts": 5.0, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 2, "type": "question", "payload": {"text": "¿Qué alertas automáticas deben dispararse y por qué canal?", "mode": "dev"}, "ts": 6.2, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 2, "type": "stage_done", "payload": {"name": "clarify"}, "ts": 6.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 3, "type": "stage_started", "payload": {"name": "research"}, "ts": 7.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 3, "type": "research_item", "payload": {"competitor": "Placeholder competitor A", "pricing": null, "features": ["pending real research (HACK-005)"], "url": "https://example.invalid/placeholder/1", "fetched_at": null, "demo_data": true}, "ts": 8.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 3, "type": "research_item", "payload": {"competitor": "Placeholder competitor B", "pricing": null, "features": ["pending real research (HACK-005)"], "url": "https://example.invalid/placeholder/2", "fetched_at": null, "demo_data": true}, "ts": 9.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 3, "type": "research_item", "payload": {"competitor": "Placeholder competitor C", "pricing": null, "features": ["pending real research (HACK-005)"], "url": "https://example.invalid/placeholder/3", "fetched_at": null, "demo_data": true}, "ts": 10.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 3, "type": "research_item", "payload": {"competitor": "Placeholder competitor D", "pricing": null, "features": ["pending real research (HACK-005)"], "url": "https://example.invalid/placeholder/4", "fetched_at": null, "demo_data": true}, "ts": 11.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 3, "type": "stage_done", "payload": {"name": "research"}, "ts": 12.4, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 4, "type": "stage_started", "payload": {"name": "spec"}, "ts": 13.4, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 4, "type": "spec_ready", "payload": {"version": 1, "problem": "SaaS de control de gastos corporativos con React, Supabase y alertas automatizadas", "users": ["Finanzas", "Aprobadores", "Empleados"], "mvp_features": ["Registro de gastos", "Aprobación por roles", "Alertas de límite", "Multiempresa"], "assumptions": ["Placeholder: sin cifras hasta HACK-005"], "sources": ["https://example.invalid/placeholder/1"], "demo_data": true}, "ts": 14.9, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 4, "type": "stage_done", "payload": {"name": "spec"}, "ts": 15.5, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 4, "type": "approval_required", "payload": {"approval": 1}, "ts": 15.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 4, "type": "approval_given", "payload": {"approval": 1, "by": "demo"}, "ts": 17.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "stage_started", "payload": {"name": "architecture"}, "ts": 18.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "screen", "title": "Login", "miro_id": "demo_miro_1", "x": 0, "y": 0, "demo_data": true}, "ts": 19.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "screen", "title": "Dashboard de gastos", "miro_id": "demo_miro_2", "x": 220, "y": 0, "demo_data": true}, "ts": 19.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "screen", "title": "Nuevo gasto", "miro_id": "demo_miro_3", "x": 440, "y": 0, "demo_data": true}, "ts": 20.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "screen", "title": "Aprobaciones", "miro_id": "demo_miro_4", "x": 660, "y": 0, "demo_data": true}, "ts": 20.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "data_model", "title": "companies", "miro_id": "demo_miro_5", "x": 0, "y": 160, "demo_data": true}, "ts": 21.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "data_model", "title": "users", "miro_id": "demo_miro_6", "x": 220, "y": 160, "demo_data": true}, "ts": 21.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "data_model", "title": "expenses", "miro_id": "demo_miro_7", "x": 440, "y": 160, "demo_data": true}, "ts": 22.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "data_model", "title": "alert_rules", "miro_id": "demo_miro_8", "x": 660, "y": 160, "demo_data": true}, "ts": 22.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "integration", "title": "Supabase Auth", "miro_id": "demo_miro_9", "x": 0, "y": 320, "demo_data": true}, "ts": 23.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "integration", "title": "Email de alertas", "miro_id": "demo_miro_10", "x": 220, "y": 320, "demo_data": true}, "ts": 23.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "integration", "title": "Exportación contable", "miro_id": "demo_miro_11", "x": 440, "y": 320, "demo_data": true}, "ts": 24.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "miro_item", "payload": {"kind": "connector", "title": "expenses → alert_rules", "miro_id": "demo_miro_12", "x": 660, "y": 320, "demo_data": true}, "ts": 24.8, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 5, "type": "stage_done", "payload": {"name": "architecture"}, "ts": 25.4, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "stage_started", "payload": {"name": "backlog"}, "ts": 26.4, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "linear_issue", "payload": {"epic": "Auth", "title": "Issue demo 1", "acceptance": ["Criterio verificable demo"], "external_id": "demo-ext-1", "linear_id": "DEMO-1", "url": null, "demo_data": true}, "ts": 26.9, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "linear_issue", "payload": {"epic": "Auth", "title": "Issue demo 2", "acceptance": ["Criterio verificable demo"], "external_id": "demo-ext-2", "linear_id": "DEMO-2", "url": null, "demo_data": true}, "ts": 27.4, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "linear_issue", "payload": {"epic": "Gastos", "title": "Issue demo 3", "acceptance": ["Criterio verificable demo"], "external_id": "demo-ext-3", "linear_id": "DEMO-3", "url": null, "demo_data": true}, "ts": 27.9, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "linear_issue", "payload": {"epic": "Gastos", "title": "Issue demo 4", "acceptance": ["Criterio verificable demo"], "external_id": "demo-ext-4", "linear_id": "DEMO-4", "url": null, "demo_data": true}, "ts": 28.4, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "linear_issue", "payload": {"epic": "Aprobaciones", "title": "Issue demo 5", "acceptance": ["Criterio verificable demo"], "external_id": "demo-ext-5", "linear_id": "DEMO-5", "url": null, "demo_data": true}, "ts": 28.9, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "linear_issue", "payload": {"epic": "Aprobaciones", "title": "Issue demo 6", "acceptance": ["Criterio verificable demo"], "external_id": "demo-ext-6", "linear_id": "DEMO-6", "url": null, "demo_data": true}, "ts": 29.4, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "linear_issue", "payload": {"epic": "Alertas", "title": "Issue demo 7", "acceptance": ["Criterio verificable demo"], "external_id": "demo-ext-7", "linear_id": "DEMO-7", "url": null, "demo_data": true}, "ts": 29.9, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "linear_issue", "payload": {"epic": "Alertas", "title": "Issue demo 8", "acceptance": ["Criterio verificable demo"], "external_id": "demo-ext-8", "linear_id": "DEMO-8", "url": null, "demo_data": true}, "ts": 30.4, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "stage_done", "payload": {"name": "backlog"}, "ts": 31.0, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "approval_required", "payload": {"approval": 2}, "ts": 31.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 6, "type": "approval_given", "payload": {"approval": 2, "by": "demo"}, "ts": 33.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 7, "type": "stage_started", "payload": {"name": "prototype"}, "ts": 34.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 7, "type": "prototype_ready", "payload": {"generator": "planb", "url": "https://example.invalid/placeholder/prototype", "build_url": null, "repo_url": null, "demo_data": true}, "ts": 36.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 7, "type": "stage_done", "payload": {"name": "prototype"}, "ts": 36.9, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 8, "type": "stage_started", "payload": {"name": "quality"}, "ts": 37.9, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 8, "type": "quality_check", "payload": {"name": "build", "passed": true, "details": "demo_data"}, "ts": 38.6, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 8, "type": "quality_check", "payload": {"name": "lint", "passed": true, "details": "demo_data"}, "ts": 39.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 8, "type": "quality_check", "payload": {"name": "gitleaks", "passed": true, "details": "demo_data"}, "ts": 40.0, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 8, "type": "quality_check", "payload": {"name": "rls", "passed": true, "details": "demo_data"}, "ts": 40.7, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 8, "type": "quality_check", "payload": {"name": "smoke", "passed": true, "details": "demo_data"}, "ts": 41.4, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 8, "type": "stage_done", "payload": {"name": "quality"}, "ts": 42.0, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 8, "type": "approval_required", "payload": {"approval": 3}, "ts": 42.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 8, "type": "approval_given", "payload": {"approval": 3, "by": "demo"}, "ts": 44.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 9, "type": "stage_started", "payload": {"name": "pitch"}, "ts": 45.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 9, "type": "pitch_ready", "payload": {"slides": [{"title": "SpeedHack", "bullets": ["De idea a pitch defendible en una hora"], "sources": []}], "qa_log": [], "demo_data": true}, "ts": 47.3, "demo_data": true}
+{"run_id": "run_demo_001", "stage": 9, "type": "stage_done", "payload": {"name": "pitch"}, "ts": 47.9, "demo_data": true}
