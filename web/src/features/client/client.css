@@ -1,4 +1,4 @@
-.cl { display: flex; flex-direction: column; gap: 20px; color: var(--sh-ink); }
+.cl { display: flex; flex-direction: column; gap: 16px; color: var(--sh-ink); }
 .cl__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
 .cl__head p { color: var(--sh-muted); font-size: var(--sh-text-base); margin-top: 4px; }
 
@@ -37,7 +37,7 @@
 .cl-wa .sh-chip { align-self: flex-start; }
 
 .cl-link { font-weight: 800; font-stretch: 112%; font-size: var(--sh-text-lg); overflow-wrap: anywhere; color: var(--sh-ink); }
-.cl-transcript { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: var(--sh-text-base); max-height: 260px; overflow: auto; }
+.cl-transcript { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: var(--sh-text-base); max-height: 190px; overflow: auto; padding-right: 6px; }
 .cl-audio { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .cl-audio p { color: var(--sh-muted); font-size: var(--sh-text-sm); flex: 1 1 220px; }
 
