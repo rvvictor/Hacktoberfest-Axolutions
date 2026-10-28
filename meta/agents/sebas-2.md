@@ -1,11 +1,11 @@
 # sebas-2
 Agent: sebas-2
 Started: 1793159835
-Events: 2
-Events-Since-Checkpoint: 0
+Events: 3
+Events-Since-Checkpoint: 1
 Checkpoints: 1
-Sessions: 1
+Sessions: 2
 Last-Checkpoint: 1793159895
 Human: Seebaastiaan
-Last-Session: sebas-2-1793159835
-Updated: 1793159895
+Last-Session: stable
+Updated: 1793160286
