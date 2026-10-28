@@ -32,19 +32,19 @@ export default function App() {
 
   return (
     <div className="min-h-[100dvh] font-sans">
-      <nav className="mx-auto flex max-w-7xl gap-4 px-4 py-4">
+      <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 py-2 [scrollbar-width:none]" aria-label="Vistas">
         {features.map(({ path: href, label }) => (
           <a
             key={href}
             href={`#${href}`}
             aria-current={href === active?.path ? "page" : undefined}
-            className="text-sm aria-[current=page]:font-semibold"
+            className="flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-sm aria-[current=page]:font-semibold aria-[current=page]:underline underline-offset-4"
           >
             {label}
           </a>
         ))}
       </nav>
-      <main className="mx-auto max-w-7xl px-4 py-8">{Active ? <Active /> : <p>SpeedHack</p>}</main>
+      <main className="mx-auto max-w-7xl px-4 pb-6 pt-2">{Active ? <Active /> : <p>SpeedHack</p>}</main>
     </div>
   );
 }

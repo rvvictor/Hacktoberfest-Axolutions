@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { api } from "../../lib/api";
 import { subscribe } from "../../lib/sse";
-import { Button, Chip, DemoBadge, Item, MetroLine, Panel, Stat, Title } from "../../lib/ui";
+import { Button, Chip, DemoBadge, Item, MetroLine, Panel, Title } from "../../lib/ui";
 import type { BacklogItem, Prototype, QualityCheck, StageEvent } from "./contract";
 import { demoDelivery } from "./demo";
 import "./delivery.css";
@@ -165,15 +165,7 @@ export default function Delivery() {
             )}
           </Panel>
 
-          <Panel title="Backlog restante" meta={`${state.backlog.length} pendientes`}>
-            {state.backlog.length === 0 ? (
-              <Item pending>{runId && !loaded ? "Cargando backlog…" : "No quedan issues pendientes."}</Item>
-            ) : (
-              state.backlog.map((b) => (
-                <Item key={b.external_id} tone="ink" code={b.external_id} meta={`${b.epic} · ${b.acceptance.length} criterios`}>{b.title}</Item>
-              ))
-            )}
-          </Panel>
+
         </div>
 
         <div className="delivery__col">
@@ -190,23 +182,30 @@ export default function Delivery() {
                 </Item>
               ))
             )}
-            <div className="delivery__stats">
-              <Stat value={String(passing)} label="verificaciones que pasan" />
-              <Stat value={String(failing.length)} label="verificaciones que fallan" />
-            </div>
           </Panel>
 
+        </div>
+
+        <div className="delivery__col delivery__col--side">
           {state.gate && (
             <Panel title="Aprobación 3 de 3" meta="Tras la etapa 8" className="delivery__gate">
               {failing.length > 0 && <p className="delivery__note" role="status">Hay {failing.length} verificación(es) que fallan. Puedes aprobar igualmente o pedir cambios.</p>}
-              <label htmlFor="delivery-comment">Comentario (opcional)</label>
-              <textarea id="delivery-comment" value={comment} onChange={(ev) => setComment(ev.target.value)} placeholder="Qué cambiarías o por qué apruebas" />
+              <textarea aria-label="Comentario (opcional)" rows={2} value={comment} onChange={(ev) => setComment(ev.target.value)} placeholder="Qué cambiarías o por qué apruebas" />
               <div className="delivery__actions">
                 <Button variant="primary" disabled={busy} onClick={() => decide(true)}>Aprobar entrega</Button>
                 <Button disabled={busy} onClick={() => decide(false)}>Pedir cambios</Button>
               </div>
             </Panel>
           )}
+          <Panel title="Backlog restante" meta={`${state.backlog.length} pendientes`}>
+            {state.backlog.length === 0 ? (
+              <Item pending>{runId && !loaded ? "Cargando backlog…" : "No quedan issues pendientes."}</Item>
+            ) : (
+              state.backlog.map((b) => (
+                <Item key={b.external_id} tone="ink" code={b.external_id} meta={`${b.epic} · ${b.acceptance.length} criterios`}>{b.title}</Item>
+              ))
+            )}
+          </Panel>
         </div>
       </div>
     </div>
