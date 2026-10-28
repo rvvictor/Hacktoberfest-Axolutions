@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { api } from "../../lib/api";
 import type { Spec } from "../../lib/types";
-import { Button, Chip, DemoBadge, Item, MetroLine, Panel, Title } from "../../lib/ui";
+import { Button, Chip, DemoBadge, MetroLine, Panel, Title } from "../../lib/ui";
 import { useSpecEvents } from "./useSpecEvents";
 import "./spec.css";
 
@@ -17,28 +17,35 @@ function ClientSummary({ spec }: { spec: Spec }) {
     <div className="sp-plain">
       <p><strong>Qué problema resolvemos.</strong> {spec.problem}</p>
       <p><strong>Para quién.</strong> {spec.users.map((u) => u.split(":")[0]).join(", ")}.</p>
-      <p><strong>Qué podrás hacer desde el primer día.</strong> {spec.mvp_features.join("; ")}.</p>
-      <p><strong>Lo que damos por cierto por ahora.</strong> {spec.assumptions.join("; ")}. Si algo no es así, dínoslo antes de aprobar.</p>
+      <div>
+        <p><strong>Qué podrás hacer desde el primer día</strong></p>
+        <ul>{spec.mvp_features.slice(0, 5).map((f) => <li key={f}>{f}</li>)}</ul>
+      </div>
+      <p><strong>Lo que damos por cierto.</strong> Si algo no es así, dínoslo antes de aprobar.</p>
     </div>
   );
 }
 
 function SpecBody({ spec }: { spec: Spec }) {
-  const blocks: [string, string[]][] = [
-    ["Usuarios", spec.users], ["Funciones del MVP", spec.mvp_features], ["Supuestos", spec.assumptions],
-  ];
+  const list = (title: string, rows: string[]) => (
+    <section>
+      <h3>{title}</h3>
+      <ul>{rows.map((r) => <li key={r}>{r}</li>)}</ul>
+    </section>
+  );
   return (
     <div className="sp-spec">
-      <section>
-        <h3>Problema</h3>
-        <p>{spec.problem}</p>
-      </section>
-      {blocks.map(([title, rows]) => (
-        <section key={title}>
-          <h3>{title}</h3>
-          <ul>{rows.map((r) => <li key={r}>{r}</li>)}</ul>
+      <div className="sp-col">
+        <section>
+          <h3>Problema</h3>
+          <p>{spec.problem}</p>
         </section>
-      ))}
+        {list("Supuestos", spec.assumptions)}
+      </div>
+      <div className="sp-col">
+        {list("Usuarios", spec.users)}
+        {list("Funciones del MVP", spec.mvp_features)}
+      </div>
     </div>
   );
 }
@@ -95,11 +102,9 @@ export default function SpecReview() {
           title={client ? "Resumen para ti" : "Spec"}
           meta={
             <span className="sp-tools">
-              {state.specs.length > 1 && (
-                <select aria-label="Versión del spec" value={spec?.version} onChange={(e) => setPicked(Number(e.target.value))}>
-                  {state.specs.map((s) => <option key={s.version} value={s.version}>Versión {s.version}</option>)}
-                </select>
-              )}
+              {state.specs.length > 1 && state.specs.map((v) => (
+                <Button key={v.version} aria-pressed={v.version === spec?.version} onClick={() => setPicked(v.version)}>v{v.version}</Button>
+              ))}
               <Button onClick={() => setClient((c) => !c)} aria-pressed={client}>{client ? "Ver spec técnico" : "Vista cliente"}</Button>
             </span>
           }
@@ -116,20 +121,18 @@ export default function SpecReview() {
             ) : (
               <table className="sp-table">
                 <thead>
-                  <tr><th>Competidor</th><th>Precio</th><th>Funciones</th></tr>
+                  <tr><th>Competidor</th><th>Precio</th><th>Funciones</th><th><span className="sp-vh">Fuente</span></th></tr>
                 </thead>
                 <tbody>
                   {state.research.map((r) => (
                     <tr key={r.url}>
-                      <th scope="row"><a href={r.url} target="_blank" rel="noreferrer">{r.competitor}</a></th>
+                      <th scope="row">{r.competitor}</th>
                       <td>
-                        {r.pricing ? <a href={r.url} target="_blank" rel="noreferrer">{r.pricing}</a> : <span className="sp-none">sin precio publicado</span>}
+                        {r.pricing ? <Chip>{r.pricing}</Chip> : <span className="sp-none">sin precio publicado</span>}
                         {r.fetched_at && <small>consultado {r.fetched_at.slice(0, 10)}</small>}
                       </td>
-                      <td>
-                        <ul>{r.features.map((f) => <li key={f}>{f}</li>)}</ul>
-                        <a className="sp-src" href={r.url} target="_blank" rel="noreferrer">Fuente</a>
-                      </td>
+                      <td>{r.features.join(" · ")}</td>
+                      <td><a className="sp-src" href={r.url} target="_blank" rel="noreferrer">Fuente ↗</a></td>
                     </tr>
                   ))}
                 </tbody>
@@ -139,7 +142,7 @@ export default function SpecReview() {
         </Panel>
       </div>
 
-      <Item tone="naranja" className="sp-approval" aria-label="Aprobación 1">
+      <Panel className="sp-approval" aria-label="Aprobación 1">
         <div className="sp-approval__text">
           <strong>Aprobación 1</strong>
           <span>
@@ -156,14 +159,14 @@ export default function SpecReview() {
             {changing && (
               <textarea aria-label="Qué debemos cambiar" rows={2} placeholder="¿Qué debemos cambiar?" value={comment} onChange={(e) => setComment(e.target.value)} />
             )}
-            <Button variant="primary" disabled={!canDecide || busy} onClick={() => decide(true)}>Aprobar spec</Button>
             <Button disabled={!canDecide || busy} onClick={() => (changing ? decide(false) : setChanging(true))}>
               {changing ? "Enviar cambios" : "Pedir cambios"}
             </Button>
+            <Button variant="primary" disabled={!canDecide || busy} onClick={() => decide(true)}>Aprobar spec</Button>
           </div>
         )}
         {error && <span className="sp-error" role="alert">{error}</span>}
-      </Item>
+      </Panel>
     </div>
   );
 }
