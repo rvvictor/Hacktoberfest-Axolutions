@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import asyncio
+import itertools
 import json
+from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Optional
+from typing import Any
 
 import httpx
 
@@ -43,22 +45,22 @@ class BoardRun:
         self,
         architecture: Architecture,
         *,
-        demo: Optional[bool] = None,
-        ids: Optional[Dict[str, str]] = None,
-        client: Optional[httpx.AsyncClient] = None,
+        demo: bool | None = None,
+        ids: dict[str, str] | None = None,
+        client: httpx.AsyncClient | None = None,
         sleep: Sleep = asyncio.sleep,
     ) -> None:
         self.architecture = architecture
         self.demo = settings.DEMO_MODE if demo is None else demo
         self.ids = ids if ids is not None else {}
-        self.embed_url: Optional[str] = None
+        self.embed_url: str | None = None
         self._client = client
         self._sleep = sleep
 
-    def __aiter__(self) -> AsyncIterator[Dict[str, Any]]:
+    def __aiter__(self) -> AsyncIterator[dict[str, Any]]:
         return self._demo() if self.demo else self._live()
 
-    async def _demo(self) -> AsyncIterator[Dict[str, Any]]:
+    async def _demo(self) -> AsyncIterator[dict[str, Any]]:
         data = json.loads(FIXTURE.read_text())
         self.embed_url = data["embed_url"]
         for item in data["items"]:
@@ -66,7 +68,7 @@ class BoardRun:
             payload = {k: v for k, v in item.items() if k != "delay"}
             yield {**payload, "demo_data": True}
 
-    async def _request(self, client: httpx.AsyncClient, method: str, path: str, **kw: Any) -> Dict[str, Any]:
+    async def _request(self, client: httpx.AsyncClient, method: str, path: str, **kw: Any) -> dict[str, Any]:
         for attempt in range(MAX_RETRIES):
             r = await client.request(method, f"{API}{path}", **kw)
             if r.status_code != 429:
@@ -76,7 +78,7 @@ class BoardRun:
             await self._sleep(float(r.headers.get("Retry-After", 2**attempt)))
         raise MiroError(f"{method} {path}: still 429 after {MAX_RETRIES} retries")
 
-    async def _live(self) -> AsyncIterator[Dict[str, Any]]:
+    async def _live(self) -> AsyncIterator[dict[str, Any]]:
         if not settings.MIRO_ACCESS_TOKEN:
             raise MiroError("MIRO_ACCESS_TOKEN is not set")
         own = self._client is None
@@ -123,7 +125,7 @@ class BoardRun:
                     )
                     self.ids[nkey] = n["id"]
                     yield _event(kind, text, n["id"], fx, ry - FRAME_H / 2, NOTE, NOTE, COLORS[kind])
-            for a, b in zip(frame_ids, frame_ids[1:]):
+            for a, b in itertools.pairwise(frame_ids):
                 ckey = f"connector:{a}:{b}"
                 if ckey in self.ids:
                     continue
@@ -138,7 +140,7 @@ class BoardRun:
                 await client.aclose()
 
 
-def _event(kind: str, title: str, miro_id: str, x: float, y: float, w: float, h: float, color: str) -> Dict[str, Any]:
+def _event(kind: str, title: str, miro_id: str, x: float, y: float, w: float, h: float, color: str) -> dict[str, Any]:
     return {"kind": kind, "title": title, "miro_id": miro_id, "x": x, "y": y, "w": w, "h": h, "color": color}
 
 
