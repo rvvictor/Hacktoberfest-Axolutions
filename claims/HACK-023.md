@@ -9,9 +9,9 @@ Priority: P0
 Paths: web/src/features/landing/, web/public/landing/
 Depends: HACK-003, HACK-016
 Verify: `npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793180047
-Updated: 1793165647
+Lease-Until: 1793180053
+Updated: 1793165653
 Task-Base: 744a3d8d69b7811e0b40fd39d23007558149e1c7
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/16; run .uak/bin/smoke
+Next: Wait for review
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/16
 Evidence: -

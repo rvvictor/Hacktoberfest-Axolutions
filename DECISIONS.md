@@ -31,3 +31,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793165182 | HACK-013 | Left SSE named events as is (HACK-016 listens per type) | Why: changing breaks useBoardEvents
 - 1793165271 | HACK-021 | Merged feat/hack-011 for outreach.py contract | Why: 011 not in main yet
 - 1793165595 | HACK-009 | Ship with local index; AC3 flagged partial, fixture demo_data:true | Why: No Backboard key
+- 1793165653 | HACK-023 | no prices (none in IDEA §10) | Why: no source
