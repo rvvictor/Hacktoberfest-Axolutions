@@ -1,7 +1,7 @@
 # STATE
 
 Phase: execution
-Updated: 1793165673
+Updated: 1793165764
 AVAILABLE: HACK-024 HACK-005 
 CLAIMED: HACK-006 HACK-007 HACK-008 HACK-011 HACK-018 HACK-019 
 BLOCKED: -
@@ -24,11 +24,11 @@ HACK-023 | REVIEW | dylan-1 | until 1793180053
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
-- 1793165271 | HACK-021 | Merged feat/hack-011 for outreach.py contract | Why: 011 not in main yet
 - 1793165595 | HACK-009 | Ship with local index; AC3 flagged partial, fixture demo_data:true | Why: No Backboard key
 - 1793165653 | HACK-023 | no prices (none in IDEA §10) | Why: no source
 - 1793165665 | HACK-022 | Read HACK-013 sqlite tables directly; units derived from usd via estimated price table | Why: HACK-013 only stores usd per step and is unmerged
 - 1793165665 | HACK-005 | fixtures simulated (demo_data, example.invalid) until keys exist | Why: no TAVILY/FIRECRAWL keys
+- 1793165764 | deadline lease/HACK-006/1793165698 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 
 Global next step: available P0; else review PRs, tests, demo, rehearsal.
 Why: bounded snapshot to resume without rereading history.
