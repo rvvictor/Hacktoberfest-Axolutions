@@ -9,8 +9,8 @@ Priority: P0
 Paths: README.md, docs/demo/
 Depends: HACK-013, HACK-016, HACK-019
 Verify: `test -s README.md && test -s docs/demo/script.md && bash .uak/bin/smoke`
-Lease-Until: 1793199516
-Updated: 1793196816
+Lease-Until: 1793199669
+Updated: 1793196969
 Task-Base: 375c1f01c1e4754d17b2b49c1bcb888842461a7a
 Next: Wait for Verify and smoke session 27818, commit and push, update PR 25 body and ready, uak done
 PR: -
