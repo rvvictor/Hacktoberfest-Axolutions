@@ -9,9 +9,9 @@ Priority: P0
 Paths: app/services/linear.py, app/fixtures/linear/, app/tests/test_linear.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_linear.py`
-Lease-Until: 1793162503
-Updated: 1793159803
+Lease-Until: 1793162595
+Updated: 1793159895
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: spike issueCreate mutation with one issue and record fixture
+Next: ship: uak done after HACK-001/002 integrate
 PR: -
 Evidence: -
