@@ -9,16 +9,16 @@ Priority: P0
 Paths: app/services/miro.py, app/fixtures/miro/, app/tests/test_miro.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_miro.py`
-Lease-Until: 1793162476
-Updated: 1793159776
+Lease-Until: 1793162585
+Updated: 1793159885
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: spike: crear un board con un sticky note en Miro y registrar la respuesta
+Next: spike real con MIRO_ACCESS_TOKEN y grabar fixture; PR/done cuando 001/002 se integren
 PR: -
 Evidence: -
-Events: 2
-Checkpoints: 0
+Events: 3
+Checkpoints: 1
 Sessions: 1
-Last-Checkpoint: 0
+Last-Checkpoint: 1793159885
 Progress: 0 commit(s) since the claim · last: 3eaff8c plan: rename product to SpeedHack (26 minutes ago) · 0 uncommitted tracked file(s) · at 1793159776
 Progress-Head: 3eaff8c/4294967295
 Progress-Changed: 1793159776
