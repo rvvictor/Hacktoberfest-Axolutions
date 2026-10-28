@@ -9,13 +9,16 @@ import hashlib
 import json
 import re
 import sys
-from datetime import datetime, timezone
+from collections.abc import Callable, Iterable
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Callable, Iterable, Optional
 
 import httpx
 
 from app.schemas.content import ResearchItem
+
+# A live search or scrape that fails falls back to cache or fixture; anything else is a bug and raises.
+_SERVICE_ERRORS = (httpx.HTTPError, OSError, ValueError, RuntimeError)
 
 FIXDIR = Path(__file__).resolve().parent.parent / "fixtures" / "research"
 FIXTURE = FIXDIR / "tavily_search.json"  # simulated, demo_data: true
@@ -27,7 +30,7 @@ MAX_SCRAPES = 3  # per-run cap on live Firecrawl calls; top competitor URLs only
 PRICE_RE = re.compile(
     r"(?:US\$|MX\$|\$|USD|MXN)\s?\d[\d,]*(?:\.\d+)?(?:\s?(?:MXN|USD))?"
     r"(?:\s?(?:/|por|per)\s?(?:mo(?:nth)?|mes|user|usuario|year|año)\b)?",
-    re.I,
+    re.IGNORECASE,
 )
 DEMO_QUERY = "corporate expense management software pricing Mexico"
 TAVILY_URL = "https://api.tavily.com/search"
@@ -101,7 +104,7 @@ def parse_firecrawl(payload: dict) -> str:
     return (payload.get("data") or {}).get("markdown") or ""
 
 
-def extract_pricing(text: str) -> Optional[str]:
+def extract_pricing(text: str) -> str | None:
     """First price string found verbatim in page text, else None. Never computed."""
     m = PRICE_RE.search(text or "")
     return m.group(0).strip() if m else None
@@ -111,24 +114,24 @@ def _url_cache_path(data_dir: Path, url: str) -> Path:
     return data_dir / "research_cache" / ("url_" + hashlib.sha256(url.encode()).hexdigest()[:16] + ".json")
 
 
-def _scrape(url: str, data_dir: Path, scrape: Optional[ScrapeFn], budget: CreditBudget) -> Optional[dict]:
+def _scrape(url: str, data_dir: Path, scrape: ScrapeFn | None, budget: CreditBudget) -> dict | None:
     """Per-URL cache -> live Firecrawl (if allowed). None if neither."""
     path = _url_cache_path(data_dir, url)
     if path.exists():
         return json.loads(path.read_text())
     if scrape is not None and budget.take():
         try:
-            page = {"url": url, "markdown": scrape(url), "fetched_at": datetime.now(timezone.utc).isoformat()}
+            page = {"url": url, "markdown": scrape(url), "fetched_at": datetime.now(UTC).isoformat()}
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(page))
             return page
-        except Exception:
+        except _SERVICE_ERRORS:
             return None
     return None
 
 
-def _search(query: str, data_dir: Path, search: Optional[SearchFn], budget: CreditBudget,
-            fallback: Callable[[], dict] = None) -> dict:
+def _search(query: str, data_dir: Path, search: SearchFn | None, budget: CreditBudget,
+            fallback: Callable[[], dict] | None = None) -> dict:
     """Cache -> live (if allowed) -> fallback fixture. Returns a Tavily-shaped dict."""
     path = _cache_path(data_dir, query)
     if path.exists():
@@ -136,11 +139,11 @@ def _search(query: str, data_dir: Path, search: Optional[SearchFn], budget: Cred
     if search is not None and budget.take():
         try:
             data = search(query)
-            data["fetched_at"] = datetime.now(timezone.utc).isoformat()
+            data["fetched_at"] = datetime.now(UTC).isoformat()
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(data))
             return data
-        except Exception:
+        except _SERVICE_ERRORS:
             pass  # fall through to the recorded fixture
     return (fallback or _fixture)()
 
@@ -166,13 +169,13 @@ def research(
     mode: str = "biz",
     *,
     data_dir: Path | str = Path("data"),
-    api_key: Optional[str] = None,
-    firecrawl_key: Optional[str] = None,
-    search: Optional[SearchFn] = None,
-    scrape: Optional[ScrapeFn] = None,
+    api_key: str | None = None,
+    firecrawl_key: str | None = None,
+    search: SearchFn | None = None,
+    scrape: ScrapeFn | None = None,
     stack: Iterable[str] = (),
-    budget: Optional[CreditBudget] = None,
-    scrape_budget: Optional[CreditBudget] = None,
+    budget: CreditBudget | None = None,
+    scrape_budget: CreditBudget | None = None,
 ) -> list[ResearchItem]:
     """Competitor research for a spec draft; `dev` mode adds docs for each stack item.
 
@@ -215,7 +218,7 @@ def record(query: str = DEMO_QUERY, out_dir: Path = FIXDIR) -> None:
     if not (settings.TAVILY_API_KEY and settings.FIRECRAWL_API_KEY):
         sys.exit("record needs TAVILY_API_KEY and FIRECRAWL_API_KEY in .env; nothing written")
     data = _tavily(settings.TAVILY_API_KEY)(query)
-    data.update(demo_data=False, query=query, fetched_at=datetime.now(timezone.utc).isoformat())
+    data.update(demo_data=False, query=query, fetched_at=datetime.now(UTC).isoformat())
     scrape = _firecrawl(settings.FIRECRAWL_API_KEY)
     pages = {}
     for r in data.get("results", [])[:MAX_SCRAPES]:
