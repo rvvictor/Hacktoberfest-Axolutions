@@ -125,3 +125,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Intake: under DEMO_MODE the screen never POSTs /api/runs/{id}/answers, so the run stalls at stage 2 (found by e2e/judge_path.py)
 - **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint`
+
+## HACK-033 · Delivery: subscribe with named SSE events so the gate, prototype and quality events arrive and 'Aprobar entrega' appears (lib/sse.ts only handles unnamed events) (follow-up of HACK-018)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-018
+- **Follow-up of:** HACK-018
+- **Paths:** web/src/features/delivery/
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Delivery: subscribe with named SSE events so the gate, prototype and quality events arrive and 'Aprobar entrega' appears (lib/sse.ts only handles unnamed events)
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint`

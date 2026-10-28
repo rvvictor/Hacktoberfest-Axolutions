@@ -63,3 +63,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793205622 | deadline lease/HACK-029/1793203062 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793205622 | deadline lease/HACK-031/1793202355 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793205934 | HACK-032 | follow-up of HACK-014 by sebas-1: Intake: under DEMO_MODE the screen never POSTs /api/runs/{id}/answers, so the run stalls at stage 2 (found by e2e/judge_path.py) | Why: same Paths, no scope change
+- 1793206062 | HACK-033 | follow-up of HACK-018 by sebas-1: Delivery: subscribe with named SSE events so the gate, prototype and quality events arrive and 'Aprobar entrega' appears (lib/sse.ts only handles unnamed events) | Why: same Paths, no scope change
