@@ -1,15 +1,16 @@
 # STATE
 
 Phase: execution
-Updated: 1793199550
-AVAILABLE: HACK-025 HACK-029 HACK-031 
-CLAIMED: -
+Updated: 1793199577
+AVAILABLE: HACK-025 HACK-031 
+CLAIMED: HACK-029 
 BLOCKED: -
 REVIEW: -
 INTEGRATED: (27; last 12) ... HACK-016 HACK-017 HACK-018 HACK-019 HACK-020 HACK-021 HACK-022 HACK-023 HACK-024 HACK-026 HACK-027 HACK-028 
 CANCELLED: HACK-030 
 
 Claims (first 24; status --task ID shows detail):
+HACK-029 | CLAIMED | sebas-2 | until 1793202277
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
