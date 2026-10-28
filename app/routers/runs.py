@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -16,19 +16,19 @@ POLL_SECONDS = 0.1
 class ProjectIn(BaseModel):
     mode: Mode
     idea: str = Field(min_length=1)
-    stack_prefs: List[str] = Field(default_factory=list)
+    stack_prefs: list[str] = Field(default_factory=list)
 
 
 class AnswersIn(BaseModel):
-    answers: List[str] = Field(min_length=1)
+    answers: list[str] = Field(min_length=1)
 
 
 class ApprovalIn(BaseModel):
     approved: bool
-    comment: Optional[str] = None
+    comment: str | None = None
 
 
-def _state(run_id: str) -> Dict[str, Any]:
+def _state(run_id: str) -> dict[str, Any]:
     run = store.get_run(run_id)
     if run is None:
         raise HTTPException(404, f"run {run_id} not found")
@@ -37,19 +37,19 @@ def _state(run_id: str) -> Dict[str, Any]:
 
 
 @router.post("/projects", status_code=201)
-def create_project(body: ProjectIn, background: BackgroundTasks) -> Dict[str, Any]:
+def create_project(body: ProjectIn, background: BackgroundTasks) -> dict[str, Any]:
     run = pipeline.create(body.mode, body.idea.strip(), body.stack_prefs)
     background.add_task(pipeline.start, run.run_id)
     return run.model_dump(mode="json")
 
 
 @router.get("/runs/{run_id}")
-def get_run(run_id: str) -> Dict[str, Any]:
+def get_run(run_id: str) -> dict[str, Any]:
     return _state(run_id)
 
 
 @router.post("/runs/{run_id}/answers")
-def post_answers(run_id: str, body: AnswersIn, background: BackgroundTasks) -> Dict[str, Any]:
+def post_answers(run_id: str, body: AnswersIn, background: BackgroundTasks) -> dict[str, Any]:
     _state(run_id)
     try:
         background.add_task(pipeline.answer(run_id, body.answers))
@@ -59,7 +59,7 @@ def post_answers(run_id: str, body: AnswersIn, background: BackgroundTasks) -> D
 
 
 @router.post("/runs/{run_id}/approvals/{number}")
-def post_approval(run_id: str, number: int, body: ApprovalIn, background: BackgroundTasks) -> Dict[str, Any]:
+def post_approval(run_id: str, number: int, body: ApprovalIn, background: BackgroundTasks) -> dict[str, Any]:
     _state(run_id)
     try:
         background.add_task(pipeline.decide(run_id, number, body.approved, body.comment))
@@ -74,7 +74,7 @@ def post_approval(run_id: str, number: int, body: ApprovalIn, background: Backgr
 async def stream_events(
     run_id: str,
     after: int = Query(0, ge=0),
-    last_event_id: Optional[str] = Header(None),
+    last_event_id: str | None = Header(None),
 ) -> EventSourceResponse:
     """Replay every past event, then stream new ones until the run is done or failed."""
     _state(run_id)

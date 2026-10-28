@@ -11,9 +11,10 @@ import json
 import logging
 import os
 import time
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Any
 
 from app.config import settings
 from app.schemas import (
@@ -43,7 +44,7 @@ STAGE_MODULES = {
 # Events the pipeline emits itself, so they are dropped when replaying the fixture.
 OWN_EVENTS = {EventType.stage_started, EventType.stage_done, EventType.approval_required, EventType.approval_given}
 
-Produced = List[Tuple[float, EventType, Dict[str, Any]]]  # (delay before, type, payload)
+Produced = list[tuple[float, EventType, dict[str, Any]]]  # (delay before, type, payload)
 
 
 class Conflict(Exception):
@@ -55,25 +56,25 @@ class StageContext:
     run: Run
     project: Project
     stage: int
-    comment: Optional[str] = None  # why the human sent the run back to this stage
-    spec: Optional[Dict[str, Any]] = None
-    answers: List[str] = field(default_factory=list)
-    externals: Dict[str, str] = field(default_factory=dict)  # IDs already created for this stage
+    comment: str | None = None  # why the human sent the run back to this stage
+    spec: dict[str, Any] | None = None
+    answers: list[str] = field(default_factory=list)
+    externals: dict[str, str] = field(default_factory=dict)  # IDs already created for this stage
     cost: float = 0.0
 
     def add_cost(self, usd: float) -> None:
         self.cost += usd
 
 
-StageFn = Callable[[StageContext], Iterable[Tuple[Any, Dict[str, Any]]]]
-REGISTRY: Dict[int, StageFn] = {}
+StageFn = Callable[[StageContext], Iterable[tuple[Any, dict[str, Any]]]]
+REGISTRY: dict[int, StageFn] = {}
 
 
 def register(stage: int, fn: StageFn) -> None:
     REGISTRY[stage] = fn
 
 
-def _provider(stage: int) -> Optional[StageFn]:
+def _provider(stage: int) -> StageFn | None:
     if stage in REGISTRY:
         return REGISTRY[stage]
     try:
@@ -101,7 +102,7 @@ def _fixture(stage: int) -> Produced:
     return out
 
 
-def _validated(stage: int, raw: Iterable[Tuple[Any, Dict[str, Any]]]) -> Produced:
+def _validated(stage: int, raw: Iterable[tuple[Any, dict[str, Any]]]) -> Produced:
     out: Produced = []
     for etype, payload in raw:
         etype = EventType(etype)
@@ -112,13 +113,13 @@ def _validated(stage: int, raw: Iterable[Tuple[Any, Dict[str, Any]]]) -> Produce
     return out
 
 
-def _emit(run_id: str, stage: int, etype: EventType, payload: Dict[str, Any], demo: bool) -> None:
+def _emit(run_id: str, stage: int, etype: EventType, payload: dict[str, Any], demo: bool) -> None:
     store.add_event(
         StageEvent(run_id=run_id, stage=stage, type=etype, payload=payload, ts=store.elapsed(run_id), demo_data=demo)
     )
 
 
-def _produce(ctx: StageContext) -> Tuple[Produced, bool]:
+def _produce(ctx: StageContext) -> tuple[Produced, bool]:
     """Events for the stage and whether they are demo data."""
     fn = None if settings.DEMO_MODE else _provider(ctx.stage)
     if fn is not None:
@@ -126,12 +127,12 @@ def _produce(ctx: StageContext) -> Tuple[Produced, bool]:
             events = _validated(ctx.stage, fn(ctx))
             store.add_cost(ctx.run.run_id, STAGES[ctx.stage], ctx.cost)
             return events, False
-        except Exception:  # noqa: BLE001 - any provider failure must fall back
+        except Exception:
             log.exception("stage %s failed, falling back to the recorded run", ctx.stage)
     return _fixture(ctx.stage), True
 
 
-def _record(run_id: str, stage: int, etype: EventType, payload: Dict[str, Any]) -> Dict[str, Any]:
+def _record(run_id: str, stage: int, etype: EventType, payload: dict[str, Any]) -> dict[str, Any]:
     """Persist what later stages and the spec of record need; returns the payload to emit."""
     if etype is EventType.spec_ready:
         payload = {**payload, "version": store.add_spec(run_id, payload)}
@@ -142,7 +143,7 @@ def _record(run_id: str, stage: int, etype: EventType, payload: Dict[str, Any]) 
     return payload
 
 
-def _run_stage(run_id: str, stage: int, comment: Optional[str]) -> None:
+def _run_stage(run_id: str, stage: int, comment: str | None) -> None:
     run, speed = store.get_run(run_id), _speed()
     ctx = StageContext(
         run=run,  # type: ignore[arg-type]
@@ -166,7 +167,7 @@ def _run_stage(run_id: str, stage: int, comment: Optional[str]) -> None:
     _emit(run_id, stage, EventType.stage_done, {"name": name}, demo)
 
 
-def _advance(run_id: str, first: int, comment: Optional[str] = None) -> None:
+def _advance(run_id: str, first: int, comment: str | None = None) -> None:
     """Run stages from `first` until the next human gate (questions or approval) or the end."""
     stage = first
     try:
@@ -182,13 +183,13 @@ def _advance(run_id: str, first: int, comment: Optional[str] = None) -> None:
                 return
             stage += 1
         store.set_state(run_id, status=RunStatus.done)
-    except Exception as exc:  # noqa: BLE001 - even the fixture failed: the run is lost, say so
+    except Exception as exc:
         log.exception("run %s failed", run_id)
         _emit(run_id, stage, EventType.error, {"message": str(exc)}, True)
         store.set_state(run_id, status=RunStatus.failed)
 
 
-def create(mode: Mode, idea: str, stack_prefs: Optional[List[str]] = None) -> Run:
+def create(mode: Mode, idea: str, stack_prefs: list[str] | None = None) -> Run:
     """Create the project and run. Call `start` (a background task) to execute stages 1-2."""
     _, run = store.create_run(mode, idea, stack_prefs or [], settings.DEMO_MODE)
     return run
@@ -199,7 +200,7 @@ def start(run_id: str) -> None:
         _advance(run_id, 1)
 
 
-def answer(run_id: str, answers: List[str]) -> Callable[[], None]:
+def answer(run_id: str, answers: list[str]) -> Callable[[], None]:
     """Record the answers now; the returned function runs the rest of the stages (a background task)."""
     if not store.claim(run_id, "answers"):
         raise Conflict("the run is not waiting for answers")
@@ -207,7 +208,7 @@ def answer(run_id: str, answers: List[str]) -> Callable[[], None]:
     return lambda: _advance(run_id, 3)
 
 
-def decide(run_id: str, number: int, approved: bool, comment: Optional[str]) -> Callable[[], None]:
+def decide(run_id: str, number: int, approved: bool, comment: str | None) -> Callable[[], None]:
     """Record approval `number` now. Approved: the returned function continues. Rejected: it goes back one stage."""
     if number not in GATES.values():
         raise ValueError(f"approval must be 1, 2 or 3, got {number}")

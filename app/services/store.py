@@ -9,7 +9,7 @@ import sqlite3
 import time
 import uuid
 from contextlib import closing
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from app.config import settings
 from app.schemas import Approval, Mode, Project, Run, RunStatus, StageEvent
@@ -68,7 +68,7 @@ def _run_from_row(conn: sqlite3.Connection, row: sqlite3.Row) -> Run:
     )
 
 
-def create_run(mode: Mode, idea: str, stack_prefs: List[str], demo_data: bool) -> tuple[Project, Run]:
+def create_run(mode: Mode, idea: str, stack_prefs: list[str], demo_data: bool) -> tuple[Project, Run]:
     project = Project(id=f"prj_{uuid.uuid4().hex[:8]}", mode=mode, idea=idea, stack_prefs=stack_prefs, demo_data=demo_data)
     run_id = f"run_{uuid.uuid4().hex[:8]}"
     approvals = [Approval(number=n).model_dump(mode="json") for n in (1, 2, 3)]
@@ -85,7 +85,7 @@ def create_run(mode: Mode, idea: str, stack_prefs: List[str], demo_data: bool) -
     return project, get_run(run_id)  # type: ignore[return-value]
 
 
-def get_run(run_id: str) -> Optional[Run]:
+def get_run(run_id: str) -> Run | None:
     with closing(_connect()) as conn:
         row = conn.execute("SELECT * FROM runs WHERE run_id=?", (run_id,)).fetchone()
         return _run_from_row(conn, row) if row else None
@@ -100,7 +100,7 @@ def get_project(project_id: str) -> Project:
     )
 
 
-def get_awaiting(run_id: str) -> Optional[str]:
+def get_awaiting(run_id: str) -> str | None:
     """What the run waits for: "start", "answers", "approval:N", or None while running/done."""
     with closing(_connect()) as conn:
         row = conn.execute("SELECT awaiting FROM runs WHERE run_id=?", (run_id,)).fetchone()
@@ -120,10 +120,10 @@ def claim(run_id: str, expected: str) -> bool:
 def set_state(
     run_id: str,
     *,
-    stage: Optional[int] = None,
-    status: Optional[RunStatus] = None,
-    awaiting: Optional[str] = None,
-    approvals: Optional[List[Approval]] = None,
+    stage: int | None = None,
+    status: RunStatus | None = None,
+    awaiting: str | None = None,
+    approvals: list[Approval] | None = None,
 ) -> None:
     """Update stage/status/approvals; `awaiting` is always written (None clears it)."""
     sets, args = ["awaiting=?"], [awaiting]
@@ -154,7 +154,7 @@ def add_event(event: StageEvent) -> int:
         return int(cur.lastrowid)
 
 
-def list_events(run_id: str, after: int = 0) -> List[tuple[int, StageEvent]]:
+def list_events(run_id: str, after: int = 0) -> list[tuple[int, StageEvent]]:
     with closing(_connect()) as conn:
         rows = conn.execute(
             "SELECT seq, event FROM events WHERE run_id=? AND seq>? ORDER BY seq", (run_id, after)
@@ -162,7 +162,7 @@ def list_events(run_id: str, after: int = 0) -> List[tuple[int, StageEvent]]:
     return [(r["seq"], StageEvent.model_validate_json(r["event"])) for r in rows]
 
 
-def add_spec(run_id: str, spec: Dict[str, Any]) -> int:
+def add_spec(run_id: str, spec: dict[str, Any]) -> int:
     """Store `spec` as the next version and return that version number."""
     with closing(_connect()) as conn, conn:
         row = conn.execute("SELECT COALESCE(MAX(version), 0) AS v FROM specs WHERE run_id=?", (run_id,)).fetchone()
@@ -173,7 +173,7 @@ def add_spec(run_id: str, spec: Dict[str, Any]) -> int:
     return version
 
 
-def get_spec(run_id: str, version: Optional[int] = None) -> Optional[Dict[str, Any]]:
+def get_spec(run_id: str, version: int | None = None) -> dict[str, Any] | None:
     query, args = "SELECT spec FROM specs WHERE run_id=?", [run_id]
     if version is not None:
         query += " AND version=?"
@@ -188,7 +188,7 @@ def set_external(run_id: str, stage: int, key: str, value: str) -> None:
         conn.execute("INSERT OR REPLACE INTO external_ids VALUES (?,?,?,?)", (run_id, stage, key, value))
 
 
-def get_externals(run_id: str, stage: int) -> Dict[str, str]:
+def get_externals(run_id: str, stage: int) -> dict[str, str]:
     with closing(_connect()) as conn:
         rows = conn.execute("SELECT key, value FROM external_ids WHERE run_id=? AND stage=?", (run_id, stage))
         return {r["key"]: r["value"] for r in rows}
@@ -202,7 +202,7 @@ def add_cost(run_id: str, step: str, usd: float) -> None:
         )
 
 
-def add_answers(run_id: str, answers: List[str]) -> None:
+def add_answers(run_id: str, answers: list[str]) -> None:
     with closing(_connect()) as conn, conn:
         base = conn.execute("SELECT COALESCE(MAX(seq), 0) AS s FROM answers WHERE run_id=?", (run_id,)).fetchone()["s"]
         conn.executemany(
@@ -210,7 +210,7 @@ def add_answers(run_id: str, answers: List[str]) -> None:
         )
 
 
-def get_answers(run_id: str) -> List[str]:
+def get_answers(run_id: str) -> list[str]:
     with closing(_connect()) as conn:
         rows = conn.execute("SELECT answer FROM answers WHERE run_id=? ORDER BY seq", (run_id,)).fetchall()
     return [r["answer"] for r in rows]
