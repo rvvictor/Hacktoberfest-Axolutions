@@ -6,7 +6,7 @@
 - Why: 011 not in main yet
 - Failing: none
 - Commands: uv run pytest -q app/tests/test_hunter.py && npm --prefix web run build && bash .uak/bin/design-lint
-- Next: Wait for review of SHA 1e10e9e
+- Next: Humano: New file outside Paths: app/fixtures/outreach/drafts.json. Move it into the task's Paths, or a human adds its dir to Additive-Paths in PROJECT.md (new files there need no reservation)
 
 ## History
 - 1793165106 | CLAIMED | victor-2 | claim; next: write the prospects fixture and the router on the `outreach.py` contract.
@@ -16,3 +16,4 @@
 - 1793165543 | REVIEW | victor-2 | heartbeat; lease until 1793179943
 - 1793165993 | REVIEW | dylan-2 | review; approve; SHA 1e10e9ee8125dc3132da2d66c385b60d3188f959; reviewer dylan-2
 - 1793166171 | REVIEW | victor-2 | heartbeat; lease until 1793180571
+- 1793166510 | REVIEW | victor-1 | merge rechazado; New file outside Paths: app/fixtures/outreach/drafts.json. Move it into the task's Paths, or a human adds its dir to Additive-Paths in PROJECT.md (new files there need no reservation)

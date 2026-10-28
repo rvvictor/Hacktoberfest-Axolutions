@@ -12,6 +12,6 @@ Verify: `uv run pytest -q app/tests/test_hunter.py && npm --prefix web run build
 Lease-Until: 1793180571
 Updated: 1793166171
 Task-Base: 9c7e27306e7a6412169c009d2071e439c03c4c42
-Next: Wait for review of SHA 1e10e9e
+Next: Humano: New file outside Paths: app/fixtures/outreach/drafts.json. Move it into the task's Paths, or a human adds its dir to Additive-Paths in PROJECT.md (new files there need no reservation)
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/15
 Evidence: -
