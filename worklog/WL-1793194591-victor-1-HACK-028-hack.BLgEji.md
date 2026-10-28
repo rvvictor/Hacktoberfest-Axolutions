@@ -6,7 +6,7 @@
 - Why: Parallel work without touching the main checkout
 - Failing: No validation run yet
 - Commands: `uv run pytest -q app/tests/test_pitch.py app/tests/test_pipeline.py app/tests/test_pitch_run.py`
-- Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/27; run .uak/bin/smoke
+- Next: Humano: Approval missing, rejected, self-made or stale for the current SHA
 
 ## History
 - 1793194591 | CLAIMED | victor-1 | claim; next: find where the pipeline emits `pitch_ready` in `app/services/pipeline.py` and persist the deck there; then add `memory.remember` calls per stage.
@@ -18,3 +18,4 @@
 - 1793198887 | REVIEW | victor-2 | merge rechazado; Verify / acceptance red: ERROR: file or directory not found: app/tests/test_pitch_run.py (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-028-verify-1793198887.log)
 - 1793198938 | REVIEW | victor-2 | merge rechazado; Verify / acceptance red: ERROR: file or directory not found: app/tests/test_pitch_run.py (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-028-verify-1793198938.log)
 - 1793199062 | REVIEW | victor-1 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/27; evidence: exact Verify: pytest test_pitch.py test_pipeline.py test_pitch_run.py: 18 passed; ruff clean; smoke PRODUCT_PASS; reviewer: -
+- 1793199093 | REVIEW | sebas-2 | merge rechazado; Approval missing, rejected, self-made or stale for the current SHA
