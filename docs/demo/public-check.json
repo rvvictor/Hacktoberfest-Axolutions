@@ -1,0 +1,31 @@
+{
+  "origin": "https://speedhack.onrender.com",
+  "health": {
+    "status": "ok"
+  },
+  "routes": [
+    {
+      "route": "intake",
+      "http": 200,
+      "demo_label": false
+    },
+    {
+      "route": "live-board",
+      "http": 200,
+      "demo_label": true
+    },
+    {
+      "route": "pitch",
+      "http": 200,
+      "demo_label": true
+    }
+  ],
+  "pitch_answer": {
+    "question": "Alertas?",
+    "answer": "Soy una IA. Según la memoria de demostración: El proyecto de control de gastos corporativos incluye registro con comprobante, aprobación por rol y alertas automáticas al superar un límite.",
+    "sources": [
+      "demo:spec"
+    ],
+    "demo_data": true
+  }
+}

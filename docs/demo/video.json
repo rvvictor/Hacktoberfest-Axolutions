@@ -1,0 +1,13 @@
+{
+  "demo_data": true,
+  "metadata": {
+    "duration": 183,
+    "width": 1280,
+    "height": 720
+  },
+  "playback": {
+    "playing": true,
+    "currentTime": 1.3004,
+    "error": null
+  }
+}
