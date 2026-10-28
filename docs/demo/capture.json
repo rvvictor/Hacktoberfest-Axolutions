@@ -1,0 +1,52 @@
+{
+  "demo_data": true,
+  "screenshots_only": false,
+  "elapsed_seconds": 200.0,
+  "routes": [
+    {
+      "route": "intake",
+      "http": 200,
+      "demo_label": false
+    },
+    {
+      "route": "run",
+      "http": 200,
+      "demo_label": true
+    },
+    {
+      "route": "spec",
+      "http": 200,
+      "demo_label": true
+    },
+    {
+      "route": "live-board",
+      "http": 200,
+      "demo_label": true
+    },
+    {
+      "route": "delivery",
+      "http": 200,
+      "demo_label": true
+    },
+    {
+      "route": "client",
+      "http": 200,
+      "demo_label": true
+    },
+    {
+      "route": "hunter",
+      "http": 200,
+      "demo_label": true
+    },
+    {
+      "route": "pitch",
+      "http": 200,
+      "demo_label": true
+    },
+    {
+      "route": "live-board",
+      "http": 200,
+      "demo_label": true
+    }
+  ]
+}
