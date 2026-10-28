@@ -10,3 +10,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793159442 | HACK-003 | Direction 3 Línea 1 | Why: human pick
 - 1793159885 | HACK-006 | tests con asyncio.run, sin pytest-asyncio | Why: evitar tocar pyproject compartido
 - 1793159895 | HACK-007 | fixtures hand-written, no LINEAR key | Why: cannot record real call
+- 1793159895 | HACK-008 | httpx direct to ElevenLabs REST (respx-mocked), not SDK; fixtures are placeholders marked demo_data | Why: no API key yet; keeps tests offline

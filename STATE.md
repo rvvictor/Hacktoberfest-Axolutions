@@ -17,16 +17,16 @@ HACK-004 | REVIEW | victor-2 | until 1793173648
 HACK-005 | REVIEW | dylan-2 | until 1793173681
 HACK-006 | CLAIMED | fer-1 | until 1793162585
 HACK-007 | CLAIMED | fer-2 | until 1793162595
-HACK-008 | CLAIMED | sebas-2 | until 1793162535
+HACK-008 | CLAIMED | sebas-2 | until 1793162595
 HACK-013 | CLAIMED | victor-1 | until 1793162002
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
-- 1793159248 | HACK-004 | fixtures hand-written, no ANTHROPIC key | Why: cannot make real call
 - 1793159302 | HACK-013 | Hold PR/uak done until HACK-001/002 integrate (branch carries their merge) | Why: diff outside Paths otherwise
 - 1793159442 | HACK-003 | Direction 3 Línea 1 | Why: human pick
 - 1793159885 | HACK-006 | tests con asyncio.run, sin pytest-asyncio | Why: evitar tocar pyproject compartido
 - 1793159895 | HACK-007 | fixtures hand-written, no LINEAR key | Why: cannot record real call
+- 1793159895 | HACK-008 | httpx direct to ElevenLabs REST (respx-mocked), not SDK; fixtures are placeholders marked demo_data | Why: no API key yet; keeps tests offline
 
 Global next step: available P0; else review PRs, tests, demo, rehearsal.
 Why: bounded snapshot to resume without rereading history.
