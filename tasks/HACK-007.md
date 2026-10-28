@@ -1,6 +1,6 @@
 # HACK-007
 ID: HACK-007
-State: CLAIMED
+State: AVAILABLE
 Owner: fer-2
 Branch: feat/hack-007
 Worktree: /Users/FerV/Documents/Hacktober/Hacktoberfest-Axolutions-wt/hack-007
@@ -9,13 +9,13 @@ Priority: P0
 Paths: app/services/linear.py, app/fixtures/linear/, app/tests/test_linear.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_linear.py`
-Lease-Until: 1793162595
-Updated: 1793159895
+Lease-Until: 0
+Updated: 1793166132
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: ship: uak done after HACK-001/002 integrate
 PR: -
 Evidence: -
-Events: 2
+Events: 3
 Checkpoints: 1
-Sessions: 1
+Sessions: 2
 Last-Checkpoint: 1793159895
