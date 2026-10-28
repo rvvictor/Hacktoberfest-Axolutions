@@ -24,19 +24,19 @@ Type: Archivo variable (Google Fonts). Titles 800 at `font-stretch: 112%`; IDs a
 ## Components (`web/src/lib/ui/`, import from `../../lib/ui` in a feature)
 - `MetroLine current={n}`: the run timeline. Use it on every run screen, at the top, full width. Gates after stages 4, 6, 8 are fixed in `GATES`.
 - `Title`, `SectionHeader title meta`: the project name, then each panel's heading with a count ("5 de 12").
-- `Panel title meta` + `Item tone pending fresh`: Miro elements (`rosa` screens, `ink` data, `naranja` integrations), Linear issues, research sources. `pending` = still arriving (dashed), `fresh` = just arrived (rosa ring).
+- `Panel title meta` + `Item tone pending fresh code meta`: Miro elements (`rosa` screens, `ink` data, `naranja` integrations), Linear issues, research sources. `pending` = still arriving (dashed), `fresh` = just arrived (rosa ring).
 - `Button variant="primary"`: only the action that advances the run (Aprobar, Empezar). One per screen. Everything else `secondary`.
 - `Chip tone`: small states (ok/error for quality checks, rosa for highlights).
-- `DemoBadge show={demo_data}`: required wherever data is recorded or simulated.
+- `DemoBadge show={demo_data}`: required wherever data is recorded or simulated; on a view it sits in the header, top-right.
 - `Stat value label`: costs, times, counts (condensed numerals).
 
 ## Usage rules
 - Every view reuses `MetroLine` and `Panel`; don't build another timeline or card style.
-- The wow screen (HACK-016) is two panels side by side: Miro 1.3fr, Linear 1fr; stacked under 820 px.
+- The wow screen (HACK-016) is two panels side by side: Miro 1.3fr, Linear 1fr; stacked under 820 px. Newest item first in Linear so the arrival is above the 720 px fold.
 - Motion: only the current station's pulse and items arriving one by one (≈150 ms stagger). Everything respects `prefers-reduced-motion`.
 - Copy in Spanish, sentence case, plain verbs ("Aprobar diseño", "Pedir cambios").
 
 ## Never
-1. Never a dark theme or a second brand color: rosa is the only accent; orange means approval or demo data, nothing else.
+1. Never a dark theme or a second brand color: rosa is the only accent; orange means approval, integrations or demo data, nothing else (and never as text or focus ring on white: use `--sh-naranja-ink` / `--sh-ink`).
 2. Never all-caps labels, gradients or drop shadows on cards.
 3. Never show a figure without its source or simulated data without `DemoBadge`.

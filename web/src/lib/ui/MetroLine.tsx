@@ -40,6 +40,10 @@ export function MetroLine({ current, failed, notes = {} }: Props) {
           );
         })}
       </ol>
+      <p className="sh-metro__mobile">
+        Etapa {current} de 9: {STAGE_LABELS[current - 1]}
+        {GATES[current] && `, ${notes[current] ?? GATES[current]}`}
+      </p>
     </nav>
   );
 }
