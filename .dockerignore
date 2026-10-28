@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+!.env.example
+.venv
+node_modules
+web/node_modules
+**/__pycache__
+.uak-env
+*-wt
