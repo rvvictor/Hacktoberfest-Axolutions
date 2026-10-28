@@ -30,3 +30,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793164996 | HACK-019 | Use integrated LLM; explicit demo run only; reject foreign and fabricated sources | Why: Preserve run scope and evidence provenance
 - 1793165182 | HACK-013 | Left SSE named events as is (HACK-016 listens per type) | Why: changing breaks useBoardEvents
 - 1793165271 | HACK-021 | Merged feat/hack-011 for outreach.py contract | Why: 011 not in main yet
+- 1793165595 | HACK-009 | Ship with local index; AC3 flagged partial, fixture demo_data:true | Why: No Backboard key
