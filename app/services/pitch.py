@@ -5,7 +5,7 @@ import re
 import unicodedata
 
 from app.config import settings
-from app.schemas import Pitch, QAEntry, Spec
+from app.schemas import Pitch, QAEntry, ResearchItem, Spec
 from app.services import llm
 
 DEMO_RUN = "demo-pitch"
@@ -54,10 +54,9 @@ def _words(text):
         "tengo",
         "dato",
         "ese",
-        "cuanto",
-        "cuantos",
-        "cuesta",
-        "precio",
+        "funcionan",
+        "funciona",
+        "explica",
         "es",
         "el",
         "la",
@@ -134,8 +133,21 @@ def deck(run_id):
             ],
             demo_data=True,
         )
-    result = llm.build_deck(spec, [])
-    return result.model_copy(update={"demo_data": result.demo_data or spec.demo_data})
+    research = []
+    for passage in passages:
+        if passage.get("kind") == "research":
+            try:
+                research.append(ResearchItem.model_validate_json(passage["text"]))
+            except ValueError:
+                continue
+    result = llm.build_deck(spec, research)
+    return result.model_copy(
+        update={
+            "demo_data": result.demo_data
+            or spec.demo_data
+            or any(p.get("demo_data") for p in passages)
+        }
+    )
 
 
 def ask(run_id, question):
@@ -157,7 +169,15 @@ def ask(run_id, question):
     )
     allowed = {p.source for p in passages}
     valid = bool(entry.sources) and set(entry.sources) <= allowed
-    if run_id == DEMO_RUN and settings.DEMO_MODE and passages and not valid:
+    explicit_no_data = entry.answer.strip().lower().rstrip(".") == NO_DATA
+    if (
+        run_id == DEMO_RUN
+        and settings.DEMO_MODE
+        and passages
+        and not valid
+        and not explicit_no_data
+        and _words(question) <= _words(passages[0].text)
+    ):
         # Recorded LLM answers may describe a different fixture. Quote this
         # demo's evidence verbatim instead of presenting that unrelated answer.
         entry = QAEntry(
@@ -166,7 +186,7 @@ def ask(run_id, question):
             sources=[passages[0].source],
         )
         valid = True
-    if not valid or entry.answer.strip().lower().rstrip(".") == NO_DATA:
+    if not valid or explicit_no_data:
         entry = QAEntry(question=question, answer=NO_DATA)
     return Answer(
         question=question,

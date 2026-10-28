@@ -92,3 +92,58 @@ def test_unavailable_is_retryable(monkeypatch):
     assert (
         client.post("/api/pitch/a/ask", json={"question": "alertas"}).status_code == 503
     )
+
+
+def test_demo_does_not_substitute_features_for_pricing(monkeypatch):
+    monkeypatch.setattr(pitch.settings, "DEMO_MODE", True)
+    assert pitch.ask("demo-pitch", "¿Cuánto cuestan las alertas?").answer.endswith(
+        pitch.NO_DATA
+    )
+    monkeypatch.setattr(
+        pitch.llm, "answer", lambda q, p: QAEntry(question=q, answer=pitch.NO_DATA)
+    )
+    assert pitch.ask("demo-pitch", "alertas").answer.endswith(pitch.NO_DATA)
+
+
+def test_live_deck_receives_research_and_record_provenance(monkeypatch):
+    from app.schemas import Pitch, ResearchItem, Spec
+
+    spec = Spec(version=1, problem="Control de gastos", users=[], mvp_features=[])
+    research = ResearchItem(
+        competitor="Ejemplo", url="https://example.invalid/research"
+    )
+    records = [
+        {
+            "run_id": "a",
+            "kind": "spec",
+            "text": spec.model_dump_json(),
+            "source": "spec:1",
+            "demo_data": True,
+        },
+        {
+            "run_id": "a",
+            "kind": "research",
+            "text": research.model_dump_json(),
+            "source": research.url,
+        },
+    ]
+    monkeypatch.setattr(pitch, "recall", lambda *a, **k: records)
+    monkeypatch.setattr(pitch.llm, "_demo", lambda: False)
+
+    def build_deck(received_spec, received_research):
+        assert received_spec == spec
+        assert received_research == [research]
+        return Pitch(
+            slides=[{"title": "Proyecto", "bullets": [], "sources": [research.url]}]
+        )
+
+    monkeypatch.setattr(pitch.llm, "build_deck", build_deck)
+    assert pitch.deck("a").demo_data is True
+
+
+def test_provider_network_failure_is_retryable(monkeypatch):
+    def unavailable(*args, **kwargs):
+        raise OSError("Provider connection failed")
+
+    monkeypatch.setattr(pitch, "recall", unavailable)
+    assert client.get("/api/pitch/a").status_code == 503
