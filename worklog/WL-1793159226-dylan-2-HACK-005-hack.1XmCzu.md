@@ -13,3 +13,4 @@
 - 1793159281 | REVIEW | dylan-2 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/4; evidence: pytest app/tests/test_research.py: 5 passed (against HACK-001/002 contracts, simulated fixture); reviewer: -
 - 1793160223 | REVIEW | victor-2 | review; reject; SHA e27e9ccb4cc2b2e70de3d99340b1b3ec31ff817e; reviewer victor-2
 - 1793160360 | REVIEW | victor-2 | review; reject; SHA e27e9ccb4cc2b2e70de3d99340b1b3ec31ff817e; reviewer victor-2
+- 1793160435 | REVIEW | sebas-1 | review; reject; SHA e27e9ccb4cc2b2e70de3d99340b1b3ec31ff817e; reviewer sebas-1
