@@ -1,0 +1,14 @@
+{
+  "_note": "Hand-written from Linear's documented issueCreate response shape; unverified against a real call (no LINEAR_API_KEY yet). Re-record when the key exists.",
+  "demo_data": true,
+  "data": {
+    "issueCreate": {
+      "success": true,
+      "issue": {
+        "id": "00000000-0000-0000-0000-000000000001",
+        "identifier": "SPD-1",
+        "url": "https://linear.app/speedhack-demo/issue/SPD-1/demo"
+      }
+    }
+  }
+}
