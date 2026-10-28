@@ -1,6 +1,6 @@
 # HACK-020
 ID: HACK-020
-State: CLAIMED
+State: REVIEW
 Owner: dylan-2
 Branch: feat/hack-020
 Worktree: /Users/dylanmartinezcastillo/Documents/Repositorios/Hackathon/Hacktoberfest-Axolutions-wt/hack-020
@@ -9,9 +9,9 @@ Priority: P1
 Paths: app/routers/client.py, app/fixtures/client/, app/tests/test_client.py, web/src/features/client/
 Depends: HACK-003
 Verify: `uv run pytest -q app/tests/test_client.py && npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793167491
-Updated: 1793164791
+Lease-Until: 1793179373
+Updated: 1793164973
 Task-Base: d3d978a833c3c5c776c1b9b86ca577727d4bd031
-Next: write the barbershop fixture and `GET /api/client/demo`.
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/13; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/13
 Evidence: -
