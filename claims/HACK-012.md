@@ -9,8 +9,8 @@ Priority: P1
 Paths: quality/, app/services/quality.py, app/fixtures/quality/, app/tests/test_quality.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_quality.py`
-Lease-Until: 1793162998
-Updated: 1793160298
+Lease-Until: 1793163381
+Updated: 1793160681
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: wait for HACK-001 and HACK-002 INTEGRATED; then open PR and uak done HACK-012. Smoke step needs a generated playwright.config with @smoke tag
 PR: -
