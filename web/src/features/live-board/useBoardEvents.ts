@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useReducer, useState } from "react";
 
-import { subscribe } from "../../lib/sse";
-import type { BacklogItem, MiroItem, StageEvent } from "./contract";
+import type { BacklogItem, EventType, MiroItem, StageEvent } from "./contract";
 import { playDemo } from "./demo";
 
 export interface BoardState {
@@ -12,6 +11,20 @@ export interface BoardState {
   awaitingApproval: boolean;
   approved: boolean;
   demo: boolean;
+}
+
+const EVENT_TYPES: EventType[] = [
+  "stage_started", "stage_done", "question", "research_item", "spec_ready", "approval_required", "approval_given",
+  "approval_rejected", "miro_item", "linear_issue", "prototype_ready", "quality_check", "pitch_ready", "error",
+];
+
+// The runs router (HACK-013) sends named SSE events (`event: <type>`), which `onmessage` in lib/sse.ts never sees.
+function listen(url: string, onEvent: (e: StageEvent) => void): () => void {
+  const source = new EventSource(url);
+  const handle = (m: MessageEvent<string>) => onEvent(JSON.parse(m.data) as StageEvent);
+  EVENT_TYPES.forEach((t) => source.addEventListener(t, handle));
+  source.onmessage = handle;
+  return () => source.close();
 }
 
 const initial: BoardState = { stage: 5, miro: [], issues: [], boardId: null, awaitingApproval: false, approved: false, demo: false };
@@ -42,7 +55,7 @@ export function useBoardEvents(runId: string | null) {
 
   useEffect(() => {
     dispatch("reset");
-    if (runId) return subscribe<StageEvent>(`/api/runs/${encodeURIComponent(runId)}/events`, dispatch);
+    if (runId) return listen(`/api/runs/${encodeURIComponent(runId)}/events`, dispatch);
     return playDemo(dispatch);
   }, [runId, round]);
 
