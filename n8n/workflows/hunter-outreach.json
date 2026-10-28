@@ -17,7 +17,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const crypto = require('crypto');\nconst req = $input.first().json;\nconst b = req.body || {};\nconst sig = (req.headers || {})['x-speedhack-signature'];\nconst digest = crypto.createHash('sha256').update(String(b.body || ''), 'utf8').digest('hex');\nconst parts = [b.outreach_id, b.prospect_id, b.channel, digest].join('\\n');\nconst expected = 'sha256=' + crypto.createHmac('sha256', $env.N8N_WEBHOOK_SECRET).update(parts, 'utf8').digest('hex');\nconst ok = !!sig && sig.length === expected.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));\nif (!ok) throw new Error('bad signature: draft refused');\nif (b.stage !== 'draft') throw new Error('unexpected stage');\nreturn [{ json: { ...b, verified: true } }];"
+        "jsCode": "const crypto = require('crypto');\nconst req = $input.first().json;\nconst b = req.body || {};\nconst sig = (req.headers || {})['x-speedhack-signature'];\nconst digest = crypto.createHash('sha256').update(String(b.body || ''), 'utf8').digest('hex');\nconst parts = [b.outreach_id, b.prospect_id, b.channel, digest].join('\\n');\nconst expected = 'sha256=' + crypto.createHmac('sha256', $vars.N8N_WEBHOOK_SECRET).update(parts, 'utf8').digest('hex');\nconst ok = !!sig && sig.length === expected.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));\nif (!ok) throw new Error('bad signature: draft refused');\nif (b.stage !== 'draft') throw new Error('unexpected stage');\nreturn [{ json: { ...b, verified: true } }];"
       },
       "id": "a1b2c3d4-0002-4000-8000-000000000002",
       "name": "Verify draft signature",
@@ -51,7 +51,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const crypto = require('crypto');\nconst req = $input.first().json;\nconst b = req.body || {};\nconst sig = (req.headers || {})['x-speedhack-signature'];\nconst draft = $('Verify draft signature').first().json;\nif (!b.approved_by || String(b.approved_by).trim() === '') throw new Error('approved_by is required');\nif (b.stage !== 'approval') throw new Error('unexpected stage');\nif (b.outreach_id !== draft.outreach_id) throw new Error('outreach_id mismatch');\nconst digest = crypto.createHash('sha256').update(String(draft.body || ''), 'utf8').digest('hex');\nconst parts = [draft.outreach_id, draft.prospect_id, draft.channel, String(b.approved_by).trim(), digest].join('\\n');\nconst expected = 'sha256=' + crypto.createHmac('sha256', $env.N8N_WEBHOOK_SECRET).update(parts, 'utf8').digest('hex');\nconst ok = !!sig && sig.length === expected.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));\nreturn [{ json: { approved: ok, outreach_id: draft.outreach_id, prospect_id: draft.prospect_id, channel: draft.channel, approved_by: String(b.approved_by).trim(), body: draft.body, demo_data: true } }];"
+        "jsCode": "const crypto = require('crypto');\nconst req = $input.first().json;\nconst b = req.body || {};\nconst sig = (req.headers || {})['x-speedhack-signature'];\nconst draft = $('Verify draft signature').first().json;\nif (!b.approved_by || String(b.approved_by).trim() === '') throw new Error('approved_by is required');\nif (b.stage !== 'approval') throw new Error('unexpected stage');\nif (b.outreach_id !== draft.outreach_id) throw new Error('outreach_id mismatch');\nconst digest = crypto.createHash('sha256').update(String(draft.body || ''), 'utf8').digest('hex');\nconst parts = [draft.outreach_id, draft.prospect_id, draft.channel, String(b.approved_by).trim(), digest].join('\\n');\nconst expected = 'sha256=' + crypto.createHmac('sha256', $vars.N8N_WEBHOOK_SECRET).update(parts, 'utf8').digest('hex');\nconst ok = !!sig && sig.length === expected.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));\nreturn [{ json: { approved: ok, outreach_id: draft.outreach_id, prospect_id: draft.prospect_id, channel: draft.channel, approved_by: String(b.approved_by).trim(), body: draft.body, demo_data: true } }];"
       },
       "id": "a1b2c3d4-0005-4000-8000-000000000005",
       "name": "Verify approval signature",
@@ -83,7 +83,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const crypto = require('crypto');\nconst j = $input.first().json;\nconst sentAt = new Date().toISOString();\nconst parts = [j.outreach_id, 'sent', sentAt].join('\\n');\nconst signature = 'sha256=' + crypto.createHmac('sha256', $env.N8N_WEBHOOK_SECRET).update(parts, 'utf8').digest('hex');\nreturn [{ json: { outreach_id: j.outreach_id, status: 'sent', sent_at: sentAt, transport: 'mock', demo_data: true, note: 'Mock send: no real email or WhatsApp was sent.', signature } }];"
+        "jsCode": "const crypto = require('crypto');\nconst j = $input.first().json;\nconst sentAt = new Date().toISOString();\nconst parts = [j.outreach_id, 'sent', sentAt].join('\\n');\nconst signature = 'sha256=' + crypto.createHmac('sha256', $vars.N8N_WEBHOOK_SECRET).update(parts, 'utf8').digest('hex');\nreturn [{ json: { outreach_id: j.outreach_id, status: 'sent', sent_at: sentAt, transport: 'mock', demo_data: true, note: 'Mock send: no real email or WhatsApp was sent.', signature } }];"
       },
       "id": "a1b2c3d4-0008-4000-8000-000000000008",
       "name": "Mock send",
@@ -94,7 +94,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.SPEEDHACK_API_URL }}/api/hunter/outreach/{{ $json.outreach_id }}/callback",
+        "url": "={{ $vars.SPEEDHACK_API_URL }}/api/hunter/outreach/{{ $json.outreach_id }}/callback",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
