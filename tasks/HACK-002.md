@@ -12,12 +12,12 @@ Verify: `uv run pytest -q app/tests/test_schemas.py`
 Lease-Until: 1793174617
 Updated: 1793160217
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: Humano: Smoke red or product unverified: PRODUCT_UNVERIFIED: missing .uak/bin/smoke-project; exit 2. (log: /Users/sebastian/Desktop/Hackathones/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-002-smoke-1793160286.log)
+Next: Humano: Smoke red or product unverified: PRODUCT_UNVERIFIED: missing .uak/bin/smoke-project; exit 2. (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-002-smoke-1793160449.log)
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/1
 Evidence: pytest test_schemas via uv --no-project (pydantic,pytest) exit 0, 4 passed; literal Verify blocked until HACK-001 pyproject; smoke unavailable
-Events: 8
+Events: 9
 Checkpoints: 1
-Sessions: 5
+Sessions: 6
 Last-Checkpoint: 1793158535
 Progress: 1 commit(s) since the claim · last: 82fa2e9 feat(HACK-002): schemas, demo run fixture, TS types and replay (29 minutes ago) · 0 uncommitted tracked file(s) · at 1793160217
 Progress-Head: 82fa2e9/4294967295
