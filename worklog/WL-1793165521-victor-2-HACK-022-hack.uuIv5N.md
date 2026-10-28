@@ -6,7 +6,7 @@
 - Why: HACK-013 only stores usd per step and is unmerged
 - Failing: none
 - Commands: uv run pytest -q app/tests/test_ops.py && npm --prefix web run build && bash .uak/bin/design-lint
-- Next: Wait for review of SHA 94da0c2
+- Next: Integrated in main: 275f3088585e5eee3fef149e6731c79e6a64f96a
 
 ## History
 - 1793165521 | CLAIMED | victor-2 | claim; next: read the cost-per-step fields that HACK-013 stores.
@@ -15,3 +15,4 @@
 - 1793165665 | REVIEW | victor-2 | checkpoint; next: Wait for review of SHA 94da0c2
 - 1793166026 | REVIEW | dylan-2 | review; approve; SHA 94da0c25ee4df6f6405b0dabc47551eb9d47e7b1; reviewer dylan-2
 - 1793166176 | REVIEW | victor-2 | heartbeat; lease until 1793180576
+- 1793166568 | INTEGRATED | victor-1 | merge; smoke and Verify PASS; commit 275f3088585e5eee3fef149e6731c79e6a64f96a; reviewer dylan-2
