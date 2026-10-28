@@ -1,5 +1,5 @@
 ID: HACK-033
-State: MERGING
+State: HUMAN
 Owner: jabi-1
-Queued: 1793213917
-Reason: Waiting for queue
+Updated: 1793214897
+Reason: Base moved; revalidate the candidate
