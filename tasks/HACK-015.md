@@ -1,0 +1,21 @@
+# HACK-015
+ID: HACK-015
+State: CLAIMED
+Owner: dylan-2
+Branch: feat/hack-015
+Worktree: /Users/dylanmartinezcastillo/Documents/Repositorios/Hackathon/Hacktoberfest-Axolutions-wt/hack-015
+Worklog: worklog/WL-1793163832-dylan-2-HACK-015-hack.ftwto2.md
+Priority: P0
+Paths: web/src/features/run/
+Depends: HACK-003
+Verify: `npm --prefix web run build && bash .uak/bin/design-lint`
+Lease-Until: 1793166532
+Updated: 1793163832
+Task-Base: 71c69e1655107e7085567d735da4683b3937ecc8
+Next: render the stepper from the mock replay.
+PR: -
+Evidence: -
+Events: 1
+Checkpoints: 0
+Sessions: 1
+Last-Checkpoint: 0
