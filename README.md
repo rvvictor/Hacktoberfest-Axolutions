@@ -46,9 +46,12 @@ three explicit approvals, and a fallback at each step. The board wow starts at
 
 - [Plan-B video and playback instructions](docs/demo/plan-b.md)
 - [Clean-clone rehearsal evidence](docs/demo/rehearsal.md)
-- Public deployment: **unverified / not supplied**. `render.yaml` and `Dockerfile`
-  describe deployment, but do not establish that a public service exists. The
-  submission owner must add and verify the judge-accessible URL before submission.
+- [Open the public demo](https://speedhack.onrender.com). Judges should wait
+  about **1 minute on first load**: Render's free tier sleeps after 15 minutes
+  of inactivity. The deployment uses `DEMO_MODE=true` and updates from `main`.
+  Health, the recorded board, and written pitch Q&A were verified on 2026-10-28;
+  see [public demo evidence](docs/demo/public-check.json). Sample results are
+  labeled `demo_data: true` / “Datos de demostración”.
 
 ## Configuration
 
@@ -101,4 +104,4 @@ terms; inspect installed package metadata and the lockfiles before redistributio
 External research pages and provider services retain their own rights and terms.
 The screenshots and video document this repository's sample UI; they do not
 license third-party source content. Submission forms, the event video limit,
-public URL and license choice remain the human submission owner's responsibility.
+and license choice remain the human submission owner's responsibility.

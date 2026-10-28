@@ -55,6 +55,15 @@ Ruff, `128 passed in 22.43s`, frontend lint and production build,
 also passed with exit 0. UV was installed temporarily and added
 to the verifier's PATH; the README lists installed UV as a prerequisite.
 
-Public deployment verification is pending: neither the repository, claims, nor
-the repository's GitHub deployments API supplied a public URL. A request was
-sent to the human through UAK. No hosting service was created or paid for.
+Public deployment verified on 2026-10-28 at https://speedhack.onrender.com using
+`.venv/Scripts/python.exe docs/demo/check-public.py`.
+Chromium ran at 1280×720 with reduced motion. `GET /api/health` returned HTTP 200
+and `{"status":"ok"}`. Intake, the completed recorded board, and pitch returned
+HTTP 200; board and pitch displayed their demo labels. Written pitch Q&A completed
+in the browser. `POST /api/pitch/demo-pitch/ask` with `Alertas?` returned HTTP 200,
+the recorded expense-control answer, `sources: ["demo:spec"]`, and `demo_data: true`.
+The machine-readable result is `public-check.json`; `screenshots/public-*.png`
+are actual captures of that deployment. This verifies recorded mode only.
+Render's free tier sleeps after 15 minutes idle; judges should allow about one
+minute for the first load. Hosting configuration and autodeploy on `main` were
+reported by the deployment owner; no hosting service was created or paid for here.
