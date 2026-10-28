@@ -129,6 +129,38 @@ def test_real_provider_is_used_validated_and_costed(client, monkeypatch):
     assert client.get(f"/api/runs/{run_id}").json()["cost_by_step"] == {"research": 0.02}
 
 
+def test_cost_spent_before_a_failure_is_still_recorded(client, monkeypatch):
+    monkeypatch.setattr(settings, "DEMO_MODE", False)
+
+    def broken(ctx):
+        ctx.add_cost(0.03)  # the API call was made and paid for before the provider failed
+        raise RuntimeError("provider down")
+
+    pipeline.register(3, broken)
+    run_id = _create(client)
+    client.post(f"/api/runs/{run_id}/answers", json={"answers": ["a"]})
+    assert client.get(f"/api/runs/{run_id}").json()["cost_by_step"] == {"research": 0.03}
+
+
+def test_cost_spent_before_an_invalid_payload_is_still_recorded(client, monkeypatch):
+    monkeypatch.setattr(settings, "DEMO_MODE", False)
+
+    def invalid(ctx):
+        ctx.add_cost(0.01)
+        return [("research_item", {"competitor": "Acme"})]  # no url: breaks the contract
+
+    pipeline.register(3, invalid)
+    run_id = _create(client)
+    client.post(f"/api/runs/{run_id}/answers", json={"answers": ["a"]})
+    assert client.get(f"/api/runs/{run_id}").json()["cost_by_step"] == {"research": 0.01}
+
+
+def test_free_fallback_records_no_cost(client):
+    run_id = _create(client)
+    client.post(f"/api/runs/{run_id}/answers", json={"answers": ["a"]})
+    assert client.get(f"/api/runs/{run_id}").json()["cost_by_step"] == {}
+
+
 def test_provider_with_invalid_payload_falls_back(client, monkeypatch):
     monkeypatch.setattr(settings, "DEMO_MODE", False)
     pipeline.register(3, lambda ctx: [("research_item", {"competitor": "Acme"})])  # no url: breaks the contract
