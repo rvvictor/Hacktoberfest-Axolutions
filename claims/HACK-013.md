@@ -9,9 +9,9 @@ Priority: P0
 Paths: app/routers/runs.py, app/services/pipeline.py, app/services/store.py, app/tests/test_pipeline.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_pipeline.py`
-Lease-Until: 1793161792
-Updated: 1793159092
+Lease-Until: 1793162002
+Updated: 1793159302
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: write `store.py`, then a pipeline that replays `run.jsonl`; swap in real services one by one.
+Next: When 001/002 integrated: git merge origin/main, rerun Verify, gh pr create, uak done HACK-013
 PR: -
 Evidence: -
