@@ -9,9 +9,9 @@ Priority: P1
 Paths: web/src/features/intake/
 Depends: HACK-014
 Verify: `npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793211492
-Updated: 1793208792
+Lease-Until: 1793211999
+Updated: 1793209299
 Task-Base: fa2f0ffdf9b68fb2f442b9a12160498f954df5cd
-Next: Implement HACK-032 and run: `npm --prefix web run build && bash .uak/bin/design-lint`
+Next: open PR, uak done
 PR: -
 Evidence: -
