@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import { api } from "../../lib/api";
-import { currentRunId } from "../../lib/runId";
 import type { Spec } from "../../lib/types";
 import { Button, Chip, DemoBadge, MetroLine, Panel, Title } from "../../lib/ui";
 import { useSpecEvents } from "./useSpecEvents";
@@ -52,7 +51,7 @@ function SpecBody({ spec }: { spec: Spec }) {
 }
 
 export default function SpecReview() {
-  const [runId] = useState(() => currentRunId());
+  const [runId] = useState(() => params().get("run"));
   const { state, setState } = useSpecEvents(runId);
   const [client, setClient] = useState(() => params().get("mode") === "client");
   const [picked, setPicked] = useState<number | null>(null);

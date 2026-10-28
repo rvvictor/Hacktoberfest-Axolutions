@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api } from "../../lib/api";
-import { currentRunId, viewHref } from "../../lib/runId";
 import { Button, Chip, DemoBadge, MetroLine, Panel, Stat, STAGE_LABELS, Title } from "../../lib/ui";
 import type { StageEvent } from "./contract";
 import { demoAfterDecision, demoStart, GATE_STAGE } from "./demo";
+import { currentRunId, withRun } from "./runId";
 import "./run.css";
 
 export const path = "/run";
@@ -208,7 +208,7 @@ export default function Run() {
             </div>
             <nav className="run__links" aria-label="Vistas del proyecto">
               {LINKS.map((l) => (
-                <a key={l.href} href={viewHref(l.href)}>{l.text}</a>
+                <a key={l.href} href={withRun(l.href, runId)}>{l.text}</a>
               ))}
             </nav>
           </Panel>

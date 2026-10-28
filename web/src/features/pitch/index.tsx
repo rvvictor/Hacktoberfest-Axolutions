@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Microphone, Printer } from "@phosphor-icons/react";
 import { api } from "../../lib/api";
-import { currentRunId } from "../../lib/runId";
 import { Button, DemoBadge, MetroLine, Panel } from "../../lib/ui";
+import { currentRunId } from "../run/runId";
 import "./pitch.css";
 
 export const path = "/pitch";

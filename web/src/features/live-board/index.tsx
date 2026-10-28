@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 import { api } from "../../lib/api";
-import { currentRunId } from "../../lib/runId";
 import { Button, DemoBadge, MetroLine, Panel, Title } from "../../lib/ui";
 import { IssueFeed } from "./IssueFeed";
 import { MirrorCanvas } from "./MirrorCanvas";
+import { currentRunId, withRun } from "../run/runId";
 import { useBoardEvents } from "./useBoardEvents";
 import "./live-board.css";
 
@@ -84,7 +84,7 @@ export default function LiveBoard() {
             <span className="lb-spacer" />
             {state.awaitingApproval && (
               <>
-                <Button onClick={() => (window.location.hash = "/run")}>Pedir cambios</Button>
+                <Button onClick={() => (window.location.href = withRun("#/run", runId))}>Pedir cambios</Button>
                 <Button variant="primary" onClick={approveDesign}>Aprobar diseño</Button>
               </>
             )}
