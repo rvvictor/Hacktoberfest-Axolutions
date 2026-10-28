@@ -58,3 +58,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793196300 | HACK-031 | follow-up of HACK-013 by sebas-1: Cost wiring: services report usd via ctx.add_cost so real runs show non-zero cost in /api/ops (llm, voice, generator, research...) | Why: same Paths, no scope change
 - 1793196816 | HACK-024 | Ship verified recorded public demo | Why: User supplied deployment; browser and API checks pass
 - 1793197570 | HACK-024 | Ship verified recorded demo on existing Render service | Why: All acceptance criteria and exact Verify pass
+- 1793199655 | HACK-031 | only the pipeline-side gap is fixed | Why: no services/ stage module defines run_stage and llm.py exposes no usage, so wiring services is outside Paths and needs stage adapters (new task)
