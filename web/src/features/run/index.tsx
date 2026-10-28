@@ -19,7 +19,10 @@ const EVENT_TYPES: string[] = [
 // The runs router sends named SSE events (`event: <type>`); lib/sse.ts onmessage never sees them.
 function listen(url: string, onEvent: (e: StageEvent) => void, onError: () => void): () => void {
   const source = new EventSource(url);
-  const handle = (m: MessageEvent<string>) => onEvent(JSON.parse(m.data) as StageEvent);
+  const handle = (m: MessageEvent<string>) => {
+    // The browser fires its own `error` event, without data, when the stream closes or drops.
+    if (typeof m.data === "string") onEvent(JSON.parse(m.data) as StageEvent);
+  };
   EVENT_TYPES.forEach((t) => source.addEventListener(t, handle as EventListener));
   source.onmessage = handle;
   source.onerror = onError;
