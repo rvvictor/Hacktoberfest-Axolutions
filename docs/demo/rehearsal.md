@@ -67,3 +67,9 @@ are actual captures of that deployment. This verifies recorded mode only.
 Render's free tier sleeps after 15 minutes idle; judges should allow about one
 minute for the first load. Hosting configuration and autodeploy on `main` were
 reported by the deployment owner; no hosting service was created or paid for here.
+
+After merging current `main` and adding the public URL, the exact task Verify
+through `q` passed again: `OK exit=0 427s · PRODUCT_PASS: current adapter exited 0.`
+Its log recorded `SECRET_SCAN_PASS files=465 mode=tracked`,
+`DESIGN_LINT_PASS files=30 ui=web/src/lib/ui`, Ruff `All checks passed!`,
+`128 passed in 25.45s`, frontend lint, and a fresh build completed in 7.06 seconds.
