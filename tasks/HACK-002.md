@@ -1,6 +1,6 @@
 # HACK-002
 ID: HACK-002
-State: CLAIMED
+State: REVIEW
 Owner: victor-2
 Branch: feat/hack-002
 Worktree: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions-wt/hack-002
@@ -9,16 +9,17 @@ Priority: P0
 Paths: app/schemas/, app/fixtures/demo/, app/tests/test_schemas.py, web/src/lib/types.ts, web/src/lib/mock.ts
 Depends: None
 Verify: `uv run pytest -q app/tests/test_schemas.py`
-Lease-Until: 1793161130
-Updated: 1793158430
+Lease-Until: 1793172932
+Updated: 1793158532
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: write `app/schemas/run.py` (Run, StageEvent) first, then announce it with `uak msg all --kind contract`.
-PR: -
-Evidence: -
-Events: 2
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/1; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/1
+Evidence: pytest test_schemas via uv --no-project (pydantic,pytest) exit 0, 4 passed; literal Verify blocked until HACK-001 pyproject; smoke unavailable
+Events: 3
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
 Progress: 0 commit(s) since the claim · last: 3eaff8c plan: rename product to SpeedHack (3 minutes ago) · 0 uncommitted tracked file(s) · at 1793158430
 Progress-Head: 3eaff8c/4294967295
 Progress-Changed: 1793158430
+Task-Tip: 82fa2e963c54385720f5dcb8fd3daaa9ac9bbafd
