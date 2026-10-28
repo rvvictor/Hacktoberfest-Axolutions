@@ -101,3 +101,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
   - The ops screen still fits 1280x720 (scrolling only inside a panel).
 - **Verify:** `uv run pytest -q app/tests/test_ops.py && npm --prefix web run build && bash .uak/bin/design-lint`
 - **Next step:** read the cost fields `app/services/store.py` saves per run, then replace the fixture in `app/services/costs.py`.
+
+## HACK-031 · Cost wiring: services report usd via ctx.add_cost so real runs show non-zero cost in /api/ops (llm, voice, generator, research...) (follow-up of HACK-013)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-013
+- **Follow-up of:** HACK-013
+- **Paths:** app/routers/runs.py, app/services/pipeline.py, app/services/store.py, app/tests/test_pipeline.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Cost wiring: services report usd via ctx.add_cost so real runs show non-zero cost in /api/ops (llm, voice, generator, research...)
+- **Verify:** `uv run pytest -q app/tests/test_pipeline.py`
