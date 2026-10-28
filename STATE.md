@@ -1,16 +1,16 @@
 # STATE
 
 Phase: execution
-Updated: 1793187641
+Updated: 1793187852
 AVAILABLE: HACK-025 
-CLAIMED: HACK-024 
-BLOCKED: -
+CLAIMED: -
+BLOCKED: HACK-024 
 REVIEW: HACK-026 
 INTEGRATED: (23; last 12) ... HACK-012 HACK-013 HACK-014 HACK-015 HACK-016 HACK-017 HACK-018 HACK-019 HACK-020 HACK-021 HACK-022 HACK-023 
 CANCELLED: -
 
 Claims (first 24; status --task ID shows detail):
-HACK-024 | CLAIMED | jabi-1 | until 1793190341
+HACK-024 | BLOCKED | jabi-1 | until 1793190552
 HACK-026 | REVIEW | jabi-2 | until 1793183645
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
