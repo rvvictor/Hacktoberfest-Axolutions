@@ -1,5 +1,5 @@
 ID: HACK-002
-State: WAITING
+State: MERGING
 Owner: victor-2
 Queued: 1793160445
 Reason: Waiting for queue
