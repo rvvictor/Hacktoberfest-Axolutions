@@ -6,7 +6,7 @@
 - Why: cannot make real call
 - Failing: none
 - Commands: uv run pytest -q app/tests/test_llm.py
-- Next: Wait for review; after 001/002 merge: git merge origin/main (delete untracked scaffold first); record real fixtures when key exists
+- Next: Humano: Smoke red or product unverified: PRODUCT_FAIL: adapter exit=2 (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-004-smoke-1793163850.log)
 
 ## History
 - 1793159084 | CLAIMED | victor-2 | claim; next: spike `settings.LLM_MODEL` with one real call and record it; then write `clarify`.
@@ -15,3 +15,4 @@
 - 1793159248 | REVIEW | victor-2 | checkpoint; next: Wait for review; after 001/002 merge: git merge origin/main (delete untracked scaffold first); record real fixtures when key exists
 - 1793159379 | REVIEW | dylan-1 | review; approve; SHA 0221615fafaff937e4e4c9e92c347634ca186158; reviewer dylan-1
 - 1793160219 | REVIEW | victor-2 | heartbeat; lease until 1793174619
+- 1793163850 | REVIEW | victor-2 | merge rechazado; Smoke red or product unverified: PRODUCT_FAIL: adapter exit=2 (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-004-smoke-1793163850.log)

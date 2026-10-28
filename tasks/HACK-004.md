@@ -12,12 +12,12 @@ Verify: `uv run pytest -q app/tests/test_llm.py`
 Lease-Until: 1793174619
 Updated: 1793160219
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: Wait for review; after 001/002 merge: git merge origin/main (delete untracked scaffold first); record real fixtures when key exists
+Next: Humano: Smoke red or product unverified: PRODUCT_FAIL: adapter exit=2 (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-004-smoke-1793163850.log)
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/3
 Evidence: uv run pytest -q app/tests/test_llm.py exit 0 (21 passed, with 001/002 scaffold local); fixtures are placeholders, no real API call (no key)
-Events: 6
+Events: 7
 Checkpoints: 1
-Sessions: 3
+Sessions: 4
 Last-Checkpoint: 1793159248
 Progress: 1 commit(s) since the claim · last: 0221615 feat(HACK-004): LLM service with validated output, retry and recorded fixtures (17 minutes ago) · 0 uncommitted tracked file(s) · at 1793160219
 Progress-Head: 0221615/3428691962
