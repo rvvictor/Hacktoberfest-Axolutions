@@ -4,6 +4,7 @@ import { api } from "../../lib/api";
 import { Button, DemoBadge, MetroLine, Panel, Title } from "../../lib/ui";
 import { IssueFeed } from "./IssueFeed";
 import { MirrorCanvas } from "./MirrorCanvas";
+import { currentRunId, withRun } from "../run/runId";
 import { useBoardEvents } from "./useBoardEvents";
 import "./live-board.css";
 
@@ -12,7 +13,7 @@ export const label = "Tablero en vivo";
 export const order = 30;
 
 function runFromUrl(): string | null {
-  return new URLSearchParams(window.location.search).get("run");
+  return currentRunId();
 }
 
 export default function LiveBoard() {
@@ -83,7 +84,7 @@ export default function LiveBoard() {
             <span className="lb-spacer" />
             {state.awaitingApproval && (
               <>
-                <Button onClick={() => (window.location.hash = "/run")}>Pedir cambios</Button>
+                <Button onClick={() => (window.location.href = withRun("#/run", runId))}>Pedir cambios</Button>
                 <Button variant="primary" onClick={approveDesign}>Aprobar diseño</Button>
               </>
             )}
