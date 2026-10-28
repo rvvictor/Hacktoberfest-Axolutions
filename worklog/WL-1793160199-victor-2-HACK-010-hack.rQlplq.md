@@ -6,7 +6,7 @@
 - Why: no raw web content in prompt; honest demo_data
 - Failing: smoke red from HACK-002 ruff errors, not mine
 - Commands: uv run pytest -q app/tests/test_generator.py
-- Next: Humano: New file outside Paths: app/fixtures/demo/run.jsonl. Move it into the task's Paths, or a human adds its dir to Additive-Paths in PROJECT.md (new files there need no reservation)
+- Next: Integrated in main: d3d978a833c3c5c776c1b9b86ca577727d4bd031
 
 ## History
 - 1793160199 | CLAIMED | victor-2 | claim; next: read the Lovable API docs, then write `LovableGenerator.build_url(spec)`.
@@ -15,3 +15,4 @@
 - 1793160307 | REVIEW | victor-2 | checkpoint; next: Wait for review of SHA 5ab3e5b
 - 1793160523 | REVIEW | dylan-2 | review; approve; SHA 5ab3e5b97ad089f0870b2e1b82864a3f0edb5477; reviewer dylan-2
 - 1793163839 | REVIEW | sebas-2 | merge rechazado; New file outside Paths: app/fixtures/demo/run.jsonl. Move it into the task's Paths, or a human adds its dir to Additive-Paths in PROJECT.md (new files there need no reservation)
+- 1793164500 | INTEGRATED | victor-1 | merge; smoke and Verify PASS; commit d3d978a833c3c5c776c1b9b86ca577727d4bd031; reviewer dylan-2
