@@ -1,12 +1,12 @@
 # worklog/WL-1793159999-sebas-1-HACK-011-hack.dqbqtL.md · HACK-011
 
 ## Live summary
-- Done: uv run pytest -q app/tests/test_outreach.py exit 0 (18 passed); smoke PRODUCT_PASS; ruff clean
-- Decision: nothing sent without approved_by; opt-out line appended in code; opted-out prospects skipped before any n8n call; in-process fallback; mock send only
-- Why: acceptance rules enforced in code and tested, not only in UI
-- Failing: ruff UP017 (timezone.utc) fixed
-- Commands: bash .uak/bin/q uv run pytest -q app/tests/test_outreach.py -> OK 18 passed; bash .uak/bin/q uv run pytest -q -> OK 23 passed
-- Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/23; run .uak/bin/smoke
+- Done: merged sebas-1 work, ruff clean, 18 tests, smoke, PR 23
+- Decision: my outreach.py is canonical vs HACK-021
+- Why: owner of Paths
+- Failing: none
+- Commands: bash .uak/bin/q uv run pytest -q app/tests/test_outreach.py
+- Next: Wait for review of SHA f9d26ef
 
 ## History
 - 1793159999 | CLAIMED | sebas-1 | claim; next: write the in-process flow in `outreach.py`, then mirror it in n8n. Hosting n8n (Cloud or Docker) needs a human's OK.
@@ -18,3 +18,4 @@
 - 1793167895 | CLAIMED | victor-2 | claim; next: wait for HACK-001/002 INTEGRATED, then uak done HACK-011; hunter router owns /api/hunter/outreach/{id}/callback and must call verify_callback + apply_callback (not in my Paths)
 - 1793167911 | CLAIMED | victor-2 | heartbeat; lease until 1793170611
 - 1793167960 | REVIEW | victor-2 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/23; evidence: uv run pytest -q app/tests/test_outreach.py exit 0 (18 passed); smoke PRODUCT_PASS; ruff clean; reviewer: -
+- 1793167966 | REVIEW | victor-2 | checkpoint; next: Wait for review of SHA f9d26ef
