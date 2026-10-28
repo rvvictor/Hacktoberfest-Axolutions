@@ -62,3 +62,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793200362 | HACK-029 | e2e drives UI; workaround posts answers and approval 3 via API where app is broken | Why: app bugs: intake skips POST answers under DEMO_MODE; delivery never gets named SSE; run screen JSON.parse(undefined) on stream close
 - 1793205622 | deadline lease/HACK-029/1793203062 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793205622 | deadline lease/HACK-031/1793202355 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
+- 1793205934 | HACK-032 | follow-up of HACK-014 by sebas-1: Intake: under DEMO_MODE the screen never POSTs /api/runs/{id}/answers, so the run stalls at stage 2 (found by e2e/judge_path.py) | Why: same Paths, no scope change

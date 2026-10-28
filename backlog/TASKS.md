@@ -113,3 +113,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Cost wiring: services report usd via ctx.add_cost so real runs show non-zero cost in /api/ops (llm, voice, generator, research...)
 - **Verify:** `uv run pytest -q app/tests/test_pipeline.py`
+
+## HACK-032 · Intake: under DEMO_MODE the screen never POSTs /api/runs/{id}/answers, so the run stalls at stage 2 (found by e2e/judge_path.py) (follow-up of HACK-014)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-014
+- **Follow-up of:** HACK-014
+- **Paths:** web/src/features/intake/
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Intake: under DEMO_MODE the screen never POSTs /api/runs/{id}/answers, so the run stalls at stage 2 (found by e2e/judge_path.py)
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint`
