@@ -9,9 +9,9 @@ Priority: P0
 Paths: app/schemas/, app/fixtures/demo/, app/tests/test_schemas.py, web/src/lib/types.ts, web/src/lib/mock.ts
 Depends: None
 Verify: `uv run pytest -q app/tests/test_schemas.py`
-Lease-Until: 1793174617
-Updated: 1793160217
+Lease-Until: 1793178328
+Updated: 1793163928
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: Humano: Smoke red or product unverified: PRODUCT_FAIL: adapter exit=1 (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-002-smoke-1793163805.log)
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/1; run .uak/bin/smoke
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/1
 Evidence: -
