@@ -21,3 +21,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793162656 | deadline lease/HACK-007/1793162595 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793163805 | deadline queue-lock/hack.47kElW-jabi-2-HACK-003/1793163805 | HUMAN | Lock lease expired; revalidate before merging
 - 1793164000 | HACK-015 | local contract.ts+demo replay | Why: HACK-002 not on main
+- 1793164244 | HACK-014 | local contract.ts, demo fallback | Why: HACK-002 not on main

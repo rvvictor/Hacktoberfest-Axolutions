@@ -9,9 +9,9 @@ Priority: P0
 Paths: web/src/features/intake/
 Depends: HACK-003
 Verify: `npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793178638
-Updated: 1793164238
+Lease-Until: 1793178644
+Updated: 1793164244
 Task-Base: 71c69e1655107e7085567d735da4683b3937ecc8
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/10; run .uak/bin/smoke
+Next: Wait for review
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/10
 Evidence: -
