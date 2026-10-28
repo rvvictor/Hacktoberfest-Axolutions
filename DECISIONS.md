@@ -35,3 +35,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793165665 | HACK-022 | Read HACK-013 sqlite tables directly; units derived from usd via estimated price table | Why: HACK-013 only stores usd per step and is unmerged
 - 1793165665 | HACK-005 | fixtures simulated (demo_data, example.invalid) until keys exist | Why: no TAVILY/FIRECRAWL keys
 - 1793165764 | deadline lease/HACK-006/1793165698 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
+- 1793165941 | plan | Victor/Victor | tasks added: HACK-025 | Why: backlog without PR (Plan-Channel: claims)
