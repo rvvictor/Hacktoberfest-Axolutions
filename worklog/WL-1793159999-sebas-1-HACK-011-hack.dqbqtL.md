@@ -14,3 +14,4 @@
 - 1793160782 | CLAIMED | sebas-1 | heartbeat; lease until 1793163482
 - 1793161605 | CLAIMED | sebas-1 | heartbeat; lease until 1793164305
 - 1793165098 | CLAIMED | sebas-1 | heartbeat; lease until 1793167798
+- 1793167889 | AVAILABLE | victor-2 | release; claim released by victor-2; reason: -; summary kept
