@@ -1,12 +1,12 @@
 # worklog/WL-1793159079-victor-1-HACK-013-hack.9dLZ0T.md · HACK-013
 
 ## Live summary
-- Done: pytest app/tests/test_pipeline.py exit 0 (8 tests); smoke exit 0; criteria met
-- Decision: Hold PR/uak done until HACK-001/002 integrate (branch carries their merge)
-- Why: diff outside Paths otherwise
-- Failing: smoke fails only on ruff in app/schemas (HACK-002 files)
-- Commands: bash .uak/bin/q uv run pytest -q app/tests/test_pipeline.py
-- Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/14; run .uak/bin/smoke
+- Done: PR #14 open, Verify+smoke green
+- Decision: Left SSE named events as is (HACK-016 listens per type)
+- Why: changing breaks useBoardEvents
+- Failing: none
+- Commands: uv run pytest -q app/tests/test_pipeline.py
+- Next: Wait for review of SHA 7302ba5
 
 ## History
 - 1793159079 | CLAIMED | victor-1 | claim; next: write `store.py`, then a pipeline that replays `run.jsonl`; swap in real services one by one.
@@ -15,3 +15,4 @@
 - 1793165112 | CLAIMED | victor-1 | heartbeat; lease until 1793167812
 - 1793165121 | CLAIMED | victor-1 | heartbeat; lease until 1793167821
 - 1793165172 | REVIEW | victor-1 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/14; evidence: pytest app/tests/test_pipeline.py exit 0 (8 tests); smoke exit 0; criteria met; reviewer: -
+- 1793165182 | REVIEW | victor-1 | checkpoint; next: Wait for review of SHA 7302ba5

@@ -1,7 +1,7 @@
 # STATE
 
 Phase: execution
-Updated: 1793165179
+Updated: 1793165182
 AVAILABLE: HACK-022 HACK-023 HACK-024 HACK-009 
 CLAIMED: HACK-006 HACK-007 HACK-008 HACK-011 HACK-018 HACK-019 HACK-021 
 BLOCKED: -
@@ -15,7 +15,7 @@ HACK-006 | CLAIMED | fer-1 | until 1793165698
 HACK-007 | CLAIMED | fer-2 | until 1793162595
 HACK-008 | CLAIMED | sebas-2 | until 1793167687
 HACK-011 | CLAIMED | sebas-1 | until 1793167798
-HACK-013 | REVIEW | victor-1 | until 1793179572
+HACK-013 | REVIEW | victor-1 | until 1793179582
 HACK-014 | REVIEW | dylan-2 | until 1793178644
 HACK-015 | REVIEW | dylan-2 | until 1793178829
 HACK-016 | REVIEW | dylan-1 | until 1793178760
@@ -27,11 +27,11 @@ HACK-021 | CLAIMED | victor-2 | until 1793167825
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
-- 1793164497 | deadline lease/HACK-008/1793164303 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793164497 | deadline lease/HACK-011/1793164305 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793164951 | HACK-017 | versions from spec_ready events; client mode via ?mode=client toggle (Run has no mode) | Why: backend lacks versions endpoint
 - 1793164988 | HACK-020 | speechSynthesis for audio, no recorded mp3 | Why: no paid API, HACK-008 absent
 - 1793164996 | HACK-019 | Use integrated LLM; explicit demo run only; reject foreign and fabricated sources | Why: Preserve run scope and evidence provenance
+- 1793165182 | HACK-013 | Left SSE named events as is (HACK-016 listens per type) | Why: changing breaks useBoardEvents
 
 Global next step: available P0; else review PRs, tests, demo, rehearsal.
 Why: bounded snapshot to resume without rereading history.

@@ -28,3 +28,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793164951 | HACK-017 | versions from spec_ready events; client mode via ?mode=client toggle (Run has no mode) | Why: backend lacks versions endpoint
 - 1793164988 | HACK-020 | speechSynthesis for audio, no recorded mp3 | Why: no paid API, HACK-008 absent
 - 1793164996 | HACK-019 | Use integrated LLM; explicit demo run only; reject foreign and fabricated sources | Why: Preserve run scope and evidence provenance
+- 1793165182 | HACK-013 | Left SSE named events as is (HACK-016 listens per type) | Why: changing breaks useBoardEvents
