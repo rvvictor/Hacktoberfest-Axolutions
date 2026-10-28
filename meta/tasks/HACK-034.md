@@ -1,5 +1,5 @@
 Task: HACK-034
-Events: 4
+Events: 5
 Checkpoints: 1
-Sessions: 3
+Sessions: 4
 Last-Checkpoint: 1793209191
