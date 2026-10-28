@@ -12,6 +12,6 @@ Verify: `uv run pytest -q app/tests/test_quality.py`
 Lease-Until: 1793175698
 Updated: 1793161298
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/7; run .uak/bin/smoke
+Next: Humano: Shared resource/CI needs a human: app/fixtures/quality/bad/supabase/migrations/20260101000000_init.sql
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/7
 Evidence: -

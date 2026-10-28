@@ -1,5 +1,5 @@
 ID: HACK-012
-State: MERGING
+State: HUMAN
 Owner: victor-1
-Queued: 1793164452
-Reason: Waiting for queue
+Updated: 1793164456
+Reason: Shared resource/CI needs a human: app/fixtures/quality/bad/supabase/migrations/20260101000000_init.sql
