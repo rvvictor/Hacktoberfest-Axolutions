@@ -3,7 +3,7 @@ services:
   - type: web
     name: hack-001
     runtime: docker
-    plan: starter   # a free instance sleeps after 15 min idle: the first request of a live demo then waits ~1 min
+    plan: free   # no cost; sleeps after 15 min idle: open the URL ~2 min before the demo
     autoDeploy: true   # every push to main redeploys
     healthCheckPath: /api/health
     envVars:

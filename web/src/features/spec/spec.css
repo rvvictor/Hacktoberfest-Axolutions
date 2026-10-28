@@ -24,6 +24,8 @@
 .sp-table tbody th { font-weight: 700; }
 .sp-table a { color: var(--sh-ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 .sp-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.sp-table td:nth-child(2) { white-space: nowrap; min-width: 11em; }
+.sp-table td:nth-child(2) .sh-chip, .sp-none { white-space: nowrap; }
 .sp-table small { display: block; color: var(--sh-muted); font-size: var(--sh-text-xs); }
 .sp-approval { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; padding-block: 12px; }
 .sp-approval__text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 260px; }

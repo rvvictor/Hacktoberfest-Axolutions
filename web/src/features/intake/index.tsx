@@ -228,12 +228,15 @@ export default function Intake() {
           )}
 
           <div className="intake__row">
-            <Button variant="primary" type="submit" disabled={!idea.trim() || phase === "creating"}>
+            <Button variant="primary" type="submit" disabled={!idea.trim() || phase === "creating"} aria-describedby={!idea.trim() ? "intake-hint" : undefined}>
               {phase === "creating" ? "Preparando preguntas…" : "Empezar"}
             </Button>
             <Button onClick={startDemo} disabled={phase === "creating"}>
               Ver demostración
             </Button>
+            {!idea.trim() && phase !== "creating" && (
+              <span id="intake-hint" className="intake__status">Escribe o dicta tu idea para empezar.</span>
+            )}
           </div>
           {phase === "creating" && (
             <div className="intake__skeleton" aria-hidden="true">
