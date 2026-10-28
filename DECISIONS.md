@@ -25,3 +25,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793164360 | HACK-016 | local contract.ts until HACK-002 integrates | Why: HACK-002 not on main
 - 1793164497 | deadline lease/HACK-008/1793164303 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793164497 | deadline lease/HACK-011/1793164305 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
+- 1793164951 | HACK-017 | versions from spec_ready events; client mode via ?mode=client toggle (Run has no mode) | Why: backend lacks versions endpoint

@@ -1,7 +1,7 @@
 # STATE
 
 Phase: execution
-Updated: 1793164945
+Updated: 1793164951
 AVAILABLE: HACK-021 HACK-022 HACK-023 HACK-024 HACK-009 
 CLAIMED: HACK-006 HACK-007 HACK-008 HACK-011 HACK-013 HACK-018 HACK-019 HACK-020 
 BLOCKED: -
@@ -19,18 +19,18 @@ HACK-013 | CLAIMED | victor-1 | until 1793162002
 HACK-014 | REVIEW | dylan-2 | until 1793178644
 HACK-015 | REVIEW | dylan-2 | until 1793178829
 HACK-016 | REVIEW | dylan-1 | until 1793178760
-HACK-017 | REVIEW | dylan-1 | until 1793179345
+HACK-017 | REVIEW | dylan-1 | until 1793179351
 HACK-018 | CLAIMED | jabi-2 | until 1793166586
 HACK-019 | CLAIMED | jabi-1 | until 1793166916
 HACK-020 | CLAIMED | dylan-2 | until 1793167491
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
-- 1793164000 | HACK-015 | local contract.ts+demo replay | Why: HACK-002 not on main
 - 1793164244 | HACK-014 | local contract.ts, demo fallback | Why: HACK-002 not on main
 - 1793164360 | HACK-016 | local contract.ts until HACK-002 integrates | Why: HACK-002 not on main
 - 1793164497 | deadline lease/HACK-008/1793164303 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793164497 | deadline lease/HACK-011/1793164305 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
+- 1793164951 | HACK-017 | versions from spec_ready events; client mode via ?mode=client toggle (Run has no mode) | Why: backend lacks versions endpoint
 
 Global next step: available P0; else review PRs, tests, demo, rehearsal.
 Why: bounded snapshot to resume without rereading history.
