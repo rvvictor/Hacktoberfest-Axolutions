@@ -1,6 +1,6 @@
 # HACK-018
 ID: HACK-018
-State: CLAIMED
+State: REVIEW
 Owner: jabi-2
 Branch: feat/hack-018
 Worktree: /c/Users/javis/Desktop/Hacktoberfest-Axolutions-wt/hack-018
@@ -9,9 +9,9 @@ Priority: P0
 Paths: web/src/features/delivery/
 Depends: HACK-003
 Verify: `npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793166586
-Updated: 1793163886
+Lease-Until: 1793180172
+Updated: 1793165772
 Task-Base: 71c69e1655107e7085567d735da4683b3937ecc8
-Next: render the `quality_check` events from the mock.
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/18; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/18
 Evidence: -
