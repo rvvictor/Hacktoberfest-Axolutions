@@ -43,3 +43,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793167756 | deadline lease/HACK-008/1793167687 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793167840 | deadline lease/HACK-011/1793167798 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793167852 | plan | Victor/Victor | tasks added: HACK-026 | Why: backlog without PR (Plan-Channel: claims)
+- 1793167867 | plan --amend | Victor/Victor | amended: HACK-026 Paths: web/src/features/delivery/, web/src/features/intake/, web/src/features/spec/, web/src/features/ops/, web/src/App.tsx → web/src/features/delivery/, web/src/features/intake/, web/src/features/spec/, web/src/features/ops/; | Why: scope or criteria fixed before review
