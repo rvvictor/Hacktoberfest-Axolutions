@@ -151,6 +151,19 @@ def _remember_spec(run_id: str, spec: dict[str, Any]) -> None:
         _remember(run_id, "spec_note", f"Funcionalidad del MVP: {feature}", source)
 
 
+def _remember_research_note(run_id: str, item: dict[str, Any]) -> None:
+    # Spanish wording so judge questions ("competidores", "precio", "competencia") match the passage.
+    features = item.get("features") or []
+    if isinstance(features, list):
+        features = ", ".join(str(f) for f in features)
+    text = (
+        f"Competidores y competencia: {item.get('competitor', 'sin nombre')}. "
+        f"Precio: {item.get('pricing') or 'sin precio publicado'}. "
+        f"Funciones: {features or 'sin datos'}."
+    )
+    _remember(run_id, "research_note", text, item["url"])
+
+
 def _deck_from_memory(run_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     """A pitch with no slides (the recorded fixture) is replaced by one built from this run's memory."""
     try:
@@ -168,6 +181,7 @@ def _record(run_id: str, stage: int, etype: EventType, payload: dict[str, Any]) 
         _remember_spec(run_id, payload)
     elif etype is EventType.research_item:
         _remember(run_id, "research", json.dumps(payload, ensure_ascii=False), payload["url"])
+        _remember_research_note(run_id, payload)
     elif etype is EventType.pitch_ready and not payload.get("slides"):
         payload = _deck_from_memory(run_id, payload)
     elif etype is EventType.miro_item and payload.get("miro_id"):

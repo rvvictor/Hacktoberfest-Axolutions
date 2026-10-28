@@ -162,7 +162,7 @@ def ask(run_id, question):
         and _words(question) & _words(p.get("text", ""))
     ]
     # Pipeline runs store readable notes next to the raw spec JSON; quote a note, never the JSON.
-    notes = [p for p in records if p.get("kind") == "spec_note"]
+    notes = [p for p in records if p.get("kind") in ("spec_note", "research_note")]
     quotable = bool(notes) and settings.DEMO_MODE
     if quotable:
         records = notes
@@ -186,10 +186,11 @@ def ask(run_id, question):
     ):
         # Recorded LLM answers may describe a different fixture. Quote this
         # demo's evidence verbatim instead of presenting that unrelated answer.
+        quoted = passages[:3] if quotable else passages[:1]
         entry = QAEntry(
             question=question,
-            answer="Según la memoria de demostración: " + passages[0].text,
-            sources=[passages[0].source],
+            answer="Según la memoria de demostración: " + " ".join(p.text for p in quoted),
+            sources=list(dict.fromkeys(p.source for p in quoted)),
         )
         valid = True
     if not valid or explicit_no_data:
