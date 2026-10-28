@@ -12,3 +12,4 @@
 - 1793159835 | CLAIMED | sebas-2 | claim; next: spike one TTS call with `ELEVENLABS_VOICE_ID` and save the mp3 as a fixture.
 - 1793159895 | CLAIMED | sebas-2 | checkpoint; next: after HACK-001/002 integrate: git merge origin/main, /uak-ship; record real fixtures when key exists
 - 1793160779 | CLAIMED | sebas-2 | heartbeat; lease until 1793163479
+- 1793161603 | CLAIMED | sebas-2 | heartbeat; lease until 1793164303
