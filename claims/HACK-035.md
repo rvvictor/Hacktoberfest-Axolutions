@@ -1,6 +1,6 @@
 # HACK-035
 ID: HACK-035
-State: CLAIMED
+State: REVIEW
 Owner: dylan-1
 Branch: feat/hack-035
 Worktree: /Users/dylanmartinezcastillo/Documents/Repositorios/Hackathon/Hacktoberfest-Axolutions-wt/hack-035
@@ -9,9 +9,9 @@ Priority: P1
 Paths: n8n/, app/services/outreach.py, app/fixtures/outreach/, app/tests/test_outreach.py
 Depends: HACK-011
 Verify: `uv run pytest -q app/tests/test_outreach.py`
-Lease-Until: 1793216732
-Updated: 1793214032
+Lease-Until: 1793228512
+Updated: 1793214112
 Task-Base: 4ee0b25c72d778b342522a403d88550121e1b3c2
-Next: Implement HACK-035 and run: `uv run pytest -q app/tests/test_outreach.py`
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/33; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/33
 Evidence: -
