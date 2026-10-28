@@ -128,7 +128,7 @@ export default function SpecReview() {
                     <tr key={r.url}>
                       <th scope="row">{r.competitor}</th>
                       <td>
-                        {r.pricing ? <Chip>{r.pricing}</Chip> : <span className="sp-none">sin precio publicado</span>}
+                        {r.pricing ? <span className="sh-chip sh-chip--demo">{r.pricing}</span> : <span className="sp-none">sin precio publicado</span>}
                         {r.fetched_at && <small>consultado {r.fetched_at.slice(0, 10)}</small>}
                       </td>
                       <td>{r.features.join(" · ")}</td>
