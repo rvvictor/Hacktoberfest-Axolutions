@@ -1,0 +1,17 @@
+{
+  "demo_data": true,
+  "board_id": "demo_board_1",
+  "embed_url": "https://miro.com/app/live-embed/demo_board_1/",
+  "items": [
+    {"kind": "frame", "title": "Pantallas", "miro_id": "demo_miro_f1", "x": 0, "y": 0, "w": 520, "h": 700, "color": "#e6e6e6", "delay": 0.4},
+    {"kind": "frame", "title": "Modelo de datos", "miro_id": "demo_miro_f2", "x": 640, "y": 0, "w": 520, "h": 700, "color": "#e6e6e6", "delay": 0.4},
+    {"kind": "frame", "title": "Integraciones", "miro_id": "demo_miro_f3", "x": 1280, "y": 0, "w": 520, "h": 700, "color": "#e6e6e6", "delay": 0.4},
+    {"kind": "screen", "title": "Login", "miro_id": "demo_miro_1", "x": 0, "y": -200, "w": 200, "h": 200, "color": "#fff9b1", "delay": 0.5},
+    {"kind": "screen", "title": "Dashboard de gastos", "miro_id": "demo_miro_2", "x": 0, "y": 40, "w": 200, "h": 200, "color": "#fff9b1", "delay": 0.5},
+    {"kind": "data_model", "title": "User", "miro_id": "demo_miro_3", "x": 640, "y": -200, "w": 200, "h": 200, "color": "#c6dcff", "delay": 0.5},
+    {"kind": "data_model", "title": "Expense", "miro_id": "demo_miro_4", "x": 640, "y": 40, "w": 200, "h": 200, "color": "#c6dcff", "delay": 0.5},
+    {"kind": "integration", "title": "Stripe", "miro_id": "demo_miro_5", "x": 1280, "y": -200, "w": 200, "h": 200, "color": "#d5f692", "delay": 0.5},
+    {"kind": "connector", "title": "Pantallas -> Modelo de datos", "miro_id": "demo_miro_c1", "x": 0, "y": 0, "w": 0, "h": 0, "color": "#1a1a1a", "delay": 0.3},
+    {"kind": "connector", "title": "Modelo de datos -> Integraciones", "miro_id": "demo_miro_c2", "x": 0, "y": 0, "w": 0, "h": 0, "color": "#1a1a1a", "delay": 0.3}
+  ]
+}
