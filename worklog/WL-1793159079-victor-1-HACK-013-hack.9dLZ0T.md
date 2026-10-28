@@ -10,3 +10,4 @@
 
 ## History
 - 1793159079 | CLAIMED | victor-1 | claim; next: write `store.py`, then a pipeline that replays `run.jsonl`; swap in real services one by one.
+- 1793159092 | CLAIMED | victor-1 | heartbeat; lease until 1793161792
