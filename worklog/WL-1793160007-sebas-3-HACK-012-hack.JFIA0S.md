@@ -12,3 +12,4 @@
 - 1793160007 | CLAIMED | sebas-3 | claim; next: write `check_rls.py` against `app/fixtures/quality/bad/supabase/migrations/`.
 - 1793160123 | CLAIMED | sebas-3 | checkpoint; next: wait for HACK-001 and HACK-002 INTEGRATED; then open PR and uak done HACK-012. Smoke step needs a generated playwright.config with @smoke tag
 - 1793160246 | AVAILABLE | sebas-3 | release; claim released by sebas-3; reason: -; summary kept
+- 1793160298 | CLAIMED | jabi-2 | claim; next: wait for HACK-001 and HACK-002 INTEGRATED; then open PR and uak done HACK-012. Smoke step needs a generated playwright.config with @smoke tag
