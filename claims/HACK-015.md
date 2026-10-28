@@ -1,6 +1,6 @@
 # HACK-015
 ID: HACK-015
-State: CLAIMED
+State: REVIEW
 Owner: dylan-2
 Branch: feat/hack-015
 Worktree: /Users/dylanmartinezcastillo/Documents/Repositorios/Hackathon/Hacktoberfest-Axolutions-wt/hack-015
@@ -9,9 +9,9 @@ Priority: P0
 Paths: web/src/features/run/
 Depends: HACK-003
 Verify: `npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793166532
-Updated: 1793163832
+Lease-Until: 1793178395
+Updated: 1793163995
 Task-Base: 71c69e1655107e7085567d735da4683b3937ecc8
-Next: render the stepper from the mock replay.
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/9; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/9
 Evidence: -
