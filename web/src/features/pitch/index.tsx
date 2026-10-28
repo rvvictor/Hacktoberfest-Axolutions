@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Microphone, Printer } from "@phosphor-icons/react";
 import { api } from "../../lib/api";
 import { Button, DemoBadge, MetroLine, Panel } from "../../lib/ui";
+import { currentRunId } from "../run/runId";
 import "./pitch.css";
 
 export const path = "/pitch";
@@ -18,7 +19,7 @@ function Sources({ sources }: { sources: string[] }) {
 }
 
 export default function PitchRoom() {
-  const [run, setRun] = useState(() => new URLSearchParams(location.search).get("run_id") || "demo-pitch");
+  const [run, setRun] = useState(() => currentRunId() || "demo-pitch");
   const [draft, setDraft] = useState(run);
   const [revision, setRevision] = useState(0);
   const [deck, setDeck] = useState<Deck | null>(null);

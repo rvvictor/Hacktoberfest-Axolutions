@@ -4,6 +4,7 @@ import { api } from "../../lib/api";
 import { subscribe } from "../../lib/sse";
 import { Button, Chip, DemoBadge, Item, MetroLine, Panel, Title } from "../../lib/ui";
 import type { BacklogItem, Prototype, QualityCheck, StageEvent } from "./contract";
+import { currentRunId } from "../run/runId";
 import { demoDelivery } from "./demo";
 import "./delivery.css";
 
@@ -79,7 +80,7 @@ export default function Delivery() {
   const [loaded, setLoaded] = useState(false);
 
   // `#/delivery?run=ID` follows a real run; without it the labeled demo sample is shown.
-  const runId = new URLSearchParams(window.location.hash.split("?")[1] ?? "").get("run");
+  const runId = currentRunId();
 
   useEffect(() => {
     setError(null);
