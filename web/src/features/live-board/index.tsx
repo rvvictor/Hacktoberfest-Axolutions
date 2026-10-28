@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-import { Button, DemoBadge, MetroLine, Panel, Stat, Title } from "../../lib/ui";
+import { api } from "../../lib/api";
+import { Button, DemoBadge, MetroLine, Panel, Title } from "../../lib/ui";
 import { IssueFeed } from "./IssueFeed";
 import { MirrorCanvas } from "./MirrorCanvas";
 import { useBoardEvents } from "./useBoardEvents";
@@ -16,10 +17,25 @@ function runFromUrl(): string | null {
 
 export default function LiveBoard() {
   const [runId] = useState(runFromUrl);
-  const { state, replay } = useBoardEvents(runId);
+  const { state, replay, approve } = useBoardEvents(runId);
   const [view, setView] = useState<"mirror" | "miro">("mirror");
+  const [error, setError] = useState<string | null>(null);
   const boxes = state.miro.filter((i) => i.kind !== "connector").length;
   const showMiro = view === "miro" && state.boardId !== null;
+
+  async function approveDesign() {
+    setError(null);
+    if (!runId) return approve();
+    try {
+      // Same body as the run view (HACK-015); the SSE stream then sends approval_given.
+      await api(`/runs/${encodeURIComponent(runId)}/approvals/2`, {
+        method: "POST",
+        body: JSON.stringify({ approved: true, comment: "" }),
+      });
+    } catch (e) {
+      setError(`No se pudo aprobar: ${(e as Error).message}. Intenta de nuevo o apruébalo desde la vista de la corrida.`);
+    }
+  }
 
   return (
     <div className="lb">
@@ -28,14 +44,10 @@ export default function LiveBoard() {
           <Title>Control de gastos corporativos</Title>
           <p>Spec aprobado. Miro y Linear se llenan desde el mismo spec.</p>
         </div>
-        <div className="lb-stats">
-          <Stat value={String(boxes)} label="elementos en Miro" />
-          <Stat value={String(state.issues.length)} label="issues en Linear" />
-          <DemoBadge show={state.demo} />
-        </div>
+        <DemoBadge show={state.demo} />
       </div>
 
-      <MetroLine current={state.stage} notes={{ 4: "aprobado" }} />
+      <MetroLine current={state.stage} notes={{ 4: "aprobado", ...(state.approved ? { 6: "aprobado" } : {}) }} />
 
       <div className="lb-grid">
         <Panel
@@ -59,21 +71,23 @@ export default function LiveBoard() {
               allow="fullscreen"
             />
           ) : (
-            <div className="lb-scroll">
-              <MirrorCanvas items={state.miro} />
-            </div>
+            <MirrorCanvas items={state.miro} />
           )}
         </Panel>
 
-        <Panel title="Tickets en Linear" meta={`${state.issues.length} creados`}>
+        <Panel className="lb-linear" title="Tickets en Linear" meta={`${state.issues.length} creados`}>
           <IssueFeed issues={state.issues} />
+          {error && <p role="alert">{error}</p>}
           <div className="lb-actions">
             {!runId && <Button onClick={replay}>Repetir</Button>}
+            <span className="lb-spacer" />
             {state.awaitingApproval && (
-              <Button variant="primary" onClick={() => (window.location.hash = "/run")}>
-                Revisar y aprobar diseño
-              </Button>
+              <>
+                <Button onClick={() => (window.location.hash = "/run")}>Pedir cambios</Button>
+                <Button variant="primary" onClick={approveDesign}>Aprobar diseño</Button>
+              </>
             )}
+            {state.approved && <span>Diseño aprobado. Sigue el prototipo.</span>}
           </div>
         </Panel>
       </div>

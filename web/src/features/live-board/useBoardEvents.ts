@@ -10,10 +10,11 @@ export interface BoardState {
   issues: BacklogItem[];
   boardId: string | null;
   awaitingApproval: boolean;
+  approved: boolean;
   demo: boolean;
 }
 
-const initial: BoardState = { stage: 5, miro: [], issues: [], boardId: null, awaitingApproval: false, demo: false };
+const initial: BoardState = { stage: 5, miro: [], issues: [], boardId: null, awaitingApproval: false, approved: false, demo: false };
 
 function reduce(state: BoardState, e: StageEvent | "reset"): BoardState {
   if (e === "reset") return initial;
@@ -28,7 +29,7 @@ function reduce(state: BoardState, e: StageEvent | "reset"): BoardState {
     case "approval_required":
       return { ...next, awaitingApproval: p.approval === 2 };
     case "approval_given":
-      return { ...next, awaitingApproval: false };
+      return p.approval === 2 ? { ...next, awaitingApproval: false, approved: true } : next;
     default:
       return next;
   }
@@ -46,5 +47,10 @@ export function useBoardEvents(runId: string | null) {
   }, [runId, round]);
 
   const replay = useCallback(() => setRound((r) => r + 1), []);
-  return { state, replay };
+  // Demo only: a live run hears approval_given back from the SSE stream after the POST.
+  const approve = useCallback(
+    () => dispatch({ run_id: "run_demo_001", stage: 6, type: "approval_given", payload: { approval: 2, by: "demo" }, ts: 0, demo_data: true }),
+    [],
+  );
+  return { state, replay, approve };
 }
