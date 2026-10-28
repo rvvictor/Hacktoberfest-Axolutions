@@ -6,7 +6,7 @@
 - Why: no source
 - Failing: none
 - Commands: npm --prefix web run build && bash .uak/bin/design-lint
-- Next: Wait for review
+- Next: Integrated in main: d651b25b2f886a5e4ca903545ec982bb3de5183f
 
 ## History
 - 1793165489 | CLAIMED | dylan-1 | claim; next: take the live-board screenshot from the deployed app.
@@ -14,3 +14,4 @@
 - 1793165653 | REVIEW | dylan-1 | checkpoint; next: Wait for review
 - 1793166297 | REVIEW | jabi-2 | review; approve; SHA cdfe86e0c56b8c64b1188063a1d7a09f9905607d; reviewer jabi-2
 - 1793166326 | REVIEW | dylan-1 | heartbeat; lease until 1793180726
+- 1793166377 | INTEGRATED | dylan-1 | merge; smoke and Verify PASS; commit d651b25b2f886a5e4ca903545ec982bb3de5183f; reviewer jabi-2
