@@ -91,7 +91,8 @@ def recall(run_id, query, k=5):
 def deck(run_id):
     passages = recall(
         run_id,
-        "spec proyecto problema usuarios funciones arquitectura investigación",
+        "spec proyecto problema usuarios funciones arquitectura investigación "
+        "version problem users mvp_features competitor pricing features",
         k=50,
     )
     passages = [p for p in passages if p.get("run_id") == run_id]
