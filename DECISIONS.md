@@ -22,3 +22,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793163805 | deadline queue-lock/hack.47kElW-jabi-2-HACK-003/1793163805 | HUMAN | Lock lease expired; revalidate before merging
 - 1793164000 | HACK-015 | local contract.ts+demo replay | Why: HACK-002 not on main
 - 1793164244 | HACK-014 | local contract.ts, demo fallback | Why: HACK-002 not on main
+- 1793164360 | HACK-016 | local contract.ts until HACK-002 integrates | Why: HACK-002 not on main
