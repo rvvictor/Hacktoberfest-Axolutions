@@ -1,12 +1,12 @@
 # worklog/WL-1793159226-dylan-2-HACK-005-hack.1XmCzu.md · HACK-005
 
 ## Live summary
-- Done: pytest 50 passed; smoke PRODUCT_PASS
-- Decision: Own branch and worktree
-- Why: Parallel work without touching the main checkout
-- Failing: No validation run yet
-- Commands: `uv run pytest -q app/tests/test_research.py`
-- Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/4; run .uak/bin/smoke
+- Done: research service: Tavily+Firecrawl, per-URL cache, pricing only verbatim with URL, stack fallback fixture, --record script; main merged; ruff clean; 50 tests + smoke PRODUCT_PASS at 3e894df; PR #4 approved by sebas-1 on 462cc65
+- Decision: fixtures simulated (demo_data, example.invalid) until keys exist
+- Why: no TAVILY/FIRECRAWL keys
+- Failing: none
+- Commands: uv run pytest -q app/tests/test_research.py; bash .uak/bin/smoke
+- Next: get re-approval on 3e894df (only ruff fixes since 462cc65), then uak merge HACK-005; with keys: python -m app.services.research --record and commit fixtures (AC3)
 
 ## History
 - 1793159226 | CLAIMED | dylan-2 | claim; next: spike one Tavily search for "corporate expense management software pricing Mexico" and record it.
@@ -19,3 +19,4 @@
 - 1793164419 | REVIEW | victor-1 | merge rechazado; Smoke red or product unverified: PRODUCT_FAIL: adapter exit=1 (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-005-smoke-1793164419.log)
 - 1793165440 | REVIEW | dylan-2 | heartbeat; lease until 1793179840
 - 1793165455 | REVIEW | dylan-2 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/4; evidence: pytest 50 passed; smoke PRODUCT_PASS; reviewer: -
+- 1793165665 | REVIEW | dylan-2 | checkpoint; next: get re-approval on 3e894df (only ruff fixes since 462cc65), then uak merge HACK-005; with keys: python -m app.services.research --record and commit fixtures (AC3)

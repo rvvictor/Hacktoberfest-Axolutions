@@ -33,3 +33,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793165595 | HACK-009 | Ship with local index; AC3 flagged partial, fixture demo_data:true | Why: No Backboard key
 - 1793165653 | HACK-023 | no prices (none in IDEA §10) | Why: no source
 - 1793165665 | HACK-022 | Read HACK-013 sqlite tables directly; units derived from usd via estimated price table | Why: HACK-013 only stores usd per step and is unmerged
+- 1793165665 | HACK-005 | fixtures simulated (demo_data, example.invalid) until keys exist | Why: no TAVILY/FIRECRAWL keys

@@ -9,16 +9,16 @@ Priority: P0
 Paths: app/services/research.py, app/fixtures/research/, app/tests/test_research.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_research.py`
-Lease-Until: 1793179855
-Updated: 1793165455
+Lease-Until: 1793180065
+Updated: 1793165665
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/4; run .uak/bin/smoke
+Next: get re-approval on 3e894df (only ruff fixes since 462cc65), then uak merge HACK-005; with keys: python -m app.services.research --record and commit fixtures (AC3)
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/4
 Evidence: pytest 50 passed; smoke PRODUCT_PASS
-Events: 10
-Checkpoints: 0
+Events: 11
+Checkpoints: 1
 Sessions: 6
-Last-Checkpoint: 0
+Last-Checkpoint: 1793165665
 Task-Tip: 3e894df2099f13de16c89788e6a4e73a6b4c93f8
 Progress: 25 commit(s) since the claim · last: 3e894df fix(HACK-005): merge main and clear ruff errors so the product smoke passes (3 minutes ago) · 0 uncommitted tracked file(s) · at 1793165440
 Progress-Head: 3e894df/4294967295

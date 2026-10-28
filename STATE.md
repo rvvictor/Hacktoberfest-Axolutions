@@ -10,7 +10,7 @@ INTEGRATED: HACK-001 HACK-002 HACK-003 HACK-004 HACK-010 HACK-012 HACK-014 HACK-
 CANCELLED: -
 
 Claims (first 24; status --task ID shows detail):
-HACK-005 | REVIEW | dylan-2 | until 1793179855
+HACK-005 | REVIEW | dylan-2 | until 1793180065
 HACK-006 | CLAIMED | fer-1 | until 1793165698
 HACK-007 | CLAIMED | fer-2 | until 1793162595
 HACK-008 | CLAIMED | sebas-2 | until 1793167687
@@ -25,11 +25,11 @@ HACK-023 | REVIEW | dylan-1 | until 1793180053
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
-- 1793165182 | HACK-013 | Left SSE named events as is (HACK-016 listens per type) | Why: changing breaks useBoardEvents
 - 1793165271 | HACK-021 | Merged feat/hack-011 for outreach.py contract | Why: 011 not in main yet
 - 1793165595 | HACK-009 | Ship with local index; AC3 flagged partial, fixture demo_data:true | Why: No Backboard key
 - 1793165653 | HACK-023 | no prices (none in IDEA §10) | Why: no source
 - 1793165665 | HACK-022 | Read HACK-013 sqlite tables directly; units derived from usd via estimated price table | Why: HACK-013 only stores usd per step and is unmerged
+- 1793165665 | HACK-005 | fixtures simulated (demo_data, example.invalid) until keys exist | Why: no TAVILY/FIRECRAWL keys
 
 Global next step: available P0; else review PRs, tests, demo, rehearsal.
 Why: bounded snapshot to resume without rereading history.
