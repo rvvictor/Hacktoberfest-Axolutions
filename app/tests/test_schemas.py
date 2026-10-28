@@ -6,10 +6,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-import pytest  # noqa: E402
-from pydantic import ValidationError  # noqa: E402
+import pytest
+from pydantic import ValidationError
 
-from app.schemas import PAYLOAD_MODELS, EventType, ResearchItem, Run, StageEvent  # noqa: E402
+from app.schemas import PAYLOAD_MODELS, EventType, ResearchItem, Run, StageEvent
 
 FIXTURE = ROOT / "app" / "fixtures" / "demo" / "run.jsonl"
 
