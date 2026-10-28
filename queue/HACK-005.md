@@ -1,5 +1,5 @@
 ID: HACK-005
-State: MERGING
+State: HUMAN
 Owner: victor-1
-Queued: 1793164415
-Reason: Waiting for queue
+Updated: 1793164419
+Reason: Smoke red or product unverified: PRODUCT_FAIL: adapter exit=1 (log: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-005-smoke-1793164419.log)
