@@ -29,6 +29,8 @@ export default function Intake() {
   const [phase, setPhase] = useState<Phase>("idea");
   const [error, setError] = useState<string | null>(null);
   const [demo, setDemo] = useState(false);
+  // Offline sample only: no API run exists, so answers stay local. A real run (even demo_data) must POST.
+  const [offline, setOffline] = useState(false);
   const [run, setRun] = useState<Run | null>(null);
   const [questions, setQuestions] = useState<string[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
@@ -86,6 +88,7 @@ export default function Intake() {
   }, []);
 
   const startDemo = () => {
+    setOffline(true);
     setDemo(true);
     setRun(DEMO_RUN);
     showQuestions(DEMO_QUESTIONS[mode]);
@@ -102,6 +105,7 @@ export default function Intake() {
         body: JSON.stringify({ mode, idea: idea.trim(), stack_prefs: mode === "dev" ? stack : [] }),
       });
       setRun(created);
+      setOffline(false);
       setDemo(created.demo_data);
       // The backend emits named SSE events (`question`), so listen by type.
       const source = new EventSource(`/api/runs/${created.run_id}/events`);
@@ -140,7 +144,7 @@ export default function Intake() {
     if (!run) return;
     setPhase("sending");
     setError(null);
-    if (demo) {
+    if (offline) {
       goToRun(run.run_id);
       return;
     }
