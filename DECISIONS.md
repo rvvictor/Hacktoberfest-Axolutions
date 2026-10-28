@@ -19,3 +19,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793161993 | HACK-009 | Keep draft and BLOCKED; no false claim of real Backboard evidence | Why: No configured key and no pre-existing provider recording
 - 1793162281 | deadline lease/HACK-013/1793162002 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793162656 | deadline lease/HACK-007/1793162595 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
+- 1793163805 | deadline queue-lock/hack.47kElW-jabi-2-HACK-003/1793163805 | HUMAN | Lock lease expired; revalidate before merging
