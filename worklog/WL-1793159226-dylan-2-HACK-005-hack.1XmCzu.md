@@ -1,7 +1,7 @@
 # worklog/WL-1793159226-dylan-2-HACK-005-hack.1XmCzu.md · HACK-005
 
 ## Live summary
-- Done: pytest app/tests/test_research.py: 5 passed (against HACK-001/002 contracts, simulated fixture)
+- Done: scratch overlay of origin/feat/hack-001+hack-002 + this branch: bash .uak/bin/q uv run pytest -q app/tests/test_research.py exit 0 (11 passed)
 - Decision: Own branch and worktree
 - Why: Parallel work without touching the main checkout
 - Failing: No validation run yet
@@ -14,3 +14,4 @@
 - 1793160223 | REVIEW | victor-2 | review; reject; SHA e27e9ccb4cc2b2e70de3d99340b1b3ec31ff817e; reviewer victor-2
 - 1793160360 | REVIEW | victor-2 | review; reject; SHA e27e9ccb4cc2b2e70de3d99340b1b3ec31ff817e; reviewer victor-2
 - 1793160435 | REVIEW | sebas-1 | review; reject; SHA e27e9ccb4cc2b2e70de3d99340b1b3ec31ff817e; reviewer sebas-1
+- 1793160850 | REVIEW | dylan-2 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/4; evidence: scratch overlay of origin/feat/hack-001+hack-002 + this branch: bash .uak/bin/q uv run pytest -q app/tests/test_research.py exit 0 (11 passed); reviewer: -
