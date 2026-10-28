@@ -1,0 +1,7 @@
+{
+  "demo_data": true,
+  "note": "SIMULATED Firecrawl /v1/scrape response, hand-written to test parsing. Not a real recording.",
+  "response": {"success": true, "data": {"markdown": "# Simulated Co\n\nPlans\n\nStarter: $99 USD per month, billed yearly.\nSeats are quoted separately."}},
+  "failed": {"success": false, "error": "blocked"},
+  "no_price_markdown": "# Simulated Co\n\nContact sales for a quote."
+}
