@@ -1,6 +1,6 @@
 # HACK-026
 ID: HACK-026
-State: CLAIMED
+State: REVIEW
 Owner: jabi-2
 Branch: feat/hack-026
 Worktree: /c/Users/javis/Desktop/Hacktoberfest-Axolutions-wt/hack-026
@@ -9,13 +9,14 @@ Priority: P1
 Paths: web/src/features/delivery/, web/src/features/intake/, web/src/features/spec/, web/src/features/ops/
 Depends: None
 Verify: `npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793170903
-Updated: 1793168203
+Lease-Until: 1793183645
+Updated: 1793169245
 Task-Base: 0166dff56c883652b44aca0e7e573897bf03f529
-Next: run the app with `DEMO_MODE=1`, screenshot `#/delivery` at 1280x720 with Playwright (reduced motion) to reproduce the 988 px height, then fix delivery first.
-PR: -
-Evidence: -
-Events: 1
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/24; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/24
+Evidence: build exit 0; design-lint pass; smoke PRODUCT_PASS; Playwright scrollHeight 720 on delivery/intake/spec/ops/live-board/run at 1280x720; design-critic P1s fixed
+Events: 2
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
+Task-Tip: 1678bbbf1131ec8eb6aca2763681240d8ceb54b1
