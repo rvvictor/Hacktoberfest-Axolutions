@@ -1,0 +1,39 @@
+{
+  "demo_data": true,
+  "note": "Fictitious prospects for the demo. No real business, person or contact data.",
+  "prospects": [
+    {
+      "id": "pros-barberia-001",
+      "business": "Barbería Ejemplo Norte",
+      "city": "CDMX (ficticia)",
+      "public_pain": "Reseñas públicas piden reservar por WhatsApp fuera de horario.",
+      "public_source_url": "https://example.com/demo/barberia-norte",
+      "channel": "email",
+      "contact": "contacto-ficticio-001@example.com",
+      "opt_out": false,
+      "demo_data": true
+    },
+    {
+      "id": "pros-barberia-002",
+      "business": "Barbería Ejemplo Sur",
+      "city": "CDMX (ficticia)",
+      "public_pain": "Su página pública no muestra precios de corte.",
+      "public_source_url": "https://example.com/demo/barberia-sur",
+      "channel": "whatsapp",
+      "contact": "+520000000002",
+      "opt_out": true,
+      "demo_data": true
+    },
+    {
+      "id": "pros-barberia-003",
+      "business": "Barbería Ejemplo Centro",
+      "city": "CDMX (ficticia)",
+      "public_pain": "Lista de espera manual en su Instagram público.",
+      "public_source_url": "https://example.com/demo/barberia-centro",
+      "channel": "email",
+      "contact": "contacto-ficticio-003@example.com",
+      "opt_out": false,
+      "demo_data": true
+    }
+  ]
+}
