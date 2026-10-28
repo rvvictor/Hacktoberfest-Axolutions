@@ -12,7 +12,7 @@ from contextlib import closing
 from typing import Any, Dict, List, Optional
 
 from app.config import settings
-from app.schemas import Approval, ApprovalState, Mode, Project, Run, RunStatus, StageEvent
+from app.schemas import Approval, Mode, Project, Run, RunStatus, StageEvent
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS projects (

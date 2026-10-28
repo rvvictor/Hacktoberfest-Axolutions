@@ -65,7 +65,7 @@ def test_sse_replays_past_events_and_resumes_after_id(client):
         _approve(client, run_id, n)
     all_events = _events(client, run_id)
     with client.stream("GET", f"/api/runs/{run_id}/events?after=2") as r:
-        tail = [json.loads(l[5:]) for l in r.iter_lines() if l.startswith("data:")]
+        tail = [json.loads(ln[5:]) for ln in r.iter_lines() if ln.startswith("data:")]
     assert tail == all_events[2:]
 
 
