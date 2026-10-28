@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api } from "../../lib/api";
-import { subscribe } from "../../lib/sse";
 import { Button, Chip, DemoBadge, MetroLine, Panel, Stat, STAGE_LABELS, Title } from "../../lib/ui";
 import type { StageEvent } from "./contract";
 import { demoAfterDecision, demoStart, GATE_STAGE } from "./demo";
@@ -10,6 +9,21 @@ import "./run.css";
 export const path = "/run";
 export const label = "Ejecución";
 export const order = 20;
+
+const EVENT_TYPES: string[] = [
+  "stage_started", "stage_done", "question", "research_item", "spec_ready", "approval_required", "approval_given",
+  "approval_rejected", "miro_item", "linear_issue", "prototype_ready", "quality_check", "pitch_ready", "error",
+];
+
+// The runs router sends named SSE events (`event: <type>`); lib/sse.ts onmessage never sees them.
+function listen(url: string, onEvent: (e: StageEvent) => void, onError: () => void): () => void {
+  const source = new EventSource(url);
+  const handle = (m: MessageEvent<string>) => onEvent(JSON.parse(m.data) as StageEvent);
+  EVENT_TYPES.forEach((t) => source.addEventListener(t, handle as EventListener));
+  source.onmessage = handle;
+  source.onerror = onError;
+  return () => source.close();
+}
 
 type Status = "pending" | "running" | "done";
 type StageInfo = { status: Status; start?: number; end?: number };
@@ -109,8 +123,8 @@ export default function Run() {
     setState(initial);
     clock.current = 0;
     if (runId) {
-      return subscribe<StageEvent>(
-        `/api/runs/${runId}/events`,
+      return listen(
+        `/api/runs/${encodeURIComponent(runId)}/events`,
         (e) => setState((s) => reduce(s, e)),
         () => setError("Sin conexión con el servidor."),
       );
