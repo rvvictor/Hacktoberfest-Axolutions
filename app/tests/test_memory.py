@@ -1,5 +1,5 @@
-import unittest
 import json
+import unittest
 from pathlib import Path
 from unittest.mock import patch
 
@@ -88,6 +88,19 @@ class MemoryTests(unittest.TestCase):
                 result = service.recall("r", "calendar", 5)
             self.assertEqual(result[0]["source"], "stage:spec")
             self.assertTrue(result[0]["demo_data"])
+
+    def test_interrupted_http_read_falls_back(self):
+        from http.client import IncompleteRead
+
+        service = MemoryService(api_key="test-only", demo_mode=False)
+        with patch.object(service, "_post", side_effect=IncompleteRead(b"partial")):
+            result = service.remember("r", "spec", "calendar", "stage:spec")
+        self.assertTrue(result["demo_data"])
+        service._assistants["r"] = "a"
+        with patch.object(service, "_post", side_effect=IncompleteRead(b"partial")):
+            recalled = service.recall("r", "calendar", 5)
+        self.assertEqual(recalled[0]["source"], "stage:spec")
+        self.assertTrue(recalled[0]["demo_data"])
 
 
 if __name__ == "__main__":

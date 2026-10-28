@@ -6,11 +6,13 @@ for this process only; rehydrate it with remember() from the store after restart
 
 import hashlib
 import json
-import os
 import re
 import unicodedata
+from http.client import HTTPException
 from threading import RLock
 from urllib.request import Request, urlopen
+
+from app.config import settings
 
 
 def _tokens(text):
@@ -20,9 +22,8 @@ def _tokens(text):
 
 class MemoryService:
     def __init__(self, api_key=None, *, demo_mode=None):
-        self._key = os.environ.get("BACKBOARD_API_KEY", "") if api_key is None else api_key
-        self._demo = (os.environ.get("DEMO_MODE", "").lower() in {"1", "true", "yes"}
-                      if demo_mode is None else demo_mode)
+        self._key = settings.BACKBOARD_API_KEY if api_key is None else api_key
+        self._demo = settings.DEMO_MODE if demo_mode is None else demo_mode
         self._records = {}
         self._assistants = {}
         self._remote_ids = {}
@@ -35,7 +36,7 @@ class MemoryService:
         with urlopen(request, timeout=8) as response:
             result = json.load(response)
         if not isinstance(result, dict):
-            raise ValueError("Invalid Backboard object")
+            raise TypeError("Invalid Backboard object")
         return result
 
     @staticmethod
@@ -54,7 +55,7 @@ class MemoryService:
             records = self._records.setdefault(run_id, {})
             if identity in records:
                 return dict(records[identity])
-            record = dict(run_id=run_id, kind=kind, text=text, source=source, demo_data=True)
+            record = {"run_id": run_id, "kind": kind, "text": text, "source": source, "demo_data": True}
             records[identity] = record
             if self._key and not self._demo:
                 try:
@@ -72,7 +73,7 @@ class MemoryService:
                     memory_id = self._id(response, "memory_id")
                     self._remote_ids[(run_id, memory_id)] = identity
                     record["demo_data"] = False
-                except (OSError, ValueError, TypeError, KeyError):
+                except (OSError, HTTPException, ValueError, TypeError, KeyError):
                     pass  # No provider response/error is logged; it may contain secrets.
             return dict(record)
 
@@ -81,7 +82,7 @@ class MemoryService:
         if type(k) is not int or not 0 <= k <= 50:
             raise ValueError("k must be an integer between 0 and 50")
         if not isinstance(query, str) or not isinstance(run_id, str):
-            raise ValueError("run_id and query must be strings")
+            raise TypeError("run_id and query must be strings")
         words = _tokens(query)
         if not words or not k:
             return []
@@ -93,18 +94,18 @@ class MemoryService:
                                           {"query": query, "limit": k})
                     memories = response["memories"]
                     if not isinstance(memories, list):
-                        raise ValueError("Invalid memories")
+                        raise TypeError("Invalid memories")
                     result, seen = [], set()
                     for memory in memories:
                         if not isinstance(memory, dict):
-                            raise ValueError("Invalid memory")
+                            raise TypeError("Invalid memory")
                         identity = self._remote_ids.get((run_id, memory.get("id", memory.get("memory_id"))))
                         if identity in records and identity not in seen:
                             seen.add(identity)
                             result.append(dict(records[identity]))
                     if result:
                         return result[:k]
-                except (OSError, ValueError, TypeError, KeyError):
+                except (OSError, HTTPException, ValueError, TypeError, KeyError):
                     pass
             ranked = [(len(words & _tokens(record["text"])), record) for record in records.values()]
             ranked.sort(key=lambda item: item[0], reverse=True)
