@@ -1,7 +1,7 @@
 # STATE
 
 Phase: execution
-Updated: 1793214675
+Updated: 1793214723
 AVAILABLE: -
 CLAIMED: HACK-025 
 BLOCKED: -
@@ -18,11 +18,11 @@ HACK-035 | REVIEW | dylan-1 | until 1793228512
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
-- 1793206185 | HACK-034 | follow-up of HACK-015 by sebas-1: Run view: guard JSON.parse on the named 'error' SSE event; when the stream closes it fires JSON.parse(undefined) | Why: 
 - 1793207852 | HACK-033 | copied the run view's listen() instead of editing lib/sse.ts | Why: lib/sse.ts is owned by HACK-001, outside Paths
 - 1793209191 | HACK-034 | same guard as delivery listen() | Why: browser error event has no data when the stream closes
 - 1793209299 | HACK-032 | offline flag separate from demo_data badge | Why: demo_data is true for real runs under DEMO_MODE, so it cannot signal the offline sample
 - 1793213990 | HACK-035 | follow-up of HACK-011 by dylan-1: n8n Cloud: read N8N_WEBHOOK_SECRET and SPEEDHACK_API_URL from $vars instead of $env | Why: same Paths, no scope change
+- 1793214723 | deadline lease/HACK-025/1793214347 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 
 Global next step: available P0; else review PRs, tests, demo, rehearsal.
 Why: bounded snapshot to resume without rereading history.
