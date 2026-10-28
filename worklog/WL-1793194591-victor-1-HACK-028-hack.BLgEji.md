@@ -10,3 +10,4 @@
 
 ## History
 - 1793194591 | CLAIMED | victor-1 | claim; next: find where the pipeline emits `pitch_ready` in `app/services/pipeline.py` and persist the deck there; then add `memory.remember` calls per stage.
+- 1793194606 | CLAIMED | victor-1 | heartbeat; lease until 1793197306
