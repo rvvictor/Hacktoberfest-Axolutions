@@ -59,3 +59,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793196816 | HACK-024 | Ship verified recorded public demo | Why: User supplied deployment; browser and API checks pass
 - 1793197570 | HACK-024 | Ship verified recorded demo on existing Render service | Why: All acceptance criteria and exact Verify pass
 - 1793199655 | HACK-031 | only the pipeline-side gap is fixed | Why: no services/ stage module defines run_stage and llm.py exposes no usage, so wiring services is outside Paths and needs stage adapters (new task)
+- 1793200362 | HACK-029 | e2e drives UI; workaround posts answers and approval 3 via API where app is broken | Why: app bugs: intake skips POST answers under DEMO_MODE; delivery never gets named SSE; run screen JSON.parse(undefined) on stream close

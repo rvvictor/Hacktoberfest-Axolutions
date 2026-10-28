@@ -9,13 +9,13 @@ Priority: P1
 Paths: e2e/
 Depends: HACK-027, HACK-028
 Verify: `uv run python e2e/judge_path.py`
-Lease-Until: 1793202277
-Updated: 1793199577
+Lease-Until: 1793203062
+Updated: 1793200362
 Task-Base: fa2f0ffdf9b68fb2f442b9a12160498f954df5cd
-Next: copy the server start and Playwright setup from `web/src/features/pitch/check_browser.py`, then script the intake step.
+Next: open PR via wt pr, then uak done HACK-029 --pr URL; report app bugs to owners
 PR: -
 Evidence: -
-Events: 1
-Checkpoints: 0
+Events: 2
+Checkpoints: 1
 Sessions: 1
-Last-Checkpoint: 0
+Last-Checkpoint: 1793200362
