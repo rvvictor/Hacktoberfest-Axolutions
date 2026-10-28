@@ -9,13 +9,16 @@ Priority: P2
 Paths: app/routers/ops.py, app/services/costs.py, app/tests/test_ops.py, web/src/features/ops/
 Depends: HACK-003
 Verify: `uv run pytest -q app/tests/test_ops.py && npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793168221
-Updated: 1793165521
+Lease-Until: 1793168236
+Updated: 1793165536
 Task-Base: 744a3d8d69b7811e0b40fd39d23007558149e1c7
 Next: read the cost-per-step fields that HACK-013 stores.
 PR: -
 Evidence: -
-Events: 1
+Events: 2
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
+Progress: 0 commit(s) since the claim · last: 744a3d8 Merge HACK-015 reviewed by victor-2 (2 minutes ago) · 0 uncommitted tracked file(s) · at 1793165536
+Progress-Head: 744a3d8/4294967295
+Progress-Changed: 1793165536
