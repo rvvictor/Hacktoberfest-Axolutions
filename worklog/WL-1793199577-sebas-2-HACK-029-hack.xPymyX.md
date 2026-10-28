@@ -6,7 +6,7 @@
 - Why: app bugs: intake skips POST answers under DEMO_MODE; delivery never gets named SSE; run screen JSON.parse(undefined) on stream close
 - Failing: dictation assert via get_by_label; answers stall at stage 2; delivery gate missing
 - Commands: bash .uak/bin/q uv run python e2e/judge_path.py -> OK exit=0 24s PASS
-- Next: Humano: Verify / acceptance red: Fail: setup: no UAK_PORT (set it, or run from a uak worktree with .uak-env) (log: C:/Users/javis/Desktop/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-029-verify-1793213218.log)
+- Next: Integrated in main: 7cec091ab05a5fb096e0e6417819974ed57f54d4 (recorded by jabi-2)
 
 ## History
 - 1793199577 | CLAIMED | sebas-2 | claim; next: copy the server start and Playwright setup from `web/src/features/pitch/check_browser.py`, then script the intake step.
@@ -14,3 +14,4 @@
 - 1793208464 | REVIEW | sebas-2 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/28; evidence: bash .uak/bin/q uv run python e2e/judge_path.py -> OK exit=0 24s PASS judge path run=run_1a5fc779 steps=9 demo_data=true; reviewer: -
 - 1793211237 | REVIEW | dylan-1 | review; approve; SHA 16b0aa046fc377501c636d7814dc8c82d52c5bfc; reviewer dylan-1
 - 1793213218 | REVIEW | jabi-2 | merge rechazado; Verify / acceptance red: Fail: setup: no UAK_PORT (set it, or run from a uak worktree with .uak-env) (log: C:/Users/javis/Desktop/Hacktoberfest-Axolutions/.git/uak-out/gate-HACK-029-verify-1793213218.log)
+- 1793214298 | INTEGRATED | jabi-2 | integrate; recorded by jabi-2; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/28; merged 7cec091ab05a5fb096e0e6417819974ed57f54d4; proof ancestry
