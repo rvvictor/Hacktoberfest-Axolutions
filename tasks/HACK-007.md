@@ -9,13 +9,16 @@ Priority: P0
 Paths: app/services/linear.py, app/fixtures/linear/, app/tests/test_linear.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_linear.py`
-Lease-Until: 1793168852
-Updated: 1793166152
+Lease-Until: 1793168867
+Updated: 1793166167
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: ship: uak done after HACK-001/002 integrate
 PR: -
 Evidence: -
-Events: 4
+Events: 5
 Checkpoints: 1
 Sessions: 3
 Last-Checkpoint: 1793159895
+Progress: 45 commit(s) since the claim · last: a55c830 Merge remote-tracking branch 'origin/feat/hack-007' into feat/hack-007 (4 seconds ago) · 0 uncommitted tracked file(s) · at 1793166167
+Progress-Head: a55c830/4294967295
+Progress-Changed: 1793166167
