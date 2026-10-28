@@ -9,8 +9,8 @@ Priority: P1
 Paths: n8n/, app/services/outreach.py, app/fixtures/outreach/, app/tests/test_outreach.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_outreach.py`
-Lease-Until: 1793163482
-Updated: 1793160782
+Lease-Until: 1793164305
+Updated: 1793161605
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: wait for HACK-001/002 INTEGRATED, then uak done HACK-011; hunter router owns /api/hunter/outreach/{id}/callback and must call verify_callback + apply_callback (not in my Paths)
 PR: -
