@@ -6,7 +6,7 @@
 - Why: HACK-002 not on main
 - Failing: none
 - Commands: npm --prefix web run build && bash .uak/bin/design-lint
-- Next: Wait for review of SHA c91ad7c
+- Next: Integrated in main: 7a6e2633da3fd02f99712a6daddc875d2bf68a83
 
 ## History
 - 1793163803 | CLAIMED | dylan-1 | claim; next: build the mirror canvas on the `miro_item` events from `lib/mock.ts`.
@@ -14,3 +14,4 @@
 - 1793164360 | REVIEW | dylan-1 | checkpoint; next: Wait for review of SHA c91ad7c
 - 1793165194 | REVIEW | victor-1 | review; approve; SHA c91ad7ce355989abb1d19f91d818a3dea4d60519; reviewer victor-1
 - 1793165262 | REVIEW | dylan-1 | heartbeat; lease until 1793179662
+- 1793165317 | INTEGRATED | dylan-1 | merge; smoke and Verify PASS; commit 7a6e2633da3fd02f99712a6daddc875d2bf68a83; reviewer victor-1
