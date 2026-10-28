@@ -1,6 +1,6 @@
 # HACK-011
 ID: HACK-011
-State: CLAIMED
+State: REVIEW
 Owner: victor-2
 Branch: feat/hack-011
 Worktree: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions-wt/hack-011
@@ -9,9 +9,9 @@ Priority: P1
 Paths: n8n/, app/services/outreach.py, app/fixtures/outreach/, app/tests/test_outreach.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_outreach.py`
-Lease-Until: 1793170611
-Updated: 1793167911
+Lease-Until: 1793182360
+Updated: 1793167960
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: wait for HACK-001/002 INTEGRATED, then uak done HACK-011; hunter router owns /api/hunter/outreach/{id}/callback and must call verify_callback + apply_callback (not in my Paths)
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/23; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/23
 Evidence: -
