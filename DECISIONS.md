@@ -51,3 +51,5 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793187170 | HACK-024 | Use recorded sample path with explicit independent fixture disclosure | Why: No keys needed; public URL not recorded
 - 1793187567 | HACK-024 | Keep deployment URL pending and expose gap in PR | Why: No existing public URL found; human requested
 - 1793187870 | HACK-024 | Keep draft until public deployment URL is supplied | Why: Task acceptance requires judge-accessible URL; none found or supplied
+- 1793193594 | deadline lease/HACK-024/1793190570 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
+- 1793193594 | deadline decision/HACK-024-1793187236/1793188136 | REVERSIBLE_AND_LOG | Option: Ship reviewable demo documentation with public deployment explicitly unverified; Why: No existing public URL is recorded; hosting creation or spending requires human authorization; no money, accounts, publishing or scope expansion.

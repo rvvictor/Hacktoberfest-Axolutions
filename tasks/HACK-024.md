@@ -12,10 +12,10 @@ Verify: `test -s README.md && test -s docs/demo/script.md && bash .uak/bin/smoke
 Lease-Until: 1793190570
 Updated: 1793187870
 Task-Base: 375c1f01c1e4754d17b2b49c1bcb888842461a7a
-Next: Receive public URL, verify health and demo, update README, rerun Verify, ready PR25 and uak done HACK-024
+Next: Recover lease with token; then apply option: Ship reviewable demo documentation with public deployment explicitly unverified
 PR: -
 Evidence: -
-Events: 11
+Events: 12
 Checkpoints: 4
 Sessions: 3
 Last-Checkpoint: 1793187870
