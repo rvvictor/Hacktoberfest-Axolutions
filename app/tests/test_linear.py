@@ -62,7 +62,7 @@ def live(monkeypatch):
 
 
 def test_creates_one_event_per_issue_with_identifier_and_url(live):
-    fake, client = live
+    _, client = live
     events = list(create_backlog(_items(6), "run1", client))
     assert len(events) == 6
     assert all(e.type == EventType.linear_issue and e.stage == 6 for e in events)
