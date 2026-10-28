@@ -10,3 +10,4 @@
 
 ## History
 - 1793194597 | CLAIMED | victor-2 | claim; next: in `web/src/features/run/index.tsx` build the three links with the current run id, then make `live-board/useBoardEvents.ts` subscribe to `/api/runs/{id}/events` when `?run=` is present.
+- 1793194611 | CLAIMED | victor-2 | heartbeat; lease until 1793197311
