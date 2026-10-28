@@ -1,6 +1,6 @@
 # HACK-029
 ID: HACK-029
-State: CLAIMED
+State: REVIEW
 Owner: sebas-2
 Branch: feat/hack-029
 Worktree: /Users/sebastian/Desktop/Hackathones/Hacktoberfest-Axolutions-wt/hack-029
@@ -9,9 +9,9 @@ Priority: P1
 Paths: e2e/
 Depends: HACK-027, HACK-028
 Verify: `uv run python e2e/judge_path.py`
-Lease-Until: 1793203062
-Updated: 1793200362
+Lease-Until: 1793222864
+Updated: 1793208464
 Task-Base: fa2f0ffdf9b68fb2f442b9a12160498f954df5cd
-Next: open PR via wt pr, then uak done HACK-029 --pr URL; report app bugs to owners
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/28; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/28
 Evidence: -
