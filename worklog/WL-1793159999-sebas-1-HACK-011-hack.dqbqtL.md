@@ -13,3 +13,4 @@
 - 1793160148 | CLAIMED | sebas-1 | checkpoint; next: wait for HACK-001/002 INTEGRATED, then uak done HACK-011; hunter router owns /api/hunter/outreach/{id}/callback and must call verify_callback + apply_callback (not in my Paths)
 - 1793160782 | CLAIMED | sebas-1 | heartbeat; lease until 1793163482
 - 1793161605 | CLAIMED | sebas-1 | heartbeat; lease until 1793164305
+- 1793165098 | CLAIMED | sebas-1 | heartbeat; lease until 1793167798
