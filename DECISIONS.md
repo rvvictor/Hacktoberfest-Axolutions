@@ -50,3 +50,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793186644 | HACK-024 | Capture independent labeled demo fixtures | Why: No keys required and live continuity is not established
 - 1793187170 | HACK-024 | Use recorded sample path with explicit independent fixture disclosure | Why: No keys needed; public URL not recorded
 - 1793187567 | HACK-024 | Keep deployment URL pending and expose gap in PR | Why: No existing public URL found; human requested
+- 1793187870 | HACK-024 | Keep draft until public deployment URL is supplied | Why: Task acceptance requires judge-accessible URL; none found or supplied
