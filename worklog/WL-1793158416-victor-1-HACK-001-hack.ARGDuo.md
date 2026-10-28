@@ -15,3 +15,4 @@
 - 1793158634 | REVIEW | victor-1 | checkpoint; next: Wait for review of SHA 6a17eb5
 - 1793159095 | REVIEW | victor-1 | heartbeat; lease until 1793173495
 - 1793159723 | REVIEW | victor-1 | heartbeat; lease until 1793174123
+- 1793160214 | REVIEW | victor-2 | review; reject; SHA 6a17eb53019508657a406d23975af78113bf4825; reviewer victor-2
