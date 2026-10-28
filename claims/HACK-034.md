@@ -9,9 +9,9 @@ Priority: P1
 Paths: web/src/features/run/
 Depends: HACK-015
 Verify: `npm --prefix web run build && bash .uak/bin/design-lint`
-Lease-Until: 1793211629
-Updated: 1793208929
+Lease-Until: 1793211891
+Updated: 1793209191
 Task-Base: fa2f0ffdf9b68fb2f442b9a12160498f954df5cd
-Next: Implement HACK-034 and run: `npm --prefix web run build && bash .uak/bin/design-lint`
+Next: PR + done
 PR: -
 Evidence: -
