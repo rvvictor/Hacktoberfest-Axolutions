@@ -1,6 +1,6 @@
 # HACK-003
 ID: HACK-003
-State: CLAIMED
+State: REVIEW
 Owner: dylan-1
 Branch: feat/hack-003
 Worktree: /Users/dylanmartinezcastillo/Documents/Repositorios/Hackathon/Hacktoberfest-Axolutions-wt/hack-003
@@ -9,9 +9,9 @@ Priority: P0
 Paths: web/DESIGN.md, web/src/styles/, web/src/lib/ui/, web/public/design-lock/
 Depends: None
 Verify: `test -s web/DESIGN.md && ls web/public/design-lock/*.png`
-Lease-Until: 1793161435
-Updated: 1793158735
+Lease-Until: 1793173833
+Updated: 1793159433
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: run `/uak-design-lock` with `IDEA.md` §0 and §4.
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/5; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/5
 Evidence: -
