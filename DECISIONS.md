@@ -40,3 +40,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793166134 | HACK-019 | Explicit demo-pitch fixture, run-scoped evidence, provider errors 503 | Why: Offline demo with visible provenance and no unsupported guesses
 - 1793166374 | HACK-006 | spike fixtures left as-is, flagged unverified in PR | Why: no MIRO_ACCESS_TOKEN to confirm they are real
 - 1793166634 | HACK-019 | Explicit demo fixture and source-checked run-scoped Q&A; design critic SHIP; architect GO | Why: Offline usable pitch room without unsupported model claims
+- 1793167756 | deadline lease/HACK-008/1793167687 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
