@@ -7,3 +7,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793158634 | HACK-001 | keep oxlint from Vite template | Why: template ships oxlint, not eslint
 - 1793159248 | HACK-004 | fixtures hand-written, no ANTHROPIC key | Why: cannot make real call
 - 1793159302 | HACK-013 | Hold PR/uak done until HACK-001/002 integrate (branch carries their merge) | Why: diff outside Paths otherwise
+- 1793159442 | HACK-003 | Direction 3 Línea 1 | Why: human pick
