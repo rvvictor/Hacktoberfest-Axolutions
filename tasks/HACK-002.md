@@ -9,17 +9,17 @@ Priority: P0
 Paths: app/schemas/, app/fixtures/demo/, app/tests/test_schemas.py, web/src/lib/types.ts, web/src/lib/mock.ts
 Depends: None
 Verify: `uv run pytest -q app/tests/test_schemas.py`
-Lease-Until: 1793172935
-Updated: 1793158535
+Lease-Until: 1793173500
+Updated: 1793159100
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: Wait for review of SHA 82fa2e9
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/1
 Evidence: pytest test_schemas via uv --no-project (pydantic,pytest) exit 0, 4 passed; literal Verify blocked until HACK-001 pyproject; smoke unavailable
-Events: 5
+Events: 6
 Checkpoints: 1
-Sessions: 2
+Sessions: 3
 Last-Checkpoint: 1793158535
-Progress: 0 commit(s) since the claim · last: 3eaff8c plan: rename product to SpeedHack (3 minutes ago) · 0 uncommitted tracked file(s) · at 1793158430
-Progress-Head: 3eaff8c/4294967295
-Progress-Changed: 1793158430
+Progress: 1 commit(s) since the claim · last: 82fa2e9 feat(HACK-002): schemas, demo run fixture, TS types and replay (10 minutes ago) · 0 uncommitted tracked file(s) · at 1793159100
+Progress-Head: 82fa2e9/4294967295
+Progress-Changed: 1793159100
 Task-Tip: 82fa2e963c54385720f5dcb8fd3daaa9ac9bbafd
