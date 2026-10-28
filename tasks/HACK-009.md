@@ -9,13 +9,16 @@ Priority: P0
 Paths: app/services/memory.py, app/fixtures/memory/, app/tests/test_memory.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_memory.py`
-Lease-Until: 1793162810
-Updated: 1793160110
+Lease-Until: 1793163529
+Updated: 1793160829
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: spike the Backboard API (create assistant/thread, add memory, query) from its docs and record it.
 PR: -
 Evidence: -
-Events: 1
+Events: 2
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
+Progress: 0 commit(s) since the claim · last: 3eaff8c plan: rename product to SpeedHack (43 minutes ago) · 0 uncommitted tracked file(s) · at 1793160829
+Progress-Head: 3eaff8c/4294967295
+Progress-Changed: 1793160829
