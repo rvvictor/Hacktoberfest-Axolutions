@@ -6,7 +6,7 @@
 ## Event
 | Field | Value |
 |---|---|
-| Event / challenge | Hacktoberfest: Hack Day in Mexico City, Build Day + Demos (MLH) · https://events.mlh.com/events/14760-hacktoberfest-hack-day-in-mexico-city-build-day-demos · challenge: TBD · product: Zero-to-Pitch (IDEA.md) |
+| Event / challenge | Hacktoberfest: Hack Day in Mexico City, Build Day + Demos (MLH) · https://events.mlh.com/events/14760-hacktoberfest-hack-day-in-mexico-city-build-day-demos · challenge: TBD · product: SpeedHack (IDEA.md) |
 | Start | 2026-10-27 15:30 America/Mexico_City |
 | Official deadline | 2026-10-28 19:00 America/Mexico_City · platforms: probably the MLH event page (to be confirmed) |
 | Freeze | 2026-10-28 14:52 (Freeze-Epoch 1793220750) · design lock Tue 16:30 · first claim by Tue 17:30 · walking skeleton Tue 17:30 · plan-B video Wed 05:15 |

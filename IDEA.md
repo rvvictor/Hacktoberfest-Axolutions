@@ -1,16 +1,16 @@
-# IDEA · Zero-to-Pitch
+# IDEA · SpeedHack
 
 > Reto: TBD · Evento: Hacktoberfest Hack Day CDMX (MLH), 2026-10-27 15:30 → 2026-10-28 19:00 America/Mexico_City. Etiquetas: **[Decided]** · **[Recommended]** · **[To validate]**.
 > Cada número del pitch sale de §10 con su fuente. §4 → tareas verticales · §6 → contrato · §7 → spikes · §8 → aceptación.
-> Fuente: `zero-to-pitch-propuesta.md` (Dylan, 2026-10-27, versión afinada). Este hackathon es su **Fase 0**: se permiten sus atajos (cuentas de la plataforma en vez de OAuth, sin multi-tenancy, sin Stripe, negocios ficticios para el Agente Cazador).
+> Fuente: propuesta de Dylan (archivo `zero-to-pitch-propuesta.md`, del nombre anterior del proyecto, 2026-10-27, versión afinada). Este hackathon es su **Fase 0**: se permiten sus atajos (cuentas de la plataforma en vez de OAuth, sin multi-tenancy, sin Stripe, negocios ficticios para el Agente Cazador).
 
 ## 0. Nombre y marca (fijos en T0)
-- Nombre: **Zero-to-Pitch** · repo: `Hacktoberfest-Axolutions` · tagline: **De idea a pitch defendible en una hora**. [Decided]
+- Nombre: **SpeedHack** · repo: `Hacktoberfest-Axolutions` · tagline: **De idea a pitch defendible en una hora**. [Decided]
 - Renombrar después de T−50% requiere una `uak decision` de un humano.
 - Look: referencias y color de marca pendientes; los aporta el humano en `/uak-design-lock`, que elige la dirección visual con screenshots. [To validate]
 
 ## 1. Una línea
-Para **fundadores técnicos, equipos de hackathon y PyMEs sin presencia digital**, que hoy reparten el paso de idea a pitch entre 6 o más herramientas que no comparten contexto (estimación del equipo, sin fuente: [To validate]), **Zero-to-Pitch** convierte una idea dictada en investigación citada, arquitectura en Miro, backlog en Linear, un prototipo y un pitch con Q&A por voz, **con un solo hilo de contexto**, a diferencia de Lovable, Bolt o v0, que generan código pero no investigan, no planean ni defienden la idea.
+Para **fundadores técnicos, equipos de hackathon y PyMEs sin presencia digital**, que hoy reparten el paso de idea a pitch entre 6 o más herramientas que no comparten contexto (estimación del equipo, sin fuente: [To validate]), **SpeedHack** convierte una idea dictada en investigación citada, arquitectura en Miro, backlog en Linear, un prototipo y un pitch con Q&A por voz, **con un solo hilo de contexto**, a diferencia de Lovable, Bolt o v0, que generan código pero no investigan, no planean ni defienden la idea.
 Ventaja frente a otros equipos: el diferenciador no es generar código sino **la continuidad del contexto**: la misma memoria (Backboard) alimenta investigación, diagrama, tickets, prompt de generación y respuestas del Q&A.
 
 ## 2. Usuarios
