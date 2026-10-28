@@ -1,0 +1,16 @@
+{
+  "demo_data": true,
+  "note": "SIMULATED fallback for dev-mode stack queries (no key). Not real docs; example.invalid URLs.",
+  "stacks": {
+    "supabase auth": {
+      "title": "Simulated docs: Supabase Auth",
+      "url": "https://example.invalid/docs/supabase-auth",
+      "content": "Simulated: email/password and OAuth sign-in, row level security. Not verified."
+    }
+  },
+  "default": {
+    "title": "Simulated docs: {name}",
+    "url": "https://example.invalid/docs/{slug}",
+    "content": "Simulated: current documentation for {name}. Not verified."
+  }
+}
