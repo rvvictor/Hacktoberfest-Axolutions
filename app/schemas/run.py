@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -60,14 +60,14 @@ class Project(BaseModel):
     id: str
     mode: Mode
     idea: str
-    stack_prefs: List[str] = Field(default_factory=list)
+    stack_prefs: list[str] = Field(default_factory=list)
     demo_data: bool = False
 
 
 class Approval(BaseModel):
     number: int = Field(ge=1, le=3)
     state: ApprovalState = ApprovalState.pending
-    decided_by: Optional[str] = None
+    decided_by: str | None = None
 
 
 class Run(BaseModel):
@@ -75,12 +75,12 @@ class Run(BaseModel):
     project_id: str
     stage: int = Field(ge=1, le=9)
     status: RunStatus = RunStatus.pending
-    approvals: List[Approval] = Field(
+    approvals: list[Approval] = Field(
         default_factory=lambda: [Approval(number=n) for n in (1, 2, 3)],
         min_length=3,
         max_length=3,
     )
-    cost_by_step: Dict[str, float] = Field(default_factory=dict)
+    cost_by_step: dict[str, float] = Field(default_factory=dict)
     demo_data: bool = False
 
 
@@ -90,6 +90,6 @@ class StageEvent(BaseModel):
     run_id: str
     stage: int = Field(ge=1, le=9)
     type: EventType
-    payload: Dict[str, Any] = Field(default_factory=dict)
+    payload: dict[str, Any] = Field(default_factory=dict)
     ts: float = Field(ge=0)
     demo_data: bool = False
