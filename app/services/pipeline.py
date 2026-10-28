@@ -124,11 +124,13 @@ def _produce(ctx: StageContext) -> tuple[Produced, bool]:
     fn = None if settings.DEMO_MODE else _provider(ctx.stage)
     if fn is not None:
         try:
-            events = _validated(ctx.stage, fn(ctx))
-            store.add_cost(ctx.run.run_id, STAGES[ctx.stage], ctx.cost)
-            return events, False
+            return _validated(ctx.stage, fn(ctx)), False
         except Exception:
             log.exception("stage %s failed, falling back to the recorded run", ctx.stage)
+        finally:
+            # Money spent before a failure is still spent: record it whether or not the stage succeeded.
+            if ctx.cost:
+                store.add_cost(ctx.run.run_id, STAGES[ctx.stage], ctx.cost)
     return _fixture(ctx.stage), True
 
 
