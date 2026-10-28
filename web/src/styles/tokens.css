@@ -1,0 +1,50 @@
+/* SpeedHack design tokens · direction "Línea 1" (HACK-003, frozen). Change only with a human-approved uak decision. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap");
+
+:root {
+  /* color */
+  --sh-bg: #ffffff;
+  --sh-surface: #f3f1f6;
+  --sh-raised: #ffffff;
+  --sh-ink: #22223a;
+  --sh-muted: #6a6a80;
+  --sh-line: #dcd8e3;
+  --sh-rosa: #e4007c; /* brand: the line, the current station, primary actions */
+  --sh-rosa-soft: #ffd3ea;
+  --sh-naranja: #f08a00; /* approvals (transfer stations) and demo data */
+  --sh-naranja-ink: #9a5200; /* naranja text on white (AA) */
+  --sh-ok: #0f8a5f;
+  --sh-error: #c62828;
+
+  /* type: one family, width carries hierarchy */
+  --sh-font: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--sh-font); /* overrides Tailwind's theme default */
+  --sh-text-xs: 12px;
+  --sh-text-sm: 13.5px;
+  --sh-text-base: 15px;
+  --sh-text-lg: 18px;
+  --sh-text-xl: 26px;
+  --sh-text-2xl: 34px;
+
+  /* shape and space */
+  --sh-radius-sm: 10px;
+  --sh-radius-lg: 18px;
+  --sh-radius-pill: 999px;
+  --sh-gap: 12px;
+  --sh-gutter: 28px;
+  --sh-station: 38px;
+}
+
+@media (max-width: 820px) {
+  :root {
+    --sh-gutter: 16px;
+    --sh-station: 26px;
+    --sh-text-2xl: 26px;
+  }
+}
+
+body {
+  background: var(--sh-bg);
+  color: var(--sh-ink);
+  font: var(--sh-text-base) / 1.45 var(--sh-font);
+}
