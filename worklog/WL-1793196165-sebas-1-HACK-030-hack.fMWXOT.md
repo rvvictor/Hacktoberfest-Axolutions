@@ -6,8 +6,9 @@
 - Why: real runs show cost 0 because no service calls ctx.add_cost; those files are outside HACK-030 Paths
 - Failing: -
 - Commands: bash .uak/bin/q uv run pytest -q app/tests/test_ops.py
-- Next: followup: instrument services with ctx.add_cost
+- Next: Cancelled: already satisfied by HACK-022; real gap (services never call ctx.add_cost) is a follow-up outside these Paths
 
 ## History
 - 1793196165 | CLAIMED | sebas-1 | claim; next: read the cost fields `app/services/store.py` saves per run, then replace the fixture in `app/services/costs.py`.
 - 1793196289 | CLAIMED | sebas-1 | checkpoint; next: followup: instrument services with ctx.add_cost
+- 1793196291 | CANCELLED | sebas-1 | release; claim released by sebas-1; reason: already satisfied by HACK-022; real gap (services never call ctx.add_cost) is a follow-up outside these Paths; summary kept
