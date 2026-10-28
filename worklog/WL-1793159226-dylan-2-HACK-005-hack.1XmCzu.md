@@ -1,12 +1,12 @@
 # worklog/WL-1793159226-dylan-2-HACK-005-hack.1XmCzu.md · HACK-005
 
 ## Live summary
-- Done: research service: Tavily+Firecrawl, per-URL cache, pricing only verbatim with URL, stack fallback fixture, --record script; main merged; ruff clean; 50 tests + smoke PRODUCT_PASS at 3e894df; PR #4 approved by sebas-1 on 462cc65
+- Done: ruff: All checks passed; pytest app/tests/test_research.py: 11 passed; bash .uak/bin/smoke: PRODUCT_PASS
 - Decision: fixtures simulated (demo_data, example.invalid) until keys exist
 - Why: no TAVILY/FIRECRAWL keys
 - Failing: none
 - Commands: uv run pytest -q app/tests/test_research.py; bash .uak/bin/smoke
-- Next: get re-approval on 3e894df (only ruff fixes since 462cc65), then uak merge HACK-005; with keys: python -m app.services.research --record and commit fixtures (AC3)
+- Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/4; run .uak/bin/smoke
 
 ## History
 - 1793159226 | CLAIMED | dylan-2 | claim; next: spike one Tavily search for "corporate expense management software pricing Mexico" and record it.
@@ -22,3 +22,4 @@
 - 1793165665 | REVIEW | dylan-2 | checkpoint; next: get re-approval on 3e894df (only ruff fixes since 462cc65), then uak merge HACK-005; with keys: python -m app.services.research --record and commit fixtures (AC3)
 - 1793165673 | AVAILABLE | dylan-2 | release; claim released by dylan-2; reason: -; summary kept
 - 1793165779 | CLAIMED | victor-3 | claim; next: get re-approval on 3e894df (only ruff fixes since 462cc65), then uak merge HACK-005; with keys: python -m app.services.research --record and commit fixtures (AC3)
+- 1793165822 | REVIEW | victor-3 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/4; evidence: ruff: All checks passed; pytest app/tests/test_research.py: 11 passed; bash .uak/bin/smoke: PRODUCT_PASS; reviewer: -
