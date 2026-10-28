@@ -1,0 +1,79 @@
+# Quality gate template for a GENERATED repo: copy to .github/workflows/quality.yml there,
+# together with quality/check_rls.py. The generated playwright.config must tag smoke specs
+# with @smoke and set use.reducedMotion: 'reduce'.
+# Gates: build, lint, gitleaks, npm audit, RLS check, Playwright smoke.
+# No real keys live here: the only secret is GITHUB_TOKEN (provided by Actions).
+name: quality
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Build
+        run: npm run build
+      - name: Lint
+        run: npm run lint --if-present
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  npm-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm audit --audit-level=high --omit=dev
+
+  rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fail on tables without RLS or with only trivial policies
+        run: python quality/check_rls.py .
+
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [build-lint]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Playwright smoke
+        run: npx playwright test --grep @smoke
+        env:
+          CI: "true"
