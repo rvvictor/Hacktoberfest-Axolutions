@@ -12,12 +12,12 @@ Verify: `uv run pytest -q app/tests/test_generator.py`
 Lease-Until: 1793174707
 Updated: 1793160307
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
-Next: Wait for review of SHA 5ab3e5b
+Next: Humano: New file outside Paths: app/fixtures/demo/run.jsonl. Move it into the task's Paths, or a human adds its dir to Additive-Paths in PROJECT.md (new files there need no reservation)
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/6
 Evidence: uv run pytest -q app/tests/test_generator.py exit 0 (6 passed); ruff clean on my files; smoke red only from ruff errors in HACK-002 files (app/schemas, test_schemas)
-Events: 5
+Events: 6
 Checkpoints: 1
-Sessions: 2
+Sessions: 3
 Last-Checkpoint: 1793160307
 Progress: 0 commit(s) since the claim · last: 3eaff8c plan: rename product to SpeedHack (33 minutes ago) · 0 uncommitted tracked file(s) · at 1793160213
 Progress-Head: 3eaff8c/4294967295
