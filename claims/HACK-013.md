@@ -9,8 +9,8 @@ Priority: P0
 Paths: app/routers/runs.py, app/services/pipeline.py, app/services/store.py, app/tests/test_pipeline.py
 Depends: None
 Verify: `uv run pytest -q app/tests/test_pipeline.py`
-Lease-Until: 1793162002
-Updated: 1793159302
+Lease-Until: 1793167812
+Updated: 1793165112
 Task-Base: 3eaff8c29896351940d265a98a095de33a6e5cb7
 Next: When 001/002 integrated: git merge origin/main, rerun Verify, gh pr create, uak done HACK-013
 PR: -
