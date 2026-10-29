@@ -233,3 +233,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Miro: frame height grows with its notes (3rd note was outside the 700px frame: 400 outside of parent boundaries)
 - **Verify:** `uv run pytest -q app/tests/test_miro.py`
+
+## HACK-042 · Design lock v2: warm 60-30-10 with blue/violet accent, 3 moments (Idea, Plan, Producto), Nielsen heuristics (follow-up of HACK-003)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-003
+- **Follow-up of:** HACK-003
+- **Paths:** web/DESIGN.md, web/src/styles/, web/src/lib/ui/, web/public/design-lock/
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Design lock v2: warm 60-30-10 with blue/violet accent, 3 moments (Idea, Plan, Producto), Nielsen heuristics
+- **Verify:** `test -s web/DESIGN.md && ls web/public/design-lock/*.png`
