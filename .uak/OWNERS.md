@@ -14,8 +14,8 @@ An owner is not a prerequisite for everyone: consumers work on published contrac
 | web/package-lock.json | HACK-001 |
 | app/main.py | HACK-001 |
 | app/config.py | HACK-001 |
-| web/src/App.tsx | HACK-026 |
-| web/src/main.tsx | HACK-001 |
+| web/src/App.tsx | HACK-046 |
+| web/src/main.tsx | HACK-046 |
 | web/src/lib/api.ts | HACK-001 |
 | web/src/lib/sse.ts | HACK-001 |
 | .github/workflows/ | HACK-001 |
