@@ -96,3 +96,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793292964 | allow | Dylan | freeze exception: HACK-046 | Why: Rediseño: navegación
 - 1793292970 | allow | Dylan | freeze exception: HACK-047 | Why: Rediseño: portada e idea
 - 1793294296 | HACK-048 | follow-up of HACK-029 by dylan-2: Judge-path E2E follows the conversation flow: intake → #/project, questions one at a time, decisions per card | Why: same Paths, no scope change
+- 1793294345 | allow | Dylan | freeze exception: HACK-048 | Why: E2E del juez al flujo de conversación

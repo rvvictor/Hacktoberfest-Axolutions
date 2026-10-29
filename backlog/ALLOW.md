@@ -14,3 +14,4 @@ Append-only. Format: - ID | epoch | human | reason. Why: a freeze exception is a
 - HACK-045 | 1793292957 | Dylan | Rediseño: conversación
 - HACK-046 | 1793292964 | Dylan | Rediseño: navegación
 - HACK-047 | 1793292970 | Dylan | Rediseño: portada e idea
+- HACK-048 | 1793294345 | Dylan | E2E del juez al flujo de conversación
