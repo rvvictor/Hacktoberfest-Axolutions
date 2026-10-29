@@ -9,8 +9,8 @@ Priority: P0
 Paths: app/fixtures/research/, app/fixtures/llm/, scripts/record_fixtures.py
 Depends: HACK-005
 Verify: `uv run pytest -q app/tests/test_research.py app/tests/test_llm.py && ! grep -rq 'example.invalid' app/fixtures/research/`
-Lease-Until: 1793214347
-Updated: 1793211647
+Lease-Until: 1793238774
+Updated: 1793236074
 Task-Base: fa2f0ffdf9b68fb2f442b9a12160498f954df5cd
 Next: pedir a Fer las 3 keys en .env; luego python -m app.services.research --record
 PR: -
