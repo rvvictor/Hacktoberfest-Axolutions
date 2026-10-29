@@ -401,3 +401,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
   - A new test asserts the replay has ≥ 3 research items, all with https URLs from `recorded_tavily.json`, `demo_data: true`, and that the spec sources are a subset of them.
 - **Verify:** `uv run pytest -q && uv run ruff check app scripts && ! grep -q 'example.invalid\|Placeholder' app/fixtures/demo/run.jsonl web/src/features/project/demo.ts web/src/features/spec/demo.ts && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
 - **Next step:** read how pipeline `_fixture` replays stage 3/4 and what `_record` stores for spec_ready; write the script, run it, diff run.jsonl.
+
+## HACK-054 · Demo replays build the Linear issues (and Miro items) from the recorded backlog.json and architecture.json, not Issue demo N (follow-up of HACK-053)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-053
+- **Follow-up of:** HACK-053
+- **Paths:** app/fixtures/demo/, web/src/features/project/demo.ts, web/src/features/spec/demo.ts, scripts/demo_from_recordings.py, app/tests/test_demo_fixture.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Demo replays build the Linear issues (and Miro items) from the recorded backlog.json and architecture.json, not Issue demo N
+- **Verify:** `uv run pytest -q && uv run ruff check app scripts && ! grep -q 'example.invalid\|Placeholder' app/fixtures/demo/run.jsonl web/src/features/project/demo.ts web/src/features/spec/demo.ts && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
