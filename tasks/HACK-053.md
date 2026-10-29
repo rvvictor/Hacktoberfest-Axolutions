@@ -15,7 +15,7 @@ Task-Base: d6fea72f0da0ff26a7b11e7a0667c0aee247bffd
 Next: read how pipeline `_fixture` replays stage 3/4 and what `_record` stores for spec_ready; write the script, run it, diff run.jsonl.
 PR: -
 Evidence: -
-Events: 1
+Events: 2
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0

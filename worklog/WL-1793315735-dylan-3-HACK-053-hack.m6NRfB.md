@@ -10,3 +10,4 @@
 
 ## History
 - 1793315735 | CLAIMED | dylan-3 | claim; next: read how pipeline `_fixture` replays stage 3/4 and what `_record` stores for spec_ready; write the script, run it, diff run.jsonl.
+- 1793315889 | CLAIMED | dylan-3 | pending decision HACK-053-1793315889; option: run.jsonl stage-7 prototype_ready becomes the plan B recorded page (generator planb, PLANB_RECORDED_URL), not dropped; Why: stage 7 runs live even in DEMO_MODE since HACK-051; the line is only the fallback replay when that live stage fails, and test_pipeline_prototype expects planb there
