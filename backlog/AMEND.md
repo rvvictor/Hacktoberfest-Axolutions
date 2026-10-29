@@ -33,3 +33,19 @@ Append-only; the last section of an ID replaces its section in the backlog. Why:
   - `app/tests/test_isolation.py` proves it: inside a test, every key is empty and `DEMO_MODE` is on.
   - The whole suite passes both with and without a filled `.env`, and no file outside these Paths changes.
 - **Verify:** `uv run pytest -q app/tests`
+## HACK-040 · Wire the pipeline to the real services: stage adapters for stages 1-9, demo flag derived from payloads (follow-up of HACK-013)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-013
+- **Follow-up of:** HACK-013
+- **Paths:** app/routers/runs.py, app/services/pipeline.py, app/services/store.py, app/tests/test_pipeline.py, app/services/stages.py, app/tests/test_stages.py
+- **Freeze-Allowed:** yes
+- **Acceptance:**
+  - `app/services/stages.py` exposes `run_stage(ctx)` and `pipeline.STAGE_MODULES` maps stages 1-9 to it, so with `DEMO_MODE=false` and keys a run calls the real services (llm clarify/spec/architecture/backlog, research, Miro board, Linear backlog, prototype generator, pitch deck) instead of always replaying `app/fixtures/demo/run.jsonl`.
+  - A stage counts as real only if none of its payloads carries `demo_data: true`: a service that fell back to its own recorded data (no key, DEMO_MODE, plan B) is still labeled demo.
+  - Stages read what earlier stages produced from the run's events (latest attempt only after a rejection): questions + answers for the spec, research for spec and deck, architecture rebuilt from the Miro items for the backlog. A rejection comment reaches the regenerated spec/architecture.
+  - Reruns never duplicate external items: Miro and Linear ids recorded in `externals` are reused.
+  - Stage 8 never reports passing quality checks it did not run (no local repo of the generated app): it falls back to the labeled fixture.
+  - Existing `test_pipeline.py` tests pass unchanged; `test_stages.py` covers each adapter with mocked services, the demo-flag derivation, and a full run through `TestClient`.
+- **Verify:** `uv run pytest -q app/tests && bash .uak/bin/smoke`
