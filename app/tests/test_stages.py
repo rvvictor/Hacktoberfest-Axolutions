@@ -167,3 +167,47 @@ def test_collect_works_inside_a_running_event_loop():
         return stages._collect(items())
 
     assert asyncio.run(inside_loop()) == [{"a": 1}]
+
+
+def test_rerun_with_the_real_board_still_shows_every_item_and_creates_one_board(client, live_services, monkeypatch):
+    """The real BoardRun skips items already on the board; the adapter must still emit all of them."""
+    import itertools
+    import re
+
+    import httpx
+    import respx
+
+    from app.services import miro as miro_service
+
+    # live_services swapped build_board for FakeBoard: go back to the real BoardRun class
+    monkeypatch.setattr(stages.miro, "build_board", lambda arch, **kw: miro_service.BoardRun(arch, **kw))
+    ids = itertools.count(1)
+    with respx.mock(assert_all_mocked=True) as router:
+        boards = router.post("https://api.miro.com/v2/boards").mock(
+            side_effect=lambda request: httpx.Response(201, json={"id": "board-1"})
+        )
+        router.post(url__regex=re.compile(r"https://api\.miro\.com/v2/boards/board-1/.*")).mock(
+            side_effect=lambda request: httpx.Response(201, json={"id": f"item-{next(ids)}"})
+        )
+        run_id = _start(client)
+        assert _approve(client, run_id, 1).status_code == 200
+        assert _approve(client, run_id, 2, approved=False, comment="Igual, revisa de nuevo").status_code == 200
+
+    def notes(attempt_events):
+        return sorted(p["title"] for p in attempt_events if p.get("kind") in ("screen", "data_model", "integration"))
+
+    latest = stages._payloads(run_id, 5, EventType.miro_item)
+    assert notes(latest) == ["Gasto", "Login", "Supabase"]  # nothing new to create, all still shown
+    assert boards.call_count == 1  # the rerun reused the board
+    assert live_services["backlog_arch"] == Architecture(screens=["Login"], data_model=["Gasto"], integrations=["Supabase"])
+
+
+def test_prototype_previews_the_prebuilt_app_and_keeps_this_runs_build_link(client, live_services, monkeypatch):
+    monkeypatch.setattr(stages.settings, "LOVABLE_PREBUILT_URL", "https://prebuilt.lovable.app")
+    run_id = _start(client)
+    _approve(client, run_id, 1)
+    _approve(client, run_id, 2)
+    proto = next(e for _, e in store.list_events(run_id) if e.type is EventType.prototype_ready)
+    assert proto.payload["url"] == "https://prebuilt.lovable.app"
+    assert proto.payload["build_url"].startswith("https://lovable.dev/")
+    assert proto.demo_data  # not generated from this run's spec

@@ -164,7 +164,30 @@ def _architecture_stage(ctx: StageContext) -> Events:
         if not demo:
             for key, value in board.ids.items():
                 store.set_external(ctx.run.run_id, ctx.stage, BOARD_IDS + key, value)
+    items = _already_on_board(ctx.run.run_id, architecture, board.ids, items) + items
     return [("miro_item", {**item, "demo_data": item.get("demo_data", demo)}) for item in items]
+
+
+def _already_on_board(
+    run_id: str, architecture: Architecture, ids: dict[str, str], created: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Items an earlier attempt put on the board that are still in the architecture.
+
+    BoardRun only yields what it creates, so on a rerun the existing frames, notes and connectors
+    would vanish from the live view and from the architecture stage 6 rebuilds.
+    """
+    on_board = set(ids.values()) - {i.get("miro_id") for i in created}
+    earlier: dict[str, dict[str, Any]] = {}
+    for _, e in store.list_events(run_id):
+        miro_id = e.payload.get("miro_id")
+        if e.stage == 5 and e.type is EventType.miro_item and miro_id in on_board:
+            earlier[miro_id] = e.payload
+    current = {kind: set(getattr(architecture, name)) for kind, name in GROUPS.items()}
+    return [
+        {k: v for k, v in p.items() if k != "demo_data"}
+        for p in earlier.values()
+        if p.get("kind") not in current or p.get("title") in current[p["kind"]]
+    ]
 
 
 def _backlog_stage(ctx: StageContext) -> Events:
@@ -180,6 +203,11 @@ def _prototype_stage(ctx: StageContext) -> Events:
     spec = _spec(ctx)
     backlog = [BacklogItem.model_validate(p) for p in _payloads(ctx.run.run_id, 6, EventType.linear_issue)]
     prototype = generator.LovableGenerator().generate(spec, backlog)
+    if settings.LOVABLE_PREBUILT_URL:
+        # The delivery view previews `url` in a frame; a Build-with-URL link is a prompt page, not an
+        # app. Preview the prebuilt app and keep this run's link to build its own; the prebuilt app
+        # was not generated from this run, so the item is labeled demo.
+        prototype = prototype.model_copy(update={"url": settings.LOVABLE_PREBUILT_URL, "demo_data": True})
     return [("prototype_ready", prototype.model_dump(mode="json"))]
 
 
