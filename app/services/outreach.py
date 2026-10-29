@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import time
 import uuid
 from datetime import UTC, datetime
 from enum import Enum
@@ -26,12 +27,14 @@ import httpx
 from pydantic import BaseModel
 
 from app.config import settings
+from app.services import llm
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "outreach"
 OPT_OUT_LINE = "Si no quieres recibir más mensajes, responde BAJA y no te escribiremos de nuevo."
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 SIGNATURE_HEADER = "X-SpeedHack-Signature"
 TIMEOUT = 10.0
+GEMINI_TIMEOUT = 60.0
 
 
 class OutreachError(ValueError):
@@ -99,8 +102,13 @@ def _fixture_draft(prospect: Prospect) -> str:
 
 
 def ai_draft(prospect: Prospect, client: httpx.Client | None = None) -> str:
-    """AI draft. Recorded fixture in DEMO_MODE, without a key, or when the API fails."""
-    if settings.DEMO_MODE or not settings.ANTHROPIC_API_KEY:
+    """AI draft from the model LLM_MODEL selects (Gemma via the Gemini API, or Claude).
+
+    Recorded fixture in DEMO_MODE, without that model's key, or when the API fails.
+    """
+    gemini = settings.LLM_MODEL.startswith(llm.GEMINI_PREFIXES)
+    key = llm.gemini_env.GEMINI_API_KEY if gemini else settings.ANTHROPIC_API_KEY
+    if settings.DEMO_MODE or not key:
         return _fixture_draft(prospect)
     prompt = (
         "Escribe un mensaje corto y cordial en español para un negocio ficticio. "
@@ -108,21 +116,43 @@ def ai_draft(prospect: Prospect, client: httpx.Client | None = None) -> str:
         f"Negocio: {prospect.business}. Dato público: {prospect.public_pain}. "
         "Ofrece una demo de 15 minutos. No incluyas la línea de baja; la agrega el sistema."
     )
-    headers = {
-        "x-api-key": settings.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-    }
-    payload = {
-        "model": settings.LLM_MODEL,
-        "max_tokens": 300,
-        "messages": [{"role": "user", "content": prompt}],
-    }
+    if gemini:
+        url = llm.GEMINI_URL.format(model=settings.LLM_MODEL)
+        headers = {"x-goog-api-key": key, "content-type": "application/json"}
+        # Gemma 4 spends ~600 tokens thinking before it answers: 300 left no room for the text.
+        payload = {
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "generationConfig": {"maxOutputTokens": 1024},
+        }
+    else:
+        url = ANTHROPIC_URL
+        headers = {
+            "x-api-key": key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+        payload = {
+            "model": settings.LLM_MODEL,
+            "max_tokens": 300,
+            "messages": [{"role": "user", "content": prompt}],
+        }
     try:
-        http = client or httpx.Client(timeout=TIMEOUT)
-        response = http.post(ANTHROPIC_URL, headers=headers, json=payload)
+        http = client or httpx.Client(timeout=GEMINI_TIMEOUT if gemini else TIMEOUT)
+        # Same policy as the LLM service: the Gemini API returns intermittent 429/5xx for Gemma.
+        attempts = llm.GEMINI_ATTEMPTS if gemini else 1
+        for attempt in range(attempts):
+            response = http.post(url, headers=headers, json=payload)
+            if response.status_code not in llm.GEMINI_RETRY_STATUS or attempt == attempts - 1:
+                break
+            time.sleep(llm.GEMINI_BACKOFF_S * (attempt + 1))
         response.raise_for_status()
-        return response.json()["content"][0]["text"]
+        data = response.json()
+        if gemini:
+            parts = data["candidates"][0]["content"]["parts"]
+            text = "".join(p.get("text", "") for p in parts if not p.get("thought")).strip()
+        else:
+            text = data["content"][0]["text"]
+        return text or _fixture_draft(prospect)
     except (httpx.HTTPError, KeyError, IndexError, ValueError):
         return _fixture_draft(prospect)
 
