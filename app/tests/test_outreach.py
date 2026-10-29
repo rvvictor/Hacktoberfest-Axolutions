@@ -222,3 +222,64 @@ def test_callback_must_be_signed_and_confirms_only_approved_sends(monkeypatch):
 def test_outreach_model_round_trips():
     record = draft(_prospect())
     assert Outreach.model_validate_json(record.model_dump_json()) == record
+
+
+GEMMA_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent"
+
+
+@pytest.fixture
+def gemma_live(monkeypatch):
+    from app.services import llm
+
+    monkeypatch.setattr(settings, "DEMO_MODE", False)
+    monkeypatch.setattr(settings, "LLM_MODEL", "gemma-4-26b-a4b-it")
+    monkeypatch.setattr(llm.gemini_env, "GEMINI_API_KEY", "test-gemini-key")
+    monkeypatch.setattr(outreach.time, "sleep", lambda _s: None)
+
+
+def test_ai_draft_uses_gemma_when_llm_model_selects_it(gemma_live):
+    reply = {
+        "candidates": [
+            {"content": {"parts": [{"text": "…", "thought": True}, {"text": "Hola, ¿una demo de 15 minutos?"}]}}
+        ]
+    }
+    with respx.mock(assert_all_called=True) as mock:
+        route = mock.post(GEMMA_URL).mock(return_value=httpx.Response(200, json=reply))
+        record = draft(_prospect())
+    request = route.calls.last.request
+    assert request.headers["x-goog-api-key"] == "test-gemini-key"
+    assert "key=" not in str(request.url)
+    assert record.body.startswith("Hola, ¿una demo de 15 minutos?")
+    assert record.body.endswith(OPT_OUT_LINE)
+
+
+@pytest.mark.parametrize(
+    "response",
+    [httpx.Response(503), httpx.Response(200, json={"candidates": []}), httpx.Response(200, json={})],
+)
+def test_ai_draft_gemma_failure_or_empty_falls_back_to_recorded(gemma_live, response):
+    with respx.mock as mock:
+        mock.post(GEMMA_URL).mock(return_value=response)
+        record = draft(_prospect())
+    assert "Barbería Ejemplo Norte" in record.body
+    assert record.body.endswith(OPT_OUT_LINE)
+
+
+def test_ai_draft_gemma_without_key_never_calls_the_api(gemma_live, monkeypatch):
+    from app.services import llm
+
+    monkeypatch.setattr(llm.gemini_env, "GEMINI_API_KEY", None)
+    monkeypatch.setattr(settings, "ANTHROPIC_API_KEY", "test-key-not-real")  # ignored for Gemma
+    with respx.mock(assert_all_mocked=True):
+        record = draft(_prospect())
+    assert "Barbería Ejemplo Norte" in record.body
+
+
+def test_ai_draft_gemma_retries_transient_errors_with_room_to_think(gemma_live):
+    ok = {"candidates": [{"content": {"parts": [{"text": "Hola, ¿le mostramos la demo?"}]}}]}
+    with respx.mock as mock:
+        route = mock.post(GEMMA_URL).mock(side_effect=[httpx.Response(503), httpx.Response(200, json=ok)])
+        record = draft(_prospect())
+    assert route.call_count == 2
+    assert json.loads(route.calls.last.request.content)["generationConfig"]["maxOutputTokens"] >= 1024
+    assert record.body.startswith("Hola, ¿le mostramos la demo?")
