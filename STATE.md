@@ -1,7 +1,7 @@
 # STATE
 
 Phase: feature freeze; authorized fixes, rehearsal and submission only
-Updated: 1793317422
+Updated: 1793317471
 AVAILABLE: -
 CLAIMED: HACK-054 
 BLOCKED: -
@@ -14,11 +14,11 @@ HACK-054 | CLAIMED | dylan-3 | until 1793319815
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
-- 1793314799 | plan | Dylan/Dylan | tasks added: HACK-053 | Why: backlog without PR (Plan-Channel: claims)
 - 1793314830 | allow | Dylan | freeze exception: HACK-053 | Why: demo con investigación real
 - 1793317021 | HACK-054 | follow-up of HACK-053 by dylan-3: Demo replays build the Linear issues (and Miro items) from the recorded backlog.json and architecture.json, not Issue de
 - 1793317079 | allow | Dylan | freeze exception: HACK-054 | Why: demo con backlog y arquitectura reales
 - 1793317115 | deadline decision/HACK-053-1793315889/1793316789 | REVERSIBLE_AND_LOG | Option: run.jsonl stage-7 prototype_ready becomes the plan B recorded page (generator planb, 
+- 1793317471 | plan --amend | Dylan/Dylan | amended: HACK-054 Paths: app/fixtures/demo/, web/src/features/project/demo.ts, web/src/features/spec/demo.ts, scripts/demo_from_recordin
 
 Global next step: available P0; else review PRs, tests, demo, rehearsal.
 Why: bounded snapshot to resume without rereading history.

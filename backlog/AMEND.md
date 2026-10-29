@@ -49,3 +49,15 @@ Append-only; the last section of an ID replaces its section in the backlog. Why:
   - Stage 8 never reports passing quality checks it did not run (no local repo of the generated app): it falls back to the labeled fixture.
   - Existing `test_pipeline.py` tests pass unchanged; `test_stages.py` covers each adapter with mocked services, the demo-flag derivation, and a full run through `TestClient`.
 - **Verify:** `uv run pytest -q app/tests && bash .uak/bin/smoke`
+## HACK-054 · Demo replays build the Linear issues (and Miro items) from the recorded backlog.json and architecture.json, not Issue demo N (follow-up of HACK-053)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-053
+- **Follow-up of:** HACK-053
+- **Paths:** app/fixtures/demo/, web/src/features/project/demo.ts, web/src/features/spec/demo.ts, scripts/demo_from_recordings.py, app/tests/test_demo_fixture.py, app/tests/test_schemas.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Demo replays build the Linear issues (and Miro items) from the recorded backlog.json and architecture.json, not Issue demo N
+  - `test_schemas.py` minimum of demo linear issues follows the recorded backlog (6), by `uak decision`: the old 8 described the placeholder fixture
+- **Verify:** `uv run pytest -q && uv run ruff check app scripts && ! grep -q 'example.invalid\|Placeholder' app/fixtures/demo/run.jsonl web/src/features/project/demo.ts web/src/features/spec/demo.ts && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
