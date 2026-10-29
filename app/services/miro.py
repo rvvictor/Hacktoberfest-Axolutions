@@ -16,6 +16,7 @@ from app.schemas.content import Architecture
 API = "https://api.miro.com/v2"
 FIXTURE = Path(__file__).parent.parent / "fixtures" / "miro" / "demo_board.json"
 MAX_RETRIES = 5
+MAX_SERVER_RETRIES = 2  # extra attempts on a Miro 5xx
 
 COLORS = {"screen": "#fff9b1", "data_model": "#c6dcff", "integration": "#d5f692"}
 MIRO_COLORS = {"screen": "yellow", "data_model": "light_blue", "integration": "light_green"}
@@ -26,6 +27,11 @@ FRAMES = [  # (architecture field, item kind, frame title)
 ]
 FRAME_W, FRAME_H, FRAME_GAP = 520, 700, 120
 NOTE, NOTE_GAP = 200, 40
+
+
+def frame_height(notes: int) -> int:
+    """Tall enough for `notes` stacked notes (gap above each, one below the last), at least FRAME_H."""
+    return max(FRAME_H, NOTE_GAP + notes * (NOTE + NOTE_GAP))
 
 Sleep = Callable[[float], Awaitable[None]]
 
@@ -69,14 +75,21 @@ class BoardRun:
             yield {**payload, "demo_data": True}
 
     async def _request(self, client: httpx.AsyncClient, method: str, path: str, **kw: Any) -> dict[str, Any]:
+        server_errors = 0
         for attempt in range(MAX_RETRIES):
             r = await client.request(method, f"{API}{path}", **kw)
+            if r.status_code >= 500 and server_errors < MAX_SERVER_RETRIES:
+                # Live runs got intermittent 500 "Internal error" from Miro on sticky notes. A retry
+                # may rarely duplicate a note Miro did create; losing the whole board is worse.
+                server_errors += 1
+                await self._sleep(2.0**server_errors)
+                continue
             if r.status_code != 429:
                 if r.status_code >= 400:
                     raise MiroError(f"{method} {path} -> {r.status_code}: {r.text[:200]}")
                 return r.json()
             await self._sleep(float(r.headers.get("Retry-After", 2**attempt)))
-        raise MiroError(f"{method} {path}: still 429 after {MAX_RETRIES} retries")
+        raise MiroError(f"{method} {path}: still failing after {MAX_RETRIES} attempts")
 
     async def _live(self) -> AsyncIterator[dict[str, Any]]:
         if not settings.MIRO_ACCESS_TOKEN:
@@ -91,23 +104,35 @@ class BoardRun:
                 self.ids["board"] = board["id"]
             board_id = self.ids["board"]
             self.embed_url = f"https://miro.com/app/live-embed/{board_id}/"
-            frame_ids = []
+            frame_ids = []  # the first note key of each non-empty column, in board order
             for col, (field, kind, title) in enumerate(FRAMES):
                 fx = col * (FRAME_W + FRAME_GAP)
                 fkey = f"frame:{kind}"
+                # Miro refuses a note outside its parent frame: the frame grows with its notes.
+                fh = frame_height(len(getattr(self.architecture, field)))
                 if fkey not in self.ids:
                     f = await self._request(
                         client, "POST", f"/boards/{board_id}/frames",
                         json={
                             "data": {"title": title, "format": "custom"},
                             "position": {"x": fx, "y": 0},
-                            "geometry": {"width": FRAME_W, "height": FRAME_H},
+                            "geometry": {"width": FRAME_W, "height": fh},
                         },
                     )
                     self.ids[fkey] = f["id"]
-                    yield _event("frame", title, f["id"], fx, 0, FRAME_W, FRAME_H, "#e6e6e6")
-                frame_ids.append(self.ids[fkey])
-                for row, text in enumerate(getattr(self.architecture, field)):
+                    self.ids[f"height:{kind}"] = str(fh)
+                    yield _event("frame", title, f["id"], fx, 0, FRAME_W, fh, "#e6e6e6")
+                elif fh > int(self.ids.get(f"height:{kind}", FRAME_H)):
+                    # a rerun brings more notes than the frame was first sized for
+                    await self._request(
+                        client, "PATCH", f"/boards/{board_id}/frames/{self.ids[fkey]}",
+                        json={"geometry": {"width": FRAME_W, "height": fh}},
+                    )
+                    self.ids[f"height:{kind}"] = str(fh)
+                notes = getattr(self.architecture, field)
+                if notes:  # connectors join the first note of each column: Miro refuses frames as ends
+                    frame_ids.append(f"{kind}:{notes[0]}")
+                for row, text in enumerate(notes):
                     nkey = f"{kind}:{text}"
                     if nkey in self.ids:
                         continue
@@ -124,8 +149,9 @@ class BoardRun:
                         },
                     )
                     self.ids[nkey] = n["id"]
-                    yield _event(kind, text, n["id"], fx, ry - FRAME_H / 2, NOTE, NOTE, COLORS[kind])
-            for a, b in itertools.pairwise(frame_ids):
+                    yield _event(kind, text, n["id"], fx, ry - fh / 2, NOTE, NOTE, COLORS[kind])
+            for a_key, b_key in itertools.pairwise(frame_ids):
+                a, b = self.ids[a_key], self.ids[b_key]
                 ckey = f"connector:{a}:{b}"
                 if ckey in self.ids:
                     continue
@@ -134,7 +160,7 @@ class BoardRun:
                     json={"startItem": {"id": a}, "endItem": {"id": b}},
                 )
                 self.ids[ckey] = c["id"]
-                yield _event("connector", f"{a} -> {b}", c["id"], 0, 0, 0, 0, "#1a1a1a")
+                yield _event("connector", f"{a_key.split(':', 1)[1]} → {b_key.split(':', 1)[1]}", c["id"], 0, 0, 0, 0, "#1a1a1a")
         finally:
             if own:
                 await client.aclose()
