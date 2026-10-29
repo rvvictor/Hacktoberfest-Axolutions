@@ -269,3 +269,49 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Gemini: 4 attempts with exponential backoff (2/4/8 s); a live pitch failed after 3 consecutive 500s
 - **Verify:** `uv run pytest -q app/tests/test_llm.py`
+## HACK-045 · Conversation screen: one run, from the idea to the product, as a single conversation
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 120 min
+- **Rubric / Spec:** C1 · `web/DESIGN.md` ("Conversación"), Dylan's redesign request (fewer perceived steps, warm, 60-30-10)
+- **Depends on:** HACK-042
+- **Paths:** web/src/features/project/
+- **Freeze-Allowed:** yes
+- **Acceptance:**
+  - `#/project` (with `?run=ID`, or a recorded replay without it) shows the whole run as one conversation: SpeedHack messages, each result as a card (questions to answer, the plan with its sources, the Miro board, the Linear tasks, the prototype, the pitch), and one decision button per card ("Sí, sigamos" / "Cambiar algo" with a comment).
+  - `Moments` (Idea · Plan · Producto) at the top replaces the 9-stage metro; the 9 stages stay reachable as "Ver detalle".
+  - It reads the run's named SSE events and posts answers and approvals with the existing endpoints; no backend change.
+  - Plain language: "Tu plan", "Tareas", "Revisión", "Prototipo"; demo data shows `DemoBadge`; every figure links to its source.
+  - Only `web/src/lib/ui` components and `var(--sh-*)` tokens; design-lint passes; fits 1280×720 per card and works at 390 px; screenshots in the PR.
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint`
+
+## HACK-046 · Navigation: three entries and the conversation as the home of a run
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 45 min
+- **Rubric / Spec:** C1 · `web/DESIGN.md` usability rule 6 (recognition over recall)
+- **Depends on:** HACK-045
+- **Paths:** web/src/App.tsx, web/src/main.tsx
+- **Freeze-Allowed:** yes
+- **Acceptance:**
+  - The top bar shows the SpeedHack logo, "Nuevo proyecto", the current project (when a run is open) and a "Más" menu with Modo cliente, Cazador, Costos and the detail screens; no more than 3 visible entries.
+  - Starting a project and every run link land on `#/project?run=ID`.
+  - Keyboard reachable menu with visible focus; works at 390 px.
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint`
+
+## HACK-047 · Landing and intake in the new voice; a fresh hero capture
+
+- **Type:** feature
+- **Priority:** P1
+- **Estimate:** 60 min
+- **Rubric / Spec:** C1 · `web/DESIGN.md`
+- **Depends on:** HACK-045
+- **Paths:** web/src/features/landing/, web/public/landing/, web/src/features/intake/
+- **Freeze-Allowed:** yes
+- **Acceptance:**
+  - The landing hero image is re-captured from the new design (no Línea 1 magenta/orange); the 9-station metro is replaced by the 3 moments.
+  - Intake opens as the first turn of the conversation ("Cuéntame tu idea"), without the 9-stage metro, and hands off to `#/project?run=ID`.
+  - Copy follows `web/DESIGN.md` rules; design-lint passes; screenshots at 1280 and 390 in the PR.
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint`

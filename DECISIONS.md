@@ -91,3 +91,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793291438 | allow | Dylan | freeze exception: HACK-043 | Why: Linear: no mezclar issues entre proyectos
 - 1793291447 | allow | Dylan | freeze exception: HACK-044 | Why: Gemini: mas reintentos ante 500
 - 1793291453 | allow | Dylan | freeze exception: HACK-042 | Why: Rediseño: 60-30-10 cálido, acento azul/violeta, 3 momentos, heurísticas de Nielsen
+- 1793292950 | plan | Dylan/Dylan | tasks added: HACK-045 HACK-046 HACK-047 | Why: backlog without PR (Plan-Channel: claims)
