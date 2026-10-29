@@ -10,3 +10,4 @@
 
 ## History
 - 1793310963 | CLAIMED | dylan-1 | claim; next: spike done 2026-10-29: gemma-4-26b with maxOutputTokens 16384 produced a complete 12k-char app (finishReason STOP, ~114 s, 0 page errors, one screen per backlog item); 4096 truncates. The generator call needs its own maxOutputTokens 16384 and timeout ≥ 300 s and keeps the 500/503 retries (two 500s before success in the spike). Read stages.py `_prototype_stage`/`_quality_stage` and generator.py; add SpeedHackGenerator behind the CodeGenerator protocol.
+- 1793311092 | CLAIMED | dylan-1 | pending decision HACK-050-1793311092; option: test_stages live_services also stubs the new SpeedHack generator; the live-run test then expects generator speedhack with a /api/prototypes/ url and stage 8 real (no demo stage left) instead of lovable + stage 8 demo; Why: the stage now generates the app itself and quality checks the generated file; unstubbed, the test would call the real LLM wherever .env has keys
