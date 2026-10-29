@@ -1,42 +1,45 @@
-# DESIGN · SpeedHack · "Línea 1" (frozen)
+# DESIGN · SpeedHack · "Conversación" (frozen)
 
-Chosen by Dylan on 2026-10-27 by looking at three directions (`web/public/design-lock/3-1280.png`, `3-390.png`, `3.html`).
+Chosen by Dylan on 2026-10-29 by looking at three directions (`web/public/design-lock/3-1280.png`, `3-390.png`, `3.html`). It replaces "Línea 1", whose references are kept in `web/public/design-lock/v1/`.
 Any global change (palette, type, theme) needs a human-approved `uak decision`.
 
-**Intent:** a run of SpeedHack is a trip on a CDMX Metro line. The 9 stages are stations on a rosa mexicano line, and the 3 human approvals are transfer stations ringed in orange. A judge reads where the run is in 3 seconds on a projector. Light background, one family (Archivo) whose width carries the hierarchy.
+**Why this direction (design thinking, empathize → define):** Dylan found the old UI flat, hard to follow and overloaded, and too many steps before the product. That distracts the user. The feeling to give is warm and close, including for a small business with no technical vocabulary.
 
-## Tokens (`web/src/styles/tokens.css`)
-| Token | Value | Use |
-|---|---|---|
-| `--sh-bg` | #FFFFFF | page |
-| `--sh-surface` | #F3F1F6 | panels |
-| `--sh-raised` | #FFFFFF | rows inside panels |
-| `--sh-ink` | #22223A | text, data-model accents, secondary buttons |
-| `--sh-muted` | #6A6A80 | meta text |
-| `--sh-line` | #DCD8E3 | rail not yet travelled, dashed placeholders |
-| `--sh-rosa` | #E4007C | brand: the line, current station, primary action, new items |
-| `--sh-naranja` | #F08A00 | approvals (transfer stations), integrations, demo-data badge border |
-| `--sh-naranja-ink` | #9A5200 | orange text on white |
-| `--sh-ok` / `--sh-error` | #0F8A5F / #C62828 | quality checks pass/fail only |
+**Intent:** SpeedHack talks you through the project. Each result (questions, plan, board, tasks, prototype, pitch) arrives as a card in a conversation, and you answer with one button. The 9 pipeline stages are shown as **3 moments**: Idea, Plan, Producto.
 
-Type: Archivo variable (Google Fonts). Titles 800 at `font-stretch: 112%`; IDs and big numbers at `62%` (condensed); body 400–600 at 100%. Scale: 12 / 13.5 / 15 / 18 / 26 / 34 px. Radius: 10 px rows, 18 px panels, pill for buttons and chips. No shadows except the rosa ring on new items.
+## 60-30-10 (`web/src/styles/tokens.css`)
+| Share | Tokens | Value | Use |
+|---|---|---|---|
+| 60 % | `--sh-bg` | #F8F6FB | the page |
+| 30 % | `--sh-raised` / `--sh-surface` / `--sh-line` | #FFFFFF / #EFEAF6 / #E1D9EE | cards / quiet groups and "you" bubbles / borders |
+| 30 % | `--sh-ink` / `--sh-muted` | #2E2640 / #6F6582 | text, done steps, the SpeedHack avatar |
+| 10 % | `--sh-accent` / `--sh-accent-soft` | #6D4AE6 / #E9E2FB | **only** the primary action, the current step and a just-arrived item |
+| states | `--sh-ok` · `--sh-error` · `--sh-demo` / `--sh-demo-soft` | #23845A · #C2410C · #8A6A2F / #F6EBD4 | results only; never decoration, never the accent |
 
-## Components (`web/src/lib/ui/`, import from `../../lib/ui` in a feature)
-- `MetroLine current={n}`: the run timeline. Use it on every run screen, at the top, full width. Gates after stages 4, 6, 8 are fixed in `GATES`.
-- `Title`, `SectionHeader title meta`: the project name, then each panel's heading with a count ("5 de 12").
-- `Panel title meta` + `Item tone pending fresh code meta`: Miro elements (`rosa` screens, `ink` data, `naranja` integrations), Linear issues, research sources. `pending` = still arriving (dashed), `fresh` = just arrived (rosa ring).
-- `Button variant="primary"`: only the action that advances the run (Aprobar, Empezar). One per screen. Everything else `secondary`.
-- `Chip tone`: small states (ok/error for quality checks, rosa for highlights).
-- `DemoBadge show={demo_data}`: required wherever data is recorded or simulated; on a view it sits in the header, top-right.
-- `Stat value label`: costs, times, counts (condensed numerals).
+`--sh-rosa*` and `--sh-naranja*` are **deprecated aliases** (accent and demo) so every screen adopted the palette at once. New code uses the names above, and screens migrate as they are redesigned.
 
-## Usage rules
-- Every view reuses `MetroLine` and `Panel`; don't build another timeline or card style.
-- The wow screen (HACK-016) is two panels side by side: Miro 1.3fr, Linear 1fr; stacked under 820 px. Newest item first in Linear so the arrival is above the 720 px fold.
-- Motion: only the current station's pulse and items arriving one by one (≈150 ms stagger). Everything respects `prefers-reduced-motion`.
-- Copy in Spanish, sentence case, plain verbs ("Aprobar diseño", "Pedir cambios").
+Type: **DM Sans** for everything people read (16 px base, line height 1.55). **Gloock** only for page titles (`Title`). Radius: 12 px rows, 14 px buttons, 20 px cards. Cards are white with a 1 px line, with no heavy shadows.
+
+## Components (`web/src/lib/ui/`)
+- `Moments stage={n}`: the page-level progress (Idea · Plan · Producto). `momentOf(stage)` maps stages 1-2, 3-6 and 7-9. Use it at the top of every run screen.
+- `Message from="speedhack"|"you"`: one turn of the conversation. SpeedHack explains in one or two plain sentences what it did and what it needs.
+- `Panel` + `Item`: the result cards inside the conversation (plan, board, tasks…).
+- `Button variant="primary"`: the single next action ("Sí, sigamos", "Aprobar plan"). One per screen. Everything else `secondary`.
+- `Chip`, `DemoBadge`, `Stat`, `SectionHeader`, `Title` as before. `DemoBadge` is now amber on soft amber.
+- `MetroLine`: the 9 detailed stages, only in the run detail; quieter (ink done, accent current, dashed approval gates).
+
+## Usability rules (Nielsen)
+1. **Visibility of status:** every run screen shows `Moments` plus one sentence of what is happening now. A stage that takes long says how long it usually takes.
+2. **Match the real world:** say "Tu plan", "Tareas", "Revisión" and "Prototipo", not "Spec", "Backlog", "Calidad" or "Stage". Client mode uses no technical words at all.
+3. **User control:** every approval offers "Cambiar algo" next to the primary action, and says what happens after approving.
+4. **Consistency:** violet always means "your next action", and nothing else is violet.
+5. **Error prevention:** a disabled primary button always explains why next to it.
+6. **Recognition over recall:** the current project name and moment are always visible. Navigation has at most 3 visible entries (Nuevo proyecto, Mis proyectos, Más); Cliente, Cazador and Costos live under "Más".
+7. **Minimalist design:** one result card and one decision per view; details expand on demand.
+8. **Errors:** say what failed and what to do, in the interface's voice ("Miro no respondió. Reintentamos en 4 s.").
+9. **Help:** a one-line hint under each decision, never a manual.
 
 ## Never
-1. Never a dark theme or a second brand color: rosa is the only accent; orange means approval, integrations or demo data, nothing else (and never as text or focus ring on white: use `--sh-naranja-ink` / `--sh-ink`).
-2. Never all-caps labels, gradients or drop shadows on cards.
-3. Never show a figure without its source or simulated data without `DemoBadge`.
+1. Never use the accent for anything but the next action, the current step or a just-arrived item.
+2. Never show the 9 stages as the main progress: people see 3 moments.
+3. Never show a figure without its source, or simulated data without `DemoBadge`.

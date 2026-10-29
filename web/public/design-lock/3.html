@@ -3,121 +3,65 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SpeedHack · Línea 1</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<title>SpeedHack · Conversación</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Gloock&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#FFFFFF; --surface:#F3F1F6; --ink:#22223A; --muted:#6A6A80; --line:#DCD8E3;
-  --rosa:#E4007C; --naranja:#F08A00; --ok:#0F8A5F;
-  --font:"Archivo",system-ui,sans-serif;
-}
+/* 60% lilac-white · 30% plum ink + lilac surfaces · 10% violet (the reply button and the live step) */
+:root{--bg:#F8F6FB;--surface:#EFEAF6;--line:#E1D9EE;--card:#FFFFFF;--ink:#2E2640;--muted:#6F6582;--violet:#6D4AE6;--violet-soft:#E9E2FB;--font:"DM Sans",system-ui,sans-serif;--display:"Gloock",Georgia,serif}
 *{box-sizing:border-box;margin:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--font);min-height:100vh}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px 28px;gap:14px;flex-wrap:wrap}
-.brand{font-weight:900;font-stretch:125%;font-size:20px;letter-spacing:-.01em}
-.brand i{font-style:normal;color:var(--rosa)}
-.demo{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;border:2px solid var(--naranja);color:#9A5200}
-.hero{padding:4px 28px 0}
-h1{font-weight:800;font-stretch:112%;font-size:34px;line-height:1.05;letter-spacing:-.015em}
-.sub{color:var(--muted);margin-top:6px}
-.metro{position:relative;margin:16px 28px 0;padding-bottom:24px}
-.metro .rail{position:absolute;left:14px;right:14px;top:14px;height:10px;border-radius:5px;background:var(--line)}
-.metro .rail b{display:block;height:100%;width:62%;border-radius:5px;background:var(--rosa)}
-.metro ol{position:relative;display:flex;justify-content:space-between;list-style:none;padding:0}
-.metro li{width:38px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;font-weight:600;text-align:center;white-space:nowrap}
-.metro li span{width:38px;height:38px;border-radius:50%;background:var(--bg);border:5px solid var(--line);display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--muted)}
-.metro li.d span{border-color:var(--rosa);color:var(--rosa)}
-.metro li.now span{background:var(--rosa);border-color:var(--rosa);color:#fff;box-shadow:0 0 0 6px #FFD3EA}
-.metro li.gate span{outline:4px solid var(--naranja);outline-offset:3px}
-.metro li em{font-style:normal;color:var(--muted);font-weight:500}
-.metro li.now em,.metro li.d em{color:var(--ink)}
-.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;padding:4px 28px 28px}
-.panel{background:var(--surface);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
-.panel h2{font-weight:800;font-stretch:112%;font-size:18px;display:flex;justify-content:space-between;align-items:baseline}
-.panel h2 small{font-weight:500;font-stretch:100%;font-size:13px;color:var(--muted)}
-.board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.col h3{font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:6px}
-.it{background:var(--bg);border-radius:10px;padding:9px 10px;font-weight:600;font-size:13.5px;margin-bottom:8px;border-left:5px solid var(--rosa)}
-.it.data{border-left-color:var(--ink)} .it.int{border-left-color:var(--naranja)}
-.it.wait{border:2px dashed var(--line);border-left:5px dashed var(--naranja);color:var(--muted);background:none}
-.issue{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;background:var(--bg);border-radius:10px;padding:8px 12px}
-.issue code{font:700 12px var(--font);font-stretch:62%;font-size:14px;color:var(--rosa);grid-row:span 2;align-self:center}
-.issue p{font-weight:600}
-.issue span{font-size:12px;color:var(--muted)}
-.issue.new{box-shadow:0 0 0 2px var(--rosa)}
-.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:auto}
-button{font:700 15px var(--font);border-radius:999px;padding:12px 20px;cursor:pointer;border:0}
-.primary{background:var(--rosa);color:#fff}
-.secondary{background:none;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
-button:focus-visible{outline:3px solid var(--naranja);outline-offset:3px}
-@media (prefers-reduced-motion:no-preference){
-  .metro li.now span{animation:pulse 1.6s ease-in-out infinite}
-  @keyframes pulse{50%{box-shadow:0 0 0 12px #FFD3EA00}}
-  .issue{animation:in .4s both}.issue:nth-child(3){animation-delay:.15s}.issue:nth-child(4){animation-delay:.3s}.issue:nth-child(5){animation-delay:.45s}.issue:nth-child(6){animation-delay:.6s}
-  @keyframes in{from{opacity:0;transform:translateX(12px)}}
-}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--font)}
+.top{display:flex;align-items:center;gap:16px;padding:14px 28px}
+.logo{font-family:var(--display);font-size:22px}
+.steps{display:flex;gap:6px;margin-left:auto;align-items:center;font-size:14px;color:var(--muted)}
+.steps b{color:var(--ink)}
+.steps i{width:28px;height:4px;border-radius:2px;background:var(--line);display:inline-block}
+.steps i.on{background:var(--ink)}.steps i.now{background:var(--violet)}
+.chat{max-width:860px;margin:6px auto 0;padding:0 28px 28px;display:flex;flex-direction:column;gap:16px}
+.msg{display:flex;gap:12px;align-items:flex-start}
+.av{width:36px;height:36px;border-radius:12px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:var(--display);flex:none}
+.bubble{background:var(--card);border:1px solid var(--line);border-radius:4px 18px 18px 18px;padding:14px 18px;max-width:640px}
+.me{justify-content:flex-end}
+.me .bubble{background:var(--surface);border-color:transparent;border-radius:18px 4px 18px 18px}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 22px;margin-left:48px}
+.plan h2{font-family:var(--display);font-weight:400;font-size:26px;line-height:1.2}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:12px;font-size:15px}
+.cols h3{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.cols ul{padding-left:18px}
+.src{margin-top:12px;font-size:14px;color:var(--muted)}
+.src a{color:var(--ink);font-weight:700}
+.reply{margin-left:48px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button{font:700 15px var(--font);border-radius:14px;padding:12px 20px;cursor:pointer;border:0}
+.primary{background:var(--violet);color:#fff}
+.ghost{background:var(--card);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.reply small{color:var(--muted);font-size:13px}
 @media (max-width:820px){
-  header,.hero{padding-left:16px;padding-right:16px}
-  h1{font-size:26px}
-  .metro{margin:20px 16px 4px;padding-bottom:30px}
-  .metro li{width:26px;font-size:0}
-  .metro li span{width:26px;height:26px;border-width:4px;font-size:11px}
-  .metro li.now{font-size:12px}
-  .metro li em{display:none}
-  .metro .rail{top:8px;height:8px}
-  .grid{grid-template-columns:1fr;padding:8px 16px 20px}
-  .board{grid-template-columns:1fr 1fr}
+  .top{padding:12px 16px}.steps span{display:none}
+  .chat{padding:0 16px 20px}.plan,.reply{margin-left:0}.cols{grid-template-columns:1fr}
+  .reply button{flex:1}
 }
 </style>
 </head>
 <body>
-<header>
-  <div class="brand">Speed<i>Hack</i></div>
-  <span class="demo">Datos de demostración</span>
-</header>
-<div class="hero">
-  <h1>Control de gastos corporativos</h1>
-  <p class="sub">Spec v3 aprobado. Miro y Linear se llenan desde el mismo spec.</p>
+<div class="top">
+  <div class="logo">SpeedHack</div>
+  <div class="steps" aria-label="Paso 2 de 3: Plan"><span>Idea</span><i class="on"></i><b>Plan</b><i class="now"></i><span>Producto</span><i></i></div>
 </div>
-<nav class="metro" aria-label="Etapa 6 de 9: Backlog">
-  <div class="rail"><b></b></div>
-  <ol>
-    <li class="d"><span>1</span>Idea</li>
-    <li class="d"><span>2</span>Preguntas</li>
-    <li class="d"><span>3</span>Investigación</li>
-    <li class="d gate"><span>4</span>Spec<em>aprobado</em></li>
-    <li class="d"><span>5</span>Arquitectura</li>
-    <li class="now gate"><span>6</span>Backlog<em>aprobación 2</em></li>
-    <li><span>7</span>Prototipo</li>
-    <li class="gate"><span>8</span>Calidad<em>aprobación 3</em></li>
-    <li><span>9</span>Pitch</li>
-  </ol>
-</nav>
-<main class="grid">
-  <section class="panel">
-    <h2>Arquitectura en Miro <small>14 de 18 elementos</small></h2>
-    <div class="board">
-      <div class="col"><h3>Pantallas</h3>
-        <div class="it">Login</div><div class="it">Dashboard de gastos</div><div class="it">Captura de ticket</div><div class="it">Aprobaciones</div></div>
-      <div class="col"><h3>Datos</h3>
-        <div class="it data">Empresa</div><div class="it data">Usuario y rol</div><div class="it data">Gasto</div><div class="it data">Política</div></div>
-      <div class="col"><h3>Integraciones</h3>
-        <div class="it int">Supabase Auth y RLS</div><div class="it int">Correo de alertas</div><div class="it wait">OCR de tickets</div></div>
+<div class="chat">
+  <div class="msg me"><div class="bubble">Quiero un SaaS para controlar los gastos de la empresa, con alertas.</div></div>
+  <div class="msg"><div class="av">S</div><div class="bubble">Listo. Revisé 5 fuentes y con tus respuestas armé este plan. ¿Lo dejamos así?</div></div>
+  <section class="plan">
+    <h2>Control de gastos sin esperar al cierre</h2>
+    <div class="cols">
+      <div><h3>El problema</h3><p>Los reembolsos tardan semanas y los excesos se descubren tarde.</p></div>
+      <div><h3>Lo primero que tendrá</h3><ul><li>Gastos con foto del ticket</li><li>Aprobación del gerente</li><li>Alerta al pasar el límite</li></ul></div>
     </div>
+    <p class="src">Basado en <a href="#">flowlu.com</a> (desde $9 por usuario) y <a href="#">4 fuentes más</a>.</p>
   </section>
-  <section class="panel">
-    <h2>Tickets en Linear <small>5 de 12</small></h2>
-    <div class="issue new"><code>GAS-5</code><p>Alerta al exceder la política</p><span>Recién creado</span></div>
-    <div class="issue"><code>GAS-1</code><p>Multiempresa y roles</p><span>Épica</span></div>
-    <div class="issue"><code>GAS-2</code><p>Alta de empresa y usuarios</p><span>3 criterios de aceptación</span></div>
-    <div class="issue"><code>GAS-3</code><p>Políticas RLS por empresa</p><span>2 criterios de aceptación</span></div>
-    <div class="issue"><code>GAS-4</code><p>Captura de gasto con foto</p><span>4 criterios de aceptación</span></div>
-    <div class="actions">
-      <button class="secondary">Pedir cambios</button>
-      <button class="primary">Aprobar diseño</button>
-    </div>
-  </section>
-</main>
+  <div class="reply">
+    <button class="primary">Sí, sigamos</button>
+    <button class="ghost">Cambiar algo</button>
+    <small>Después: tablero en Miro, tareas en Linear y tu prototipo.</small>
+  </div>
+</div>
 </body>
 </html>
