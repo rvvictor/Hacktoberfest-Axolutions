@@ -100,3 +100,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793294841 | HACK-046 | Más uses native <details>; menu names mapped in App.tsx | Why: DESIGN.md rule 6: max 3 visible entries
 - 1793294849 | HACK-048 | run id read from the URL after intake redirect | Why: the page navigates before the POST body can be read
 - 1793295720 | deadline decision/HACK-046-1793294803/1793295703 | BLOCKED_OTHER_TASK | Option: Conversación; Why: Dylan eligió viendo la galería: menos pasos percibidos, cálido y cercano, 60-30-10 con acento violeta; no money, accounts, publishing or scope expansion.
+- 1793295951 | HACK-049 | follow-up of HACK-048 by dylan-1: ruff check e2e clean: 4 lint errors in e2e/judge_path.py | Why: same Paths, no scope change

@@ -327,3 +327,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Judge-path E2E follows the conversation flow: intake → #/project, questions one at a time, decisions per card
 - **Verify:** `uv run python e2e/judge_path.py`
+
+## HACK-049 · ruff check e2e clean: 4 lint errors in e2e/judge_path.py (follow-up of HACK-048)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-048
+- **Follow-up of:** HACK-048
+- **Paths:** e2e/
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - ruff check e2e clean: 4 lint errors in e2e/judge_path.py
+- **Verify:** `uv run python e2e/judge_path.py`
