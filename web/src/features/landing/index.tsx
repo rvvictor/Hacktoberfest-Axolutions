@@ -7,9 +7,9 @@ export const order = 0;
 
 // The three moments people go through (web/DESIGN.md) and what each one gives back.
 const STEPS: Record<(typeof MOMENTS)[number]["label"], string> = {
-  Idea: "Me cuentas tu idea, por voz o escrita, y respondes unas preguntas cortas, una a la vez.",
-  Plan: "Investigo tu mercado con fuentes reales y te propongo un plan. Al aprobarlo dibujo la arquitectura en Miro y creo las tareas en Linear.",
-  Producto: "Te dejo un prototipo revisado y un pitch que puedes defender, con preguntas por voz.",
+  Idea: "Me la cuentas y respondes 3 preguntas cortas.",
+  Plan: "Investigo con fuentes reales; al aprobar, Miro y Linear se llenan solos.",
+  Producto: "Prototipo revisado y un pitch que puedes defender.",
 };
 
 const PLANS = [
@@ -25,8 +25,7 @@ export default function Landing() {
         <div className="landing__copy">
           <h1>De idea a pitch defendible en una hora</h1>
           <p>
-            Platícale tu idea a SpeedHack. Investiga tu mercado y te propone un plan. Cuando lo apruebas, deja listos el
-            tablero en Miro, las tareas en Linear, un prototipo y tu pitch. Tú solo decides en tres momentos.
+            Cuéntame tu idea: investigo, planeo y te dejo prototipo y pitch. Tú decides en tres momentos.
           </p>
           <div className="landing__cta">
             <a className="sh-btn sh-btn--primary" href="#/intake">Contar mi idea</a>
@@ -36,9 +35,9 @@ export default function Landing() {
         <figure className="landing__shot">
           <img
             src={`${import.meta.env.BASE_URL}landing/conversation.png`}
-            width={1280}
-            height={720}
-            alt="Conversación de SpeedHack: el plan de un SaaS de control de gastos con sus fuentes y los botones Sí, sigamos y Cambiar algo."
+            width={812}
+            height={372}
+            alt="Tarjeta de la conversación de SpeedHack: el plan de un SaaS de control de gastos con sus fuentes y los botones Sí, sigamos y Cambiar algo."
           />
           <figcaption>Captura real del ejemplo grabado.</figcaption>
         </figure>

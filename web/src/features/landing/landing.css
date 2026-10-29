@@ -1,10 +1,10 @@
 /* HACK-047 layout only; colors, type and components come from web/src/styles and web/src/lib/ui. */
-.landing { display: flex; flex-direction: column; gap: 64px; }
+.landing { display: flex; flex-direction: column; gap: 40px; }
 .landing a.sh-btn { display: inline-block; text-decoration: none; text-align: center; }
-.landing__hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 36px; align-items: center; }
+.landing__hero { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: 36px; align-items: center; }
 .landing__copy { display: flex; flex-direction: column; gap: 20px; }
 .landing h1 {
-  margin: 0; font-family: var(--sh-display); font-weight: 400; font-size: 52px; line-height: 1.08; letter-spacing: -0.01em;
+  margin: 0; font-family: var(--sh-display); font-weight: 400; font-size: 48px; line-height: 1.08; letter-spacing: -0.01em;
 }
 .landing__copy p { margin: 0; font-size: var(--sh-text-lg); color: var(--sh-muted); max-width: 46ch; }
 .landing__cta { display: flex; flex-wrap: wrap; gap: 12px; }

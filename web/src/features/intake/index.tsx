@@ -102,8 +102,7 @@ export default function Intake() {
 
       <div className="intake__chat">
         <Message>
-          ¡Hola! Soy SpeedHack. Cuéntame qué quieres construir, como se lo contarías a un amigo. Con eso investigo tu
-          mercado, armo un plan y te dejo un prototipo y un pitch.
+          ¡Hola! Cuéntame qué quieres construir, como se lo contarías a un amigo.
         </Message>
 
         <form className="intake__main" onSubmit={submit}>
