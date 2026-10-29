@@ -19,10 +19,11 @@ import subprocess
 import sys
 import time
 import urllib.request
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Callable, Iterator
 
+from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import Page, expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -61,7 +62,7 @@ def check_port_free(p: int) -> None:
 
 def run_logged(name: str, cmd: list[str], cwd: Path, log: Path) -> None:
     with log.open("w") as fh:
-        code = subprocess.run(cmd, cwd=cwd, stdout=fh, stderr=subprocess.STDOUT).returncode
+        code = subprocess.run(cmd, cwd=cwd, stdout=fh, stderr=subprocess.STDOUT, check=False).returncode
     if code:
         raise Fail(f"setup: {name} exited {code}; see {log}")
 
@@ -148,8 +149,8 @@ def step(page: Page, name: str, shots: list[str]) -> Iterator[None]:
         slug = re.sub(r"\W+", "-", name).strip("-")
         try:
             page.screenshot(path=str(OUT / f"failure-{slug}.png"), full_page=True)
-        except Exception:
-            pass
+        except PlaywrightError as shot_exc:
+            print(f"WARN no failure screenshot: {shot_exc}", flush=True)
         first = (str(exc).splitlines() or [type(exc).__name__])[0][:400]
         raise Fail(f"step={name}: {first}") from exc
     shots.append(name)
