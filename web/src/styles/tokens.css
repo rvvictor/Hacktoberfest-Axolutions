@@ -19,9 +19,9 @@
   --sh-on-accent: #ffffff;
 
   /* states: never decorative, never the accent */
-  --sh-ok: #23845a;
+  --sh-ok: #1e7a52;
   --sh-error: #c2410c;
-  --sh-demo: #8a6a2f; /* recorded or simulated data, readable on white */
+  --sh-demo: #7a5c22; /* recorded or simulated data: AA on white and on --sh-demo-soft */
   --sh-demo-soft: #f6ebd4;
 
   /* Deprecated "Línea 1" names, kept so every screen adopts the new palette at once.

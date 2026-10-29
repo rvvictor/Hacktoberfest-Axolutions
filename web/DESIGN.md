@@ -14,7 +14,7 @@ Any global change (palette, type, theme) needs a human-approved `uak decision`.
 | 30 % | `--sh-raised` / `--sh-surface` / `--sh-line` | #FFFFFF / #EFEAF6 / #E1D9EE | cards / quiet groups and "you" bubbles / borders |
 | 30 % | `--sh-ink` / `--sh-muted` | #2E2640 / #6F6582 | text, done steps, the SpeedHack avatar |
 | 10 % | `--sh-accent` / `--sh-accent-soft` | #6D4AE6 / #E9E2FB | **only** the primary action, the current step and a just-arrived item |
-| states | `--sh-ok` · `--sh-error` · `--sh-demo` / `--sh-demo-soft` | #23845A · #C2410C · #8A6A2F / #F6EBD4 | results only; never decoration, never the accent |
+| states | `--sh-ok` · `--sh-error` · `--sh-demo` / `--sh-demo-soft` | #1E7A52 · #C2410C · #7A5C22 / #F6EBD4 | results only; never decoration, never the accent |
 
 `--sh-rosa*` and `--sh-naranja*` are **deprecated aliases** (accent and demo) so every screen adopted the palette at once. New code uses the names above, and screens migrate as they are redesigned.
 
@@ -26,7 +26,7 @@ Type: **DM Sans** for everything people read (16 px base, line height 1.55). **G
 - `Panel` + `Item`: the result cards inside the conversation (plan, board, tasks…).
 - `Button variant="primary"`: the single next action ("Sí, sigamos", "Aprobar plan"). One per screen. Everything else `secondary`.
 - `Chip`, `DemoBadge`, `Stat`, `SectionHeader`, `Title` as before. `DemoBadge` is now amber on soft amber.
-- `MetroLine`: the 9 detailed stages, only in the run detail; quieter (ink done, accent current, dashed approval gates).
+- `MetroLine`: the 9 detailed stages, only in the run detail; quieter (ink done, ink-ringed current, dashed approval gates). Only `Moments` carries the accent, so there is one "you are here" per screen.
 
 ## Usability rules (Nielsen)
 1. **Visibility of status:** every run screen shows `Moments` plus one sentence of what is happening now. A stage that takes long says how long it usually takes.
