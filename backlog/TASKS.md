@@ -315,3 +315,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
   - Intake opens as the first turn of the conversation ("Cuéntame tu idea"), without the 9-stage metro, and hands off to `#/project?run=ID`.
   - Copy follows `web/DESIGN.md` rules; design-lint passes; screenshots at 1280 and 390 in the PR.
 - **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint`
+
+## HACK-048 · Judge-path E2E follows the conversation flow: intake → #/project, questions one at a time, decisions per card (follow-up of HACK-029)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-029
+- **Follow-up of:** HACK-029
+- **Paths:** e2e/
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Judge-path E2E follows the conversation flow: intake → #/project, questions one at a time, decisions per card
+- **Verify:** `uv run python e2e/judge_path.py`
