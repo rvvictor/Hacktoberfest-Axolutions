@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button, Chip, DemoBadge, Item, Message, Moments, Panel, Title } from "../../lib/ui";
 import type { ResearchItem } from "../../lib/types";
@@ -86,6 +86,18 @@ export default function Project() {
   const [runId] = useState(runFromUrl);
   const { state: c, busy, answer, decide } = useConversation(runId);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [turn, setTurn] = useState(0); // the question being answered now
+  const end = useRef<HTMLDivElement>(null);
+  const progress = [
+    turn, c.questions.length, c.research.length, c.spec?.version, c.miro.length, c.issues.length,
+    c.prototype?.url, c.checks.length, c.pitch?.slides.length, c.awaiting, c.error,
+  ].join("|");
+
+  // Keep the newest turn and its action in view (usability: visibility of system status).
+  useEffect(() => {
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    end.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "end" });
+  }, [progress]);
   const waiting = (what: string) => c.awaiting === what;
   const working = c.status === "running" && !c.awaiting && !c.error ? WORKING[c.stage] : null;
   const runQuery = runId ? `?run=${encodeURIComponent(runId)}` : "";
@@ -118,39 +130,50 @@ export default function Project() {
 
         {c.questions.length > 0 && (
           <>
-            <Message>Para entenderte mejor, tengo {c.questions.length} preguntas.</Message>
-            <Panel className="pj-card">
-              {c.questions.map((q, i) => (
-                <div key={q} className="pj-q">
-                  <label className="pj-label" htmlFor={`r-${i}`}>{q}</label>
-                  {waiting("answers") ? (
-                    <textarea
-                      id={`r-${i}`}
-                      className="pj-input"
-                      rows={2}
-                      value={answers[i] ?? ""}
-                      onChange={(e) => setAnswers((a) => Object.assign([...a], { [i]: e.target.value }))}
-                    />
+            <Message>Para entenderte mejor, te haré {c.questions.length} preguntas cortas, una a la vez.</Message>
+            {c.questions.map((q, i) => {
+              const asked = !waiting("answers") || i <= turn;
+              if (!asked) return null;
+              const done = !waiting("answers") || i < turn;
+              return (
+                <div key={q} className="pj-turn">
+                  <Message>{q}</Message>
+                  {done ? (
+                    answers[i]?.trim() && <Message from="you">{answers[i].trim()}</Message>
                   ) : (
-                    <p className="pj-answered">{answers[i]?.trim() || "Respondida"}</p>
+                    <form
+                      className="pj-reply"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!(answers[i] ?? "").trim() || busy) return;
+                        if (i < c.questions.length - 1) setTurn(i + 1);
+                        else void answer(c.questions.map((_, k) => answers[k].trim()));
+                      }}
+                    >
+                      <label className="pj-label sr-only" htmlFor={`r-${i}`}>Tu respuesta</label>
+                      <textarea
+                        id={`r-${i}`}
+                        className="pj-input"
+                        rows={2}
+                        autoFocus
+                        placeholder="Responde lo que sepas; puede ser breve."
+                        value={answers[i] ?? ""}
+                        onChange={(e) => setAnswers((a) => Object.assign([...a], { [i]: e.target.value }))}
+                      />
+                      <div className="pj-actions">
+                        <Button type="submit" variant="primary" disabled={busy || !(answers[i] ?? "").trim()}>
+                          {i < c.questions.length - 1 ? "Responder" : "Responder y seguir"}
+                        </Button>
+                        <span className="pj-hint">
+                          Pregunta {i + 1} de {c.questions.length}
+                          {i === c.questions.length - 1 ? " · después investigo tu mercado" : ""}
+                        </span>
+                      </div>
+                    </form>
                   )}
                 </div>
-              ))}
-              {waiting("answers") && (
-                <div className="pj-decide">
-                  <div className="pj-actions">
-                    <Button
-                      variant="primary"
-                      disabled={busy || c.questions.some((_, i) => !(answers[i] ?? "").trim())}
-                      onClick={() => answer(c.questions.map((_, i) => answers[i].trim()))}
-                    >
-                      Enviar respuestas
-                    </Button>
-                  </div>
-                  <p className="pj-hint">Responde las {c.questions.length} para seguir. Después: investigo tu mercado.</p>
-                </div>
-              )}
-            </Panel>
+              );
+            })}
           </>
         )}
 
@@ -208,7 +231,7 @@ export default function Project() {
         {c.issues.length > 0 && (
           <>
             <Message>Creé {c.issues.length} tareas en Linear, cada una con sus criterios de aceptación.</Message>
-            <Panel className="pj-card">
+            <Panel className="pj-card pj-list">
               {c.issues.map((i) => (
                 <Item key={i.external_id} code={i.linear_id ?? undefined} meta={i.epic}>
                   {i.url ? <a href={i.url} target="_blank" rel="noreferrer">{i.title}</a> : i.title}
@@ -230,7 +253,9 @@ export default function Project() {
           <>
             <Message>Tu prototipo está listo. Lo revisé antes de mostrártelo.</Message>
             <Panel className="pj-card">
-              <a className="pj-link" href={c.prototype.url} target="_blank" rel="noreferrer">Abrir el prototipo</a>
+              <a className="sh-btn sh-btn--secondary pj-cta" href={c.prototype.url} target="_blank" rel="noreferrer">
+                Abrir el prototipo
+              </a>
               {c.prototype.build_url && c.prototype.build_url !== c.prototype.url && (
                 <a className="pj-link" href={c.prototype.build_url} target="_blank" rel="noreferrer">Construirlo desde tu plan en Lovable</a>
               )}
@@ -240,6 +265,13 @@ export default function Project() {
                     <Chip key={k.name} tone={k.passed ? "ok" : "error"}>{CHECK_LABEL[k.name] ?? k.name}</Chip>
                   ))}
                 </div>
+              )}
+              {c.checks.some((k) => !k.passed) && (
+                <p className="pj-hint">
+                  Revisa esto antes de publicar:{" "}
+                  {c.checks.filter((k) => !k.passed).map((k) => (CHECK_LABEL[k.name] ?? k.name).toLowerCase()).join(", ")}
+                  . Si pides cambios, lo corrijo en el plan.
+                </p>
               )}
               <Decision
                 approval={3}
@@ -257,7 +289,15 @@ export default function Project() {
           <>
             <Message>Preparé tu pitch: {c.pitch.slides.length} diapositivas, y un juez puede preguntarte por voz.</Message>
             <Panel className="pj-card">
-              <ol className="pj-slides">{c.pitch.slides.map((s) => <li key={s.title}>{s.title}</li>)}</ol>
+              <ol className="pj-slides">
+                {c.pitch.slides.map((s, n) => (
+                  <li key={s.title}>
+                    <small>{n + 1}</small>
+                    <b>{s.title}</b>
+                    {s.bullets[0] && <span>{s.bullets[0]}</span>}
+                  </li>
+                ))}
+              </ol>
               <div className="pj-actions">
                 <a className="sh-btn sh-btn--primary pj-cta" href={`${runQuery}#/pitch`}>Ir a la sala de pitch</a>
               </div>
@@ -271,6 +311,7 @@ export default function Project() {
             <span className="pj-error">{c.error}</span> Puedes volver a intentarlo desde el <a href={`${runQuery}#/run`}>detalle</a>.
           </Message>
         )}
+        <div ref={end} />
       </div>
     </div>
   );
