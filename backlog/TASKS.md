@@ -161,3 +161,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - n8n Cloud: read N8N_WEBHOOK_SECRET and SPEEDHACK_API_URL from $vars instead of $env
 - **Verify:** `uv run pytest -q app/tests/test_outreach.py`
+
+## HACK-036 · LLM provider: Gemma 4 via Gemini API (gemma-4-31b-it) selected by LLM_MODEL, Anthropic kept (follow-up of HACK-004)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-004
+- **Follow-up of:** HACK-004
+- **Paths:** app/services/llm.py, app/services/prompts/, app/fixtures/llm/, app/tests/test_llm.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - LLM provider: Gemma 4 via Gemini API (gemma-4-31b-it) selected by LLM_MODEL, Anthropic kept
+- **Verify:** `uv run pytest -q app/tests/test_llm.py`

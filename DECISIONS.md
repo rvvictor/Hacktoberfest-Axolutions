@@ -71,3 +71,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793213990 | HACK-035 | follow-up of HACK-011 by dylan-1: n8n Cloud: read N8N_WEBHOOK_SECRET and SPEEDHACK_API_URL from $vars instead of $env | Why: same Paths, no scope change
 - 1793214723 | deadline lease/HACK-025/1793214347 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793236023 | deadline freeze/event/1793220750 | FREEZE_DEMO_FIXES_ONLY | New claims only with Freeze-Allowed: yes; respect authorization.
+- 1793238258 | HACK-036 | follow-up of HACK-004 by dylan-2: LLM provider: Gemma 4 via Gemini API (gemma-4-31b-it) selected by LLM_MODEL, Anthropic kept | Why: same Paths, no scope change
