@@ -1,5 +1,5 @@
 ID: HACK-048
-State: WAITING
+State: MERGING
 Owner: dylan-2
 Queued: 1793295346
 Reason: Waiting for queue
