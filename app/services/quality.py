@@ -26,6 +26,7 @@ SECRET = re.compile(
     r"tvly-[0-9A-Za-z]{20,}|fc-[0-9a-f]{32}|AKIA[0-9A-Z]{16}|lin_api_[0-9A-Za-z]{20,}|xox[bp]-[0-9A-Za-z\-]{20,}|"
     r"-----BEGIN [A-Z ]*PRIVATE KEY-----"
 )
+SMOKE_URL = "http://prototype.speedhack.invalid/"
 DANGEROUS_JS = re.compile(r"\beval\s*\(|\bnew\s+Function\s*\(|\bdocument\.write\s*\(")
 
 
@@ -48,6 +49,7 @@ def _lint(html: str) -> QualityCheck:
     rules = (
         ("recursos externos", generator.EXTERNAL_REF),
         ("llamadas de red", generator.NETWORK_API),
+        ("almacenamiento del navegador", generator.STORAGE_API),
         ("eval / new Function / document.write", DANGEROUS_JS),
     )
     found = [what for what, rx in rules if rx.search(html)]
@@ -70,15 +72,25 @@ def _smoke(path: Path) -> QualityCheck | None:
     except ImportError:
         return None
     errors: list[str] = []
+    html = path.read_text(encoding="utf-8")
+
+    def serve(route) -> None:
+        # Served exactly as /api/prototypes serves it (CSP sandbox, no network); any other request is refused.
+        if route.request.url == SMOKE_URL:
+            route.fulfill(status=200, body=html, headers={"Content-Type": "text/html; charset=utf-8",
+                                                          "Content-Security-Policy": generator.CSP})
+        else:
+            route.abort()
+
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
             try:
                 page = browser.new_page()
                 page.on("pageerror", lambda e: errors.append(str(e)))
-                # The page must work offline: every request other than the file itself is refused.
-                page.route("**/*", lambda r: r.continue_() if r.request.url.startswith("file:") else r.abort())
-                page.goto(path.resolve().as_uri())
+                page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
+                page.route("**/*", serve)
+                page.goto(SMOKE_URL)
                 page.wait_for_timeout(500)
                 text = page.inner_text("body").strip()
             finally:
@@ -89,7 +101,7 @@ def _smoke(path: Path) -> QualityCheck | None:
         return QualityCheck(name="smoke", passed=False, details=f"error al abrir: {errors[0][:200]}")
     if not text:
         return QualityCheck(name="smoke", passed=False, details="la página abre en blanco")
-    return QualityCheck(name="smoke", passed=True, details="abre sin red y sin errores de JavaScript")
+    return QualityCheck(name="smoke", passed=True, details="abre aislada, sin red y sin errores de JavaScript")
 
 
 def check_app(path: str | Path, *, demo_data: bool = False) -> QualityReport:

@@ -7,14 +7,8 @@ from app.services import generator, store
 
 router = APIRouter(prefix="/api/prototypes", tags=["prototypes"])
 
-# Inline code only, no network, and an opaque origin (CSP sandbox) even when opened in its own tab,
-# so generated code cannot read SpeedHack's storage or call its API. Only SpeedHack may frame it.
-CSP = (
-    "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; "
-    "font-src data:; form-action 'none'; frame-ancestors 'self'; sandbox allow-scripts allow-forms allow-modals"
-)
 HEADERS = {
-    "Content-Security-Policy": CSP,
+    "Content-Security-Policy": generator.CSP,  # sandboxed, offline, only SpeedHack may frame it
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
     "Cache-Control": "no-store",

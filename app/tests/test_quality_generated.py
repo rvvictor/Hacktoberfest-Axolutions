@@ -78,3 +78,19 @@ def test_route_serves_the_app_sandboxed(client):
 @pytest.mark.parametrize("run_id", ["run_ffffffff", "..%2F..%2Fetc", "run_0000ABCD"])
 def test_route_404s_unknown_or_malformed_runs(client, run_id):
     assert client.get(f"/api/prototypes/{run_id}/").status_code == 404
+
+
+def test_smoke_runs_the_page_under_the_served_sandbox(tmp_path):
+    # localStorage works from a file but throws inside the CSP sandbox the route serves: smoke must see that.
+    html = "<!DOCTYPE html><html><body><p>x</p><script>window['local' + 'Storage'].setItem('a', '1');</script></body></html>"
+    smoke = quality._smoke(_write(tmp_path, html))
+    if smoke is None:
+        pytest.skip("no browser here")
+    assert smoke.passed is False and "error" in smoke.details
+
+
+def test_storage_apis_are_rejected_and_flagged(tmp_path):
+    html = "<!DOCTYPE html><html><body><script>localStorage.setItem('a', '1');</script></body></html>"
+    with pytest.raises(ValueError, match="localStorage"):
+        generator.validate_app(html)
+    assert _by_name(quality.check_app(_write(tmp_path, html)))["lint"].passed is False

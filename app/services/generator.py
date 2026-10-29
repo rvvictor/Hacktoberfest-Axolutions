@@ -33,11 +33,20 @@ RUN_ID = re.compile(r"^run_[0-9a-f]{8}$")
 # Anything that would make the page leave itself: remote src/href/action, CSS url() or @import, network APIs.
 EXTERNAL_REF = re.compile(r"""\b(?:src|href|action)\s*=\s*["']?\s*(?:https?:)?//|url\(\s*["']?\s*(?:https?:)?//|@import""", re.IGNORECASE)
 NETWORK_API = re.compile(r"\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|importScripts)\b")
+# The served page has an opaque origin (CSP sandbox): these throw SecurityError there.
+STORAGE_API = re.compile(r"\b(?:localStorage|sessionStorage|indexedDB)\b|\bdocument\.cookie\b")
+# How /api/prototypes serves the page, and how the smoke check loads it: inline code only, no network,
+# and an opaque origin even in its own tab, so generated code cannot read SpeedHack's storage or call its API.
+CSP = (
+    "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; "
+    "font-src data:; form-action 'none'; frame-ancestors 'self'; sandbox allow-scripts allow-forms allow-modals"
+)
 APP_SYSTEM = """Eres el generador de prototipos de SpeedHack. Devuelve SOLO un archivo index.html completo, sin markdown ni explicaciones.
 Reglas:
 - Empieza con <!DOCTYPE html> y termina con </html>.
 - CSS y JavaScript en línea. Ningún recurso externo: sin CDN, fuentes web, imágenes remotas ni enlaces http.
 - Sin llamadas de red (fetch, XMLHttpRequest, WebSocket): el estado vive en memoria con JavaScript.
+- No uses localStorage, sessionStorage, indexedDB ni cookies: la página corre aislada y fallarían.
 - Interfaz en español, clara y usable en móvil y en escritorio.
 - Una navegación con una pantalla por cada elemento del backlog; cada pantalla cumple sus criterios de aceptación con interacciones reales (formularios, listas, cambios de estado).
 - Pocos datos de ejemplo, realistas y marcados visiblemente como "ejemplo". No inventes precios ni cifras de mercado.
@@ -150,6 +159,8 @@ def node_check(js: str) -> str | None:
         fh.write(js)
     try:
         result = subprocess.run([node, "--check", fh.name], capture_output=True, text=True, timeout=30, check=False)
+    except subprocess.TimeoutExpired as exc:
+        raise ValueError("node --check did not finish in 30 s") from exc
     finally:
         Path(fh.name).unlink(missing_ok=True)
     if result.returncode == 0:
@@ -174,6 +185,8 @@ def validate_app(text: str) -> str:
         raise ValueError("the page loads or links an external resource; inline everything")
     if NETWORK_API.search(html):
         raise ValueError("the page makes network calls; keep the state in memory")
+    if STORAGE_API.search(html):
+        raise ValueError("the page uses localStorage, sessionStorage, indexedDB or cookies; keep the state in memory")
     for js in inline_scripts(html):
         error = node_check(js)
         if error:
