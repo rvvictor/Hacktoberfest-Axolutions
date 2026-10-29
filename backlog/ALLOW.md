@@ -5,3 +5,4 @@ Append-only. Format: - ID | epoch | human | reason. Why: a freeze exception is a
 - HACK-036 | 1793238461 | Dylan | Terminar el proyecto despues del hackathon: Gemma 4 via Gemini API
 - HACK-037 | 1793241878 | Dylan | Post-hackathon: respuesta vacia de Gemini da LLMOutputError
 - HACK-038 | 1793242639 | Dylan | Post-hackathon: borradores del Cazador con Gemma 4
+- HACK-039 | 1793242646 | Dylan | Post-hackathon: las pruebas no deben usar llaves reales
