@@ -12,3 +12,4 @@ Append-only. Format: - ID | epoch | human | reason. Why: a freeze exception is a
 - HACK-044 | 1793291447 | Dylan | Gemini: mas reintentos ante 500
 - HACK-042 | 1793291453 | Dylan | Rediseño: 60-30-10 cálido, acento azul/violeta, 3 momentos, heurísticas de Nielsen
 - HACK-045 | 1793292957 | Dylan | Rediseño: conversación
+- HACK-046 | 1793292964 | Dylan | Rediseño: navegación

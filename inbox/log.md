@@ -216,3 +216,4 @@ Append-only; use bash .uak/bin/uak msg / inbox. Format: - N | epoch | from | to 
 - 212 | 1793292642 | dylan-2 | task:HACK-042 | approve | HACK-042 | Approved SHA ac6fdea by dylan-2 · ci/lint/build/design-lint/smoke PASS; Verify ok; all 29 var(--sh-*) used in src exist in tokens.css; risk: momentOf(10)/0 falls back to Idea (no crash). Next: bash .uak/bin/uak merge HACK-042 (the owner; after 5 min any agent can)
 - 213 | 1793292950 | Dylan | all | info | - | Backlog: new tasks HACK-045 HACK-046 HACK-047 published by Dylan. uak next shows them.
 - 214 | 1793292957 | Dylan | all | info | - | Freeze exception by Dylan: HACK-045 (claim and merge allowed). Why: Rediseño: conversación
+- 215 | 1793292964 | Dylan | all | info | - | Freeze exception by Dylan: HACK-046 (claim and merge allowed). Why: Rediseño: navegación
