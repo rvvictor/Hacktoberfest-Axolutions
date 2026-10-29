@@ -25,6 +25,13 @@ SPEC = Spec(version=1, problem="p", users=["u"], mvp_features=["f"])
 ARCH = Architecture(screens=["s"], data_model=["d"], integrations=["i"])
 
 
+@pytest.fixture(autouse=True)
+def isolated_from_dotenv(monkeypatch):
+    """A developer's real `.env` (Gemma model + key) must not change what these tests see."""
+    monkeypatch.setattr(llm.settings, "LLM_MODEL", "claude-sonnet-5-5")
+    monkeypatch.setattr(llm.gemini_env, "GEMINI_API_KEY", None)
+
+
 @pytest.fixture
 def live(monkeypatch):
     monkeypatch.setattr(llm.settings, "DEMO_MODE", False)
@@ -342,3 +349,30 @@ def test_gemma_without_gemini_key_uses_fixtures(gemma, monkeypatch):
     monkeypatch.setattr(llm.settings, "ANTHROPIC_API_KEY", "k")  # not used for Gemma
     no_model(monkeypatch)
     assert 3 <= len(llm.clarify("idea", Mode.dev)) <= 5
+
+
+def test_gemma_retries_transient_server_errors(gemma, monkeypatch):
+    import httpx
+    import respx
+
+    monkeypatch.setattr(llm.time, "sleep", lambda _s: None)
+    questions = {"questions": ["¿Una sucursal?", "¿Qué horario?", "¿Cómo te avisan?"]}
+    ok = {"candidates": [{"content": {"parts": [{"text": json.dumps(questions)}]}}]}
+    with respx.mock() as router:
+        route = router.post(GEMINI).mock(
+            side_effect=[httpx.Response(503), httpx.Response(500), httpx.Response(200, json=ok)]
+        )
+        assert llm.clarify("barbería", Mode.client) == questions["questions"]
+    assert route.call_count == 3
+
+
+def test_gemma_client_error_is_not_retried(gemma, monkeypatch):
+    import httpx
+    import respx
+
+    monkeypatch.setattr(llm.time, "sleep", lambda _s: None)
+    with respx.mock() as router:
+        route = router.post(GEMINI).mock(return_value=httpx.Response(400))
+        with pytest.raises(httpx.HTTPStatusError):
+            llm.clarify("barbería", Mode.client)
+    assert route.call_count == 1
