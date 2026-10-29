@@ -1,7 +1,7 @@
 # STATE
 
 Phase: feature freeze; authorized fixes, rehearsal and submission only
-Updated: 1793245530
+Updated: 1793245657
 AVAILABLE: HACK-025 
 CLAIMED: -
 BLOCKED: -
@@ -10,7 +10,7 @@ INTEGRATED: (37; last 12) ... HACK-027 HACK-028 HACK-029 HACK-031 HACK-032 HACK-
 CANCELLED: HACK-030 
 
 Claims (first 24; status --task ID shows detail):
-HACK-040 | REVIEW | dylan-1 | until 1793259808
+HACK-040 | REVIEW | dylan-1 | until 1793260057
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):

@@ -9,14 +9,14 @@ Priority: P1
 Paths: app/routers/runs.py, app/services/pipeline.py, app/services/store.py, app/tests/test_pipeline.py, app/services/stages.py, app/tests/test_stages.py
 Depends: HACK-013
 Verify: `uv run pytest -q app/tests && bash .uak/bin/smoke`
-Lease-Until: 1793259808
-Updated: 1793245408
+Lease-Until: 1793260057
+Updated: 1793245657
 Task-Base: 0646a4587c0671300273934212131a9cbe0d94a6
 Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/38; run .uak/bin/smoke
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/38
-Evidence: uv run pytest -q app/tests all pass (test_pipeline unchanged + 6 new); ruff clean; smoke PRODUCT_PASS; real BoardRun rerun proven with respx
-Events: 3
+Evidence: pytest all pass (+2 tests); ruff clean; smoke PRODUCT_PASS
+Events: 4
 Checkpoints: 0
 Sessions: 2
 Last-Checkpoint: 0
-Task-Tip: 7d421569074599111c9fa974f15e9f0c4dfb6f7a
+Task-Tip: e6b7df5ceaed8dadbb3446b20ca3d7b11fd087e9
