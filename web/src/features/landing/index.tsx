@@ -1,19 +1,20 @@
-import { Chip, MetroLine, SectionHeader } from "../../lib/ui";
+import { Chip, MOMENTS, SectionHeader } from "../../lib/ui";
 import "./landing.css";
 
 export const path = "/";
 export const label = "Inicio";
 export const order = 0;
 
-const STEPS = [
-  { n: "1", title: "Dicta o escribe tu idea", text: "Respondes unas preguntas técnicas o de negocio, sin jerga." },
-  { n: "2", title: "Aprueba el spec", text: "SpeedHack investiga con fuentes citadas y tú apruebas antes de seguir." },
-  { n: "3", title: "Mira cómo se llenan Miro y Linear", text: "Arquitectura y tickets salen del mismo spec, en la misma pantalla." },
-];
+// The three moments people go through (web/DESIGN.md) and what each one gives back.
+const STEPS: Record<(typeof MOMENTS)[number]["label"], string> = {
+  Idea: "Me la cuentas y respondes 3 preguntas cortas.",
+  Plan: "Investigo con fuentes reales; al aprobar, Miro y Linear se llenan solos.",
+  Producto: "Prototipo revisado y un pitch que puedes defender.",
+};
 
 const PLANS = [
-  { name: "Gratis", text: "Idea, preguntas, investigación citada y spec." },
-  { name: "Pro", text: "Todo lo anterior con tablero en Miro, backlog en Linear, prototipo y pitch con preguntas por voz." },
+  { name: "Gratis", text: "Tu idea, las preguntas, la investigación con fuentes y tu plan." },
+  { name: "Pro", text: "Todo lo anterior con tablero en Miro, tareas en Linear, prototipo y pitch con preguntas por voz." },
   { name: "Equipos", text: "Memoria compartida entre personas y panel de costos por etapa." },
 ];
 
@@ -24,41 +25,39 @@ export default function Landing() {
         <div className="landing__copy">
           <h1>De idea a pitch defendible en una hora</h1>
           <p>
-            SpeedHack convierte una idea dictada en investigación citada, arquitectura en Miro, backlog en
-            Linear, un prototipo y un pitch con preguntas por voz, con un solo hilo de contexto.
+            Cuéntame tu idea: investigo, planeo y te dejo prototipo y pitch. Tú decides en tres momentos.
           </p>
           <div className="landing__cta">
-            <a className="sh-btn sh-btn--primary" href="#/intake">Probar la demo</a>
-            <a className="sh-btn sh-btn--secondary" href="#/live-board">Ver el tablero en vivo</a>
+            <a className="sh-btn sh-btn--primary" href="#/intake">Contar mi idea</a>
+            <a className="sh-btn sh-btn--secondary" href="#/project">Ver un ejemplo</a>
           </div>
         </div>
         <figure className="landing__shot">
           <img
-            src={`${import.meta.env.BASE_URL}landing/live-board.png`}
-            width={1280}
-            height={720}
-            alt="Tablero en vivo de SpeedHack: arquitectura en Miro a la izquierda y tickets de Linear a la derecha, con la línea de nueve etapas arriba y el aviso de datos de demostración."
+            src={`${import.meta.env.BASE_URL}landing/conversation.png`}
+            width={812}
+            height={372}
+            alt="Tarjeta de la conversación de SpeedHack: el plan de un SaaS de control de gastos con sus fuentes y los botones Sí, sigamos y Cambiar algo."
           />
-          <figcaption>Captura real del tablero con una ejecución grabada.</figcaption>
+          <figcaption>Captura real del ejemplo grabado.</figcaption>
         </figure>
       </section>
 
       <section className="landing__section">
-        <SectionHeader title="Cómo funciona" meta="3 pasos, 9 estaciones" />
-        <MetroLine current={9} />
+        <SectionHeader title="Cómo funciona" meta="3 momentos" />
         <ol className="landing__steps">
-          {STEPS.map((s) => (
-            <li key={s.n}>
-              <span className="landing__n" aria-hidden="true">{s.n}</span>
+          {MOMENTS.map((m, i) => (
+            <li key={m.label}>
+              <span className="landing__n" aria-hidden="true">{i + 1}</span>
               <div>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
+                <h3>{m.label}</h3>
+                <p>{STEPS[m.label]}</p>
               </div>
             </li>
           ))}
         </ol>
         <p className="landing__note">
-          Tres aprobaciones humanas frenan la ejecución antes de avanzar: spec, diseño y calidad.
+          Nada avanza sin ti: apruebas tu plan, las tareas y el prototipo, y en cada uno puedes pedir cambios.
         </p>
       </section>
 
@@ -93,8 +92,8 @@ export default function Landing() {
       </section>
 
       <footer className="landing__ask">
-        <h2>Prueba una idea ahora</h2>
-        <a className="sh-btn sh-btn--primary" href="#/intake">Probar la demo</a>
+        <h2>Cuéntame tu idea</h2>
+        <a className="sh-btn sh-btn--primary" href="#/intake">Empezar</a>
         <small>Hacktoberfest Hack Day CDMX (MLH), 27 y 28 de octubre de 2026. Los negocios y prospectos son ficticios.</small>
       </footer>
     </div>
