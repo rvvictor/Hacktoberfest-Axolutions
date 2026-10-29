@@ -1,6 +1,6 @@
 // Minimal mirror of the run contract (HACK-002, app/schemas) with only the fields this view reads.
 // TODO: switch to the shared types once HACK-002 integrates.
-export type CheckName = "build" | "lint" | "gitleaks" | "rls" | "smoke";
+export type CheckName = "build" | "lint" | "gitleaks" | "secrets" | "rls" | "smoke";
 
 export interface QualityCheck {
   name: CheckName;
@@ -9,7 +9,7 @@ export interface QualityCheck {
 }
 
 export interface Prototype {
-  generator: "lovable" | "planb";
+  generator: "speedhack" | "lovable" | "planb";
   url: string;
   build_url: string | null; // Lovable "Build with URL" link
   repo_url: string | null;

@@ -9,9 +9,12 @@ Raising makes the pipeline replay the labeled fixture for the stage.
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import AsyncIterable, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any
+
+import httpx
 
 from app.config import settings
 from app.schemas import (
@@ -22,11 +25,12 @@ from app.schemas import (
     Spec,
     StageEvent,
 )
-from app.services import generator, linear, llm, miro, research, store
+from app.services import generator, linear, llm, miro, quality, research, store
 
 if TYPE_CHECKING:
     from app.services.pipeline import StageContext
 
+log = logging.getLogger(__name__)
 Events = list[tuple[str, dict[str, Any]]]
 REJECTION_NOTE = "Cambio pedido por la persona que revisó"
 # BoardRun's own ids (board, frames, notes, connectors) live in `externals` under this prefix, so a
@@ -215,6 +219,11 @@ def _backlog_stage(ctx: StageContext) -> Events:
 def _prototype_stage(ctx: StageContext) -> Events:
     spec = _spec(ctx)
     backlog = [BacklogItem.model_validate(p) for p in _payloads(ctx.run.run_id, 6, EventType.linear_issue)]
+    try:
+        # SpeedHack builds the app itself; Lovable stays as the link to keep building it there.
+        return [("prototype_ready", generator.SpeedHackGenerator(ctx.run.run_id, ctx.comment).generate(spec, backlog).model_dump(mode="json"))]
+    except (llm.LLMError, httpx.HTTPError, OSError, ValueError):
+        log.exception("SpeedHack generation failed for %s; falling back to Lovable", ctx.run.run_id)
     prototype = generator.LovableGenerator().generate(spec, backlog)
     if settings.LOVABLE_PREBUILT_URL:
         # The delivery view previews `url` in a frame; a Build-with-URL link is a prompt page, not an
@@ -225,9 +234,17 @@ def _prototype_stage(ctx: StageContext) -> Events:
 
 
 def _quality_stage(ctx: StageContext) -> Events:
-    # There is no local checkout of the generated app to build, lint or scan: reporting checks we did
-    # not run would be invented, so the stage keeps the labeled recorded report.
-    raise StageUnavailable("no local repository of the generated app to check")
+    # Only the app SpeedHack generated is here to check. A Lovable or prebuilt app has no local copy:
+    # reporting checks we did not run would be invented, so the stage keeps the labeled recorded report.
+    made = _payloads(ctx.run.run_id, 7, EventType.prototype_ready)
+    path = generator.prototype_path(ctx.run.run_id)
+    if not made or made[-1].get("generator") != "speedhack" or not path.exists():
+        raise StageUnavailable("no local copy of the generated app to check")
+    demo = bool(made[-1].get("demo_data"))
+    report = quality.check_app(path, demo_data=demo)
+    if not report.checks:
+        raise StageUnavailable(f"no check could run here ({report.details})")
+    return [("quality_check", {**c.model_dump(mode="json"), "demo_data": demo}) for c in report.checks]
 
 
 def _pitch_stage(ctx: StageContext) -> Events:

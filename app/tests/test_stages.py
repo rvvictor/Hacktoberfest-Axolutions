@@ -90,6 +90,8 @@ def live_services(monkeypatch):
             yield StageEvent(run_id=run_id, stage=6, type=EventType.linear_issue, payload=payload, ts=0)
 
     monkeypatch.setattr(stages.linear, "create_backlog", fake_linear)
+    app = "<!DOCTYPE html><html><body><h1>Captura</h1><script>let monto = 0;</script></body></html>"
+    monkeypatch.setattr(stages.llm, "build_app", lambda system, user, validate: validate(app))
     monkeypatch.setattr(
         stages.llm, "build_deck", lambda spec, research: Pitch(slides=[{"title": "SpeedHack", "bullets": ["b"], "sources": []}])
     )
@@ -118,21 +120,24 @@ def _demo_by_stage(run_id):
     return {s: v == {True} for s, v in by_stage.items()}
 
 
-def test_live_run_calls_the_services_and_only_quality_stays_demo(client, live_services):
+def test_live_run_calls_the_services_and_no_stage_stays_demo(client, live_services):
     run_id = _start(client)
     for n in (1, 2, 3):
         assert _approve(client, run_id, n).status_code == 200
     state = client.get(f"/api/runs/{run_id}").json()
     assert state["status"] == "done"
     demo = _demo_by_stage(run_id)
-    assert [s for s, d in demo.items() if d] == [8]  # no local repo to check: the labeled report stays
+    assert [s for s, d in demo.items() if d] == []  # quality checks the app SpeedHack generated
     # what each stage received from the earlier ones
     assert live_services["spec_answers"][0] == dict(zip(QUESTIONS, ["sí", "admin", "correo"], strict=True))
     assert live_services["backlog_arch"] == Architecture(screens=["Login"], data_model=["Gasto"], integrations=["Supabase"])
     issue = next(e for _, e in store.list_events(run_id) if e.type is EventType.linear_issue)
     assert issue.payload["linear_id"] == "GAS-1" and not issue.demo_data
     proto = next(e for _, e in store.list_events(run_id) if e.type is EventType.prototype_ready)
-    assert proto.payload["generator"] == "lovable" and proto.payload["url"].startswith("https://lovable.dev/")
+    assert proto.payload["generator"] == "speedhack" and proto.payload["url"] == f"/api/prototypes/{run_id}/"
+    assert proto.payload["build_url"].startswith("https://lovable.dev/")
+    checks = [e.payload for _, e in store.list_events(run_id) if e.type is EventType.quality_check]
+    assert {"lint", "secrets"} <= {c["name"] for c in checks} and all(c["passed"] for c in checks)
 
 
 def test_rejections_carry_the_comment_and_reuse_the_miro_board(client, live_services):
@@ -204,6 +209,11 @@ def test_rerun_with_the_real_board_still_shows_every_item_and_creates_one_board(
 
 def test_prototype_previews_the_prebuilt_app_and_keeps_this_runs_build_link(client, live_services, monkeypatch):
     monkeypatch.setattr(stages.settings, "LOVABLE_PREBUILT_URL", "https://prebuilt.lovable.app")
+
+    def generation_fails(system, user, validate):
+        raise stages.llm.LLMOutputError("app: invalid output after retry")
+
+    monkeypatch.setattr(stages.llm, "build_app", generation_fails)  # the prebuilt app is only the fallback
     run_id = _start(client)
     _approve(client, run_id, 1)
     _approve(client, run_id, 2)

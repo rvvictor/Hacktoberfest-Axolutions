@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeedHack - Gestor de Gastos</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #64748b;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        .hidden { display: none !important; }
+        
+        /* Login Overlay */
+        #login-screen {
+            position: fixed; inset: 0; background: var(--primary);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .login-card {
+            background: white; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        /* Layout */
+        .app-container { display: flex; min-height: 100vh; }
+        nav {
+            width: 260px; background: #1e293b; color: white; padding: 1.5rem;
+            display: flex; flex-direction: column;
+        }
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            nav { width: 100%; flex-direction: row; overflow-x: auto; padding: 0.5rem; }
+            nav div { padding: 0.5rem 1rem; white-space: nowrap; }
+        }
+        .nav-item {
+            padding: 0.75rem 1rem; cursor: pointer; border-radius: 0.5rem;
+            margin-bottom: 0.5rem; transition: 0.2s;
+        }
+        .nav-item:hover { background: #334155; }
+        .nav-item.active { background: var(--primary); }
+
+        main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+        /* Components */
+        .card { background: var(--card); padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+        .stats-card { text-align: center; }
+        .stats-val { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+        th { color: var(--secondary); font-size: 0.875rem; }
+
+        .badge { padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-approved { background: #dcfce7; color: #166534; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+
+        form { display: flex; flex-direction: column; gap: 1rem; }
+        input, select, button { padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #cbd5e1; font-size: 1rem; }
+        button { cursor: pointer; border: none; font-weight: 600; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-small { padding: 0.4rem 0.8rem; font-size: 0.875rem; }
+
+        /* Notifications */
+        #notif-area { position: fixed; top: 1rem; right: 1rem; z-index: 2000; }
+        .toast { background: #1e293b; color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; font-size: 0.875rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        .tag-ejemplo { font-size: 0.6rem; background: #e2e8f0; padding: 2px 4px; border-radius: 4px; vertical-align: middle; margin-left: 4px; }
+    </style>
+</head>
+<body>
+
+<div id="notif-area"></div>
+
+<div id="login-screen">
+    <div class="login-card">
+        <h2 style="margin-top:0">Simular Acceso</h2>
+        <p style="font-size: 0.875rem; color: var(--secondary)">Selecciona una organización y rol para probar el aislamiento (Multi-tenant) y permisos (RBAC).</p>
+        <label>Organización</label>
+        <select id="login-org" style="width:100%; margin-bottom:1rem"></select>
+        <label>Usuario</label>
+        <select id="login-user" style="width:100%; margin-bottom:1.5rem"></select>
+        <button class="btn-primary" style="width:100%" onclick="auth.login()">Entrar al Sistema</button>
+    </div>
+</div>
+
+<div class="app-container hidden" id="app">
+    <nav>
+        <div style="font-weight: bold; font-size: 1.25rem; margin-bottom: 2rem;">GastosPro</div>
+        <div class="nav-item active" onclick="router.go('dashboard')">🏠 Dashboard</div>
+        <div class="nav-item" onclick="router.go('personal')">💸 Mis Gastos</div>
+        <div class="nav-item" id="nav-approvals" onclick="router.go('approvals')">✅ Aprobaciones</div>
+        <div class="nav-item" id="nav-corp" onclick="router.go('corp')">📊 Reporte Corp.</div>
+        <div class="nav-item" id="nav-admin" onclick="router.go('admin')">⚙️ Administración</div>
+        <div style="margin-top: auto; font-size: 0.75rem; color: #94a3b8;" id="user-info-nav"></div>
+        <button onclick="auth.logout()" style="background:transparent; color:#ef4444; border:1px solid #ef4444; margin-top:1rem; padding:0.5rem">Cerrar Sesión</button>
+    </nav>
+
+    <main id="view-container">
+        <!-- Views injected here -->
+    </main>
+</div>
+
+<script>
+/* --- MOCK DATA & STATE --- */
+const data = {
+    orgs: [
+        { id: 'org1', name: 'TechCorp Solutions' },
+        { id: 'org2', name: 'Global Logistics S.A.' }
+    ],
+    users: [
+        { id: 'u1', orgId: 'org1', name: 'Ana Empleada', role: 'Empleado' },
+        { id: 'u2', orgId: 'org1', name: 'Carlos Gerente', role: 'Gerente' },
+        { id: 'u3', orgId: 'org1', name: 'Diana Admin', role: 'Admin' },
+        { id: 'u4', orgId: 'org2', name: 'Luis Empleado', role: 'Empleado' },
+        { id: 'u5', orgId: 'org2', name: 'Marta Gerente', role: 'Gerente' }
+    ],
+    expenses: [
+        { id: 1, orgId: 'org1', userId: 'u1', user: 'Ana Empleada', amount: 45.50, desc: 'Almuerzo cliente', category: 'Comida', status: 'pendiente', date: '2023-10-25' },
+        { id: 2, orgId: 'org1', userId: 'u1', user: 'Ana Empleada', amount: 120.00, desc: 'Taxi Aeropuerto', category: 'Transporte', status: 'aprobado', date: '2023-10-24' },
+        { id: 3, orgId: 'org1', userId: 'u2', user: 'Carlos Gerente', amount: 300.00, desc: 'Software suscripción', category: 'Suscripción', status: 'pendiente', date: '2023-10-26' },
+        { id: 4, orgId: 'org2', userId: 'u4', user: 'Luis Empleado', amount: 15.00, desc: 'Café', category: 'Comida', status: 'pendiente', date: '2023-10-27' }
+    ]
+};
+
+const state = {
+    currentUser: null,
+    currentOrg: null,
+    view: 'dashboard'
+};
+
+/* --- UTILS --- */
+const notify = (msg) => {
+    const area = document.getElementById('notif-area');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = `🔔 ${msg}`;
+    area.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+};
+
+/* --- AUTH MODULE --- */
+const auth = {
+    login: () => {
+        const orgId = document.getElementById('login-org').value;
+        const userId = document.getElementById('login-user').value;
+        
+        const user = data.users.find(u => u.id === userId);
+        const org = data.orgs.find(o => o.id === orgId);
+
+        if (user.orgId !== org.id) {
+            alert("Error: El usuario no pertenece a la organización seleccionada (Error de simulación)");
+            return;
+        }
+
+        state.currentUser = user;
+        state.currentOrg = org;
+        
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        
+        auth.applyRBAC();
+        router.go('dashboard');
+    },
+    logout: () => {
+        state.currentUser = null;
+        state.currentOrg = null;
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('app').classList.add('hidden');
+    },
+    applyRBAC: () => {
+        const role = state.currentUser.role;
+        document.getElementById('nav-approvals').classList.toggle('hidden', role === 'Empleado');
+        document.getElementById('nav-corp').classList.toggle('hidden', role === 'Empleado');
+        document.getElementById('nav-admin').classList.toggle('hidden', role !== 'Admin');
+        document.getElementById('user-info-nav').innerText = `${state.currentUser.name} (${role}) - ${state.currentOrg.name}`;
+    }
+};
+
+/* --- ROUTER & VIEWS --- */
+const router = {
+    go: (view) => {
+        state.view = view;
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        // Simple active state logic
+        const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.innerText.toLowerCase().includes(view.substring(0,3)));
+        if(activeNav) activeNav.classList.add('active');
+        
+        router.render();
+    },
+    render: () => {
+        const container = document.getElementById('view-container');
+        const role = state.currentUser.role;
+        const orgId = state.currentOrg.id;
+        const myExpenses = data.expenses.filter(e => e.orgId === orgId && e.userId === state.currentUser.id);
+        const orgExpenses = data.expenses.filter(e => e.orgId === orgId);
+        const pendingApprovals = data.expenses.filter(e => e.orgId === orgId && e.status === 'pendiente');
+
+        if (state.view === 'dashboard') {
+            container.innerHTML = `
+                <h1>Bienvenido, ${state.currentUser.name}</h1>
+                <div class="grid">
+                    <div class="card stats-card">
+                        <div style="color:var(--secondary)">Mis Gastos (Mes)</div>
+                        <div class="stats-val">$${myExpenses.reduce((acc, e) => acc + e.amount, 0).toFixed(2)}</div>
+                    </div>
+                    <div class="card stats-card">
+                        <div style="color:var(--secondary)">Pendientes de Aprobación</div>
+                        <div class="stats-val">${pendingApprovals.length}</div>
+                    </div>
+                    <div class="card stats-card">
+                        <div style="color:var(--secondary)">Gasto Org. Total</div>
+                        <div class="stats-val">$${orgExpenses.reduce((acc, e) => acc + e.amount, 0).toFixed(2)}</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Últimos Movimientos <span class="tag-ejemplo">ejemplo</span></h3>
+                    <table>
+                        <thead><tr><th>Fecha</th><th>Descripción</th><th>Monto</th><th>Estado</th></tr></thead>
+                        <tbody>
+                            ${myExpenses.slice(-5).reverse().map(e => `
+                                <tr>
+                                    <td>${e.date}</td>
+                                    <td>${e.desc}</td>
+                                    <td>$${e.amount.toFixed(2)}</td>
+                                    <td><span class="badge badge-${e.status}">${e.status.toUpperCase()}</span></td>
+                                </tr>
+                            `).join('') || '<tr><td colspan="4">No hay gastos registrados</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } 
+        
+        else if (state.view === 'personal') {
+            container.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <h1>Mis Gastos</h1>
+                    <button class="btn-primary" onclick="views.showExpenseForm()">+ Nuevo Gasto</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Monto</th><th>Estado</th></tr></thead>
+                        <tbody>
+                            ${myExpenses.map(e => `
+                                <tr>
+                                    <td>${e.date}</td>
+                                    <td>${e.desc}</td>
+                                    <td>${e.category}</td>
+                                    <td>$${e.amount.toFixed(2)}</td>
+                                    <td><span class="badge badge-${e.status}">${e.status.toUpperCase()}</span></td>
+                                </tr>
+                            `).join('') || '<tr><td colspan="5">No hay gastos registrados</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        else if (state.view === 'approvals') {
+            container.innerHTML = `
+                <h1>Panel de Aprobación</h1>
+                <div class="card">
+                    <table>
+                        <thead><tr><th>Empleado</th><th>Descripción</th><th>Monto</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            ${pendingApprovals.map(e => `
+                                <tr>
+                                    <td>${e.user}</td>
+                                    <td>${e.desc}</td>
+                                    <td>$${e.amount.toFixed(2)}</td>
+                                    <td>
+                                        <button class="btn-success btn-small" onclick="views.approveExpense(${e.id})">Aprobar</button>
+                                        <button class="btn-danger btn-small" onclick="views.rejectExpense(${e.id})">Rechazar</button>
+                                    </td>
+                                </tr>
+                            `).join('') || '<tr><td colspan="4">No hay gastos pendientes</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        else if (state.view === 'corp') {
+            container.innerHTML = `
+                <h1>Dashboard Corporativo <span class="tag-ejemplo">ejemplo</span></h1>
+                <div class="card">
+                    <h3>Gasto Total de la Organización (${state.currentOrg.name})</h3>
+                    <div class="stats-val" style="font-size: 2.5rem">$${orgExpenses.reduce((acc, e) => acc + e.amount, 0).toFixed(2)}</div>
+                </div>
+                <div class="card">
+                    <h3>Desglose por Categoría</h3>
+                    <table>
+                        <thead><tr><th>Categoría</th><th>Total</th></tr></thead>
+                        <tbody>
+                            ${['Comida', 'Transporte', 'Suscripción', 'Otros'].map(cat => {
+                                const total = orgExpenses.filter(e => e.category === cat).reduce((acc, e) => acc + e.amount, 0);
+                                return `<tr><td>${cat}</td><td>$${total.toFixed(2)}</td></tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        else if (state.view === 'admin') {
+            container.innerHTML = `
+                <h1>Administración de Usuarios</h1>
+                <div class="card">
+                    <p>Gestión de roles y permisos (RBAC) para <b>${state.currentOrg.name}</b></p>
+                    <table>
+                        <thead><tr><th>Nombre</th><th>Rol</th><th>Estado</th></tr></thead>
+                        <tbody>
+                            ${data.users.filter(u => u.orgId === state.currentOrg.id).map(u => `
+                                <tr>
+                                    <td>${u.name}</td>
+                                    <td>${u.role}</td>
+                                    <td><span class="badge badge-approved">Activo</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+    }
+};
+
+/* --- VIEW ACTIONS --- */
+const views = {
+    showExpenseForm: () => {
+        const container = document.getElementById('view-container');
+        container.innerHTML = `
+            <h1>Nuevo Gasto</h1>
+            <div class="card">
+                <form id="expense-form">
+                    <label>Descripción</label>
+                    <input type="text" id="exp-desc" required placeholder="Ej: Almuerzo con cliente">
+                    <label>Monto ($)</label>
+                    <input type="number" id="exp-amount" step="0.01" required>
+                    <label>Categoría</label>
+                    <select id="exp-cat">
+                        <option>Comida</option>
+                        <option>Transporte</option>
+                        <option>Suscripción</option>
+                        <option>Otros</option>
+                    </select>
+                    <label>Fecha</label>
+                    <input type="date" id="exp-date" required value="${new Date().toISOString().split('T')[0]}">
+                    <div style="display:flex; gap:1rem; margin-top:1rem">
+                        <button type="submit" class="btn-primary" style="flex:1">Registrar Gasto</button>
+                        <button type="button" class="btn-danger" style="flex:1" onclick="router.go('personal')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        document.getElementById('expense-form').onsubmit = (e) => {
+            e.preventDefault();
+            const newExp = {
+                id: Date.now(),
+                orgId: state.currentOrg.id,
+                userId: state.currentUser.id,
+                user: state.currentUser.name,
+                amount: parseFloat(document.getElementById('exp-amount').value),
+                desc: document.getElementById('exp-desc').value,
+                category: document.getElementById('exp-cat').value,
+                status: 'pendiente',
+                date: document.getElementById('exp-date').value
+            };
+            data.expenses.push(newExp);
+            notify("✅ Gasto enviado. Email de notificación enviado al Gerente.");
+            router.go('personal');
+        };
+    },
+    approveExpense: (id) => {
+        const exp = data.expenses.find(e => e.id === id);
+        if (exp) {
+            exp.status = 'aprobado';
+            notify(`✅ Gasto de ${exp.user} aprobado. Email enviado al empleado.`);
+            router.render();
+        }
+    },
+    rejectExpense: (id) => {
+        const exp = data.expenses.find(e => e.id === id);
+        if (exp) {
+            exp.status = 'rechazado';
+            notify(`❌ Gasto de ${exp.user} rechazado. Email de notificación enviado.`);
+            router.render();
+        }
+    }
+};
+
+/* --- INITIALIZATION --- */
+window.onload = () => {
+    const orgSelect = document.getElementById('login-org');
+    const userSelect = document.getElementById('login-user');
+
+    data.orgs.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.id;
+        opt.innerText = o.name;
+        orgSelect.appendChild(opt);
+    });
+
+    const updateUsers = () => {
+        userSelect.innerHTML = '';
+        const selectedOrgId = orgSelect.value;
+        data.users.filter(u => u.orgId === selectedOrgId).forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.innerText = `${u.name} (${u.role})`;
+            userSelect.appendChild(opt);
+        });
+    };
+
+    orgSelect.onchange = updateUsers;
+    updateUsers();
+};
+</script>
+</body>
+</html>

@@ -40,10 +40,10 @@ export interface BacklogItem {
   linear_id: string | null; url: string | null; demo_data: boolean;
 }
 export interface Prototype {
-  generator: "lovable" | "planb"; url: string; build_url: string | null;
+  generator: "speedhack" | "lovable" | "planb"; url: string; build_url: string | null;
   repo_url: string | null; demo_data: boolean;
 }
-export interface QualityCheck { name: "build" | "lint" | "gitleaks" | "rls" | "smoke"; passed: boolean; details: string }
+export interface QualityCheck { name: "build" | "lint" | "gitleaks" | "secrets" | "rls" | "smoke"; passed: boolean; details: string }
 export interface QualityReport { checks: QualityCheck[]; passed: boolean; details: string; demo_data: boolean }
 export interface Slide { title: string; bullets: string[]; sources: string[] }
 export interface QAEntry { question: string; answer: string; sources: string[] }
