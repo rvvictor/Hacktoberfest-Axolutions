@@ -376,3 +376,22 @@ def test_gemma_client_error_is_not_retried(gemma, monkeypatch):
         with pytest.raises(httpx.HTTPStatusError):
             llm.clarify("barbería", Mode.client)
     assert route.call_count == 1
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [
+        {"candidates": [], "promptFeedback": {"blockReason": "SAFETY"}},
+        {"promptFeedback": {"blockReason": "OTHER"}},
+        {"candidates": [{"finishReason": "SAFETY"}]},
+    ],
+)
+def test_gemma_empty_or_blocked_answer_is_typed_error(gemma, reply):
+    import httpx
+    import respx
+
+    with respx.mock() as router:
+        route = router.post(GEMINI).mock(return_value=httpx.Response(200, json=reply))
+        with pytest.raises(llm.LLMOutputError):
+            llm.clarify("barbería", Mode.client)
+    assert route.call_count == 2  # the usual single retry, then the typed error
