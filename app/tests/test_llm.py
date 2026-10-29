@@ -294,3 +294,51 @@ def test_missing_key_is_typed_error(live, monkeypatch):
     script(monkeypatch, {"nope": []}, {"nope": []})
     with pytest.raises(llm.LLMOutputError):
         llm.clarify("idea", Mode.dev)
+
+
+# --- Gemma 4 on the Gemini API ------------------------------------------------
+
+GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent"
+
+
+@pytest.fixture
+def gemma(monkeypatch):
+    monkeypatch.setattr(llm.settings, "DEMO_MODE", False)
+    monkeypatch.setattr(llm.settings, "LLM_MODEL", "gemma-4-31b-it")
+    monkeypatch.setattr(llm.settings, "ANTHROPIC_API_KEY", None)
+    monkeypatch.setattr(llm.gemini_env, "GEMINI_API_KEY", "test-gemini-key")
+
+
+def test_gemma_calls_gemini_api_with_header_key(gemma):
+    import httpx
+    import respx
+
+    questions = {"questions": ["¿Una empresa o varias?", "¿Qué roles hay?", "¿Qué alertas?"]}
+    reply = {
+        "candidates": [
+            {
+                "content": {
+                    "parts": [
+                        {"text": "pensando…", "thought": True},
+                        {"text": json.dumps(questions, ensure_ascii=False)},
+                    ]
+                }
+            }
+        ]
+    }
+    with respx.mock(assert_all_called=True) as router:
+        route = router.post(GEMINI).mock(return_value=httpx.Response(200, json=reply))
+        assert llm.clarify("SaaS de gastos", Mode.dev) == questions["questions"]
+    request = route.calls.last.request
+    assert request.headers["x-goog-api-key"] == "test-gemini-key"
+    assert "key=" not in str(request.url)
+    body = json.loads(request.content)
+    assert "systemInstruction" not in body
+    assert "SaaS de gastos" in body["contents"][0]["parts"][0]["text"]
+
+
+def test_gemma_without_gemini_key_uses_fixtures(gemma, monkeypatch):
+    monkeypatch.setattr(llm.gemini_env, "GEMINI_API_KEY", None)
+    monkeypatch.setattr(llm.settings, "ANTHROPIC_API_KEY", "k")  # not used for Gemma
+    no_model(monkeypatch)
+    assert 3 <= len(llm.clarify("idea", Mode.dev)) <= 5
