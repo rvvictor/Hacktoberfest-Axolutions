@@ -257,3 +257,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Linear: scope issue and epic dedupe markers by run_id so a new project never reuses another project's issues
 - **Verify:** `uv run pytest -q app/tests/test_linear.py`
+
+## HACK-044 · Gemini: 4 attempts with exponential backoff (2/4/8 s); a live pitch failed after 3 consecutive 500s (follow-up of HACK-036)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-036
+- **Follow-up of:** HACK-036
+- **Paths:** app/services/llm.py, app/services/prompts/, app/fixtures/llm/, app/tests/test_llm.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Gemini: 4 attempts with exponential backoff (2/4/8 s); a live pitch failed after 3 consecutive 500s
+- **Verify:** `uv run pytest -q app/tests/test_llm.py`
