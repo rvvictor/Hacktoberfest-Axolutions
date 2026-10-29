@@ -66,10 +66,9 @@ export const DEMO_SEGMENTS: { events: StageEvent[]; awaiting: string | null }[] 
   {
     awaiting: "approval:3",
     events: [
-      ev(7, "prototype_ready", { generator: "planb", url: "https://example.invalid/prototipo", build_url: null, repo_url: null, demo_data: true }),
-      ...["build", "lint", "gitleaks", "rls", "smoke"].map((name) =>
-        ev(8, "quality_check", { name, passed: name !== "rls", details: name === "rls" ? "Una tabla sin aislamiento por empresa" : "ok" }),
-      ),
+      // The recorded app SpeedHack generated for this case (app/fixtures/generator/speedhack), served as a static copy.
+      ev(7, "prototype_ready", { generator: "speedhack", url: "demo-prototype/index.html", build_url: "https://lovable.dev/#prompt=demo", repo_url: null, demo_data: true }),
+      ...["build", "lint", "secrets", "smoke"].map((name) => ev(8, "quality_check", { name, passed: true, details: "demo_data" })),
       ev(8, "approval_required", { approval: 3 }),
     ],
   },

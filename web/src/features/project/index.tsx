@@ -22,7 +22,8 @@ const WORKING: Record<number, string> = {
 };
 const KIND_LABEL: Record<string, string> = { screen: "Pantallas", data_model: "Datos", integration: "Integraciones" };
 const CHECK_LABEL: Record<string, string> = {
-  build: "Compila", lint: "Estilo de código", gitleaks: "Sin llaves expuestas", rls: "Datos aislados por empresa", smoke: "Prueba rápida",
+  build: "Compila", lint: "Estilo de código", gitleaks: "Sin llaves expuestas", secrets: "Sin llaves expuestas",
+  rls: "Datos aislados por empresa", smoke: "Prueba rápida",
 };
 
 function runFromUrl(): string | null {
@@ -85,6 +86,7 @@ function Source({ item }: { item: ResearchItem }) {
 export default function Project() {
   const [runId] = useState(runFromUrl);
   const { state: c, busy, answer, decide } = useConversation(runId);
+  const own = c.prototype?.generator === "speedhack"; // built here: previewed inline, Lovable only to keep building
   const [answers, setAnswers] = useState<string[]>([]);
   const [turn, setTurn] = useState(0); // the question being answered now
   const end = useRef<HTMLDivElement>(null);
@@ -251,13 +253,21 @@ export default function Project() {
 
         {c.prototype && (
           <>
-            <Message>Tu prototipo está listo. Lo revisé antes de mostrártelo.</Message>
+            <Message>
+              {own ? "Construí tu prototipo con tu plan y lo revisé antes de mostrártelo. Pruébalo aquí mismo." : "Tu prototipo está listo. Lo revisé antes de mostrártelo."}
+            </Message>
             <Panel className="pj-card">
+              {own && (
+                // Our own generated app: scripts only, no same-origin, so it cannot reach SpeedHack.
+                <iframe className="pj-frame" title="Tu prototipo" src={c.prototype.url} sandbox="allow-scripts allow-forms allow-modals" loading="lazy" />
+              )}
               <a className="sh-btn sh-btn--secondary pj-cta" href={c.prototype.url} target="_blank" rel="noreferrer">
                 Abrir el prototipo
               </a>
               {c.prototype.build_url && c.prototype.build_url !== c.prototype.url && (
-                <a className="pj-link" href={c.prototype.build_url} target="_blank" rel="noreferrer">Construirlo desde tu plan en Lovable</a>
+                <a className="pj-link" href={c.prototype.build_url} target="_blank" rel="noreferrer">
+                  {own ? "Seguir construyéndolo en Lovable" : "Construirlo desde tu plan en Lovable"}
+                </a>
               )}
               {c.checks.length > 0 && (
                 <div className="pj-checks">
