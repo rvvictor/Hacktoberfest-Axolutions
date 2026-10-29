@@ -373,3 +373,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
   - The judge-path E2E keeps passing.
 - **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
 - **Next step:** in pipeline `_produce`, allow stages 7-8 through `_provider` under DEMO_MODE; then the project card iframe.
+
+## HACK-052 · Prototype iframe loads eagerly so the judge-path capture 06-prototype.png shows the app, not a blank frame (follow-up of HACK-051)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-051
+- **Follow-up of:** HACK-051
+- **Paths:** web/src/features/project/, web/public/demo-prototype/, app/services/pipeline.py, app/tests/test_pipeline_prototype.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Prototype iframe loads eagerly so the judge-path capture 06-prototype.png shows the app, not a blank frame
+- **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
