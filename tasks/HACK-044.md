@@ -9,14 +9,17 @@ Priority: P1
 Paths: app/services/llm.py, app/services/prompts/, app/fixtures/llm/, app/tests/test_llm.py
 Depends: HACK-036
 Verify: `uv run pytest -q app/tests/test_llm.py`
-Lease-Until: 1793306131
-Updated: 1793291731
+Lease-Until: 1793306348
+Updated: 1793291948
 Task-Base: fbabae20fb17b68f2441f9bcb90fbf28b4edf05c
 Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/41; run .uak/bin/smoke
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/41
 Evidence: pytest all pass (+1 retry test); ruff clean; smoke PRODUCT_PASS
-Events: 3
+Events: 4
 Checkpoints: 0
 Sessions: 2
 Last-Checkpoint: 0
 Task-Tip: d007f7c36fd11b570968d46ea12af19d337ae6a8
+Progress: 1 commit(s) since the claim · last: d007f7c fix(HACK-044): Gemini 4 attempts with exponential backoff (2/4/8 s) (4 minutes ago) · 0 uncommitted tracked file(s) · at 1793291948
+Progress-Head: d007f7c/4294967295
+Progress-Changed: 1793291948
