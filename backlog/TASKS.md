@@ -385,3 +385,19 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Prototype iframe loads eagerly so the judge-path capture 06-prototype.png shows the app, not a blank frame
 - **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+## HACK-053 · Demo replays show the real recorded research: no placeholder competitors or example.invalid sources
+
+- **Type:** feature
+- **Priority:** P1
+- **Estimate:** 45 min
+- **Rubric / Spec:** C1 · `IDEA.md` §3
+- **Depends on:** HACK-025, HACK-051
+- **Paths:** app/fixtures/demo/, web/src/features/project/demo.ts, web/src/features/spec/demo.ts, scripts/demo_from_recordings.py, app/tests/test_demo_fixture.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - `scripts/demo_from_recordings.py` rewrites the stage-3 `research_item` events of `app/fixtures/demo/run.jsonl` from `app/fixtures/research/recorded_tavily.json` (title, URL, content) with `pricing` only when `research.extract_pricing` finds it verbatim in `recorded_firecrawl.json`, and the stage-4 `spec_ready` payload from `app/fixtures/llm/spec.json` (its sources are those URLs); every event keeps `demo_data: true`. Nothing is typed by hand and no figure is invented.
+  - The stage-7 `prototype_ready` line becomes the `speedhack` recorded app (url `/api/prototypes/{run_id}/` is not valid for a replay, so the line points at `demo-prototype/index.html` as the web replay does) — or is dropped if stage 7 always runs live in DEMO_MODE (HACK-051); the choice is recorded with `uak decision`.
+  - The web local replays (`web/src/features/project/demo.ts`, `web/src/features/spec/demo.ts`) use the same recorded competitors, URLs and spec, still labeled demo; no `example.invalid` and no "Placeholder" text remains in those three files.
+  - A new test asserts the replay has ≥ 3 research items, all with https URLs from `recorded_tavily.json`, `demo_data: true`, and that the spec sources are a subset of them.
+- **Verify:** `uv run pytest -q && uv run ruff check app scripts && ! grep -q 'example.invalid\|Placeholder' app/fixtures/demo/run.jsonl web/src/features/project/demo.ts web/src/features/spec/demo.ts && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** read how pipeline `_fixture` replays stage 3/4 and what `_record` stores for spec_ready; write the script, run it, diff run.jsonl.
