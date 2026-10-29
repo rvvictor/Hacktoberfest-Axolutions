@@ -124,3 +124,18 @@ def test_demo_mode_rejects_more_items_than_recorded(monkeypatch):
     monkeypatch.setattr(settings, "DEMO_MODE", True)
     with pytest.raises(LinearError):
         list(create_backlog(_items(9), "run1"))
+
+
+def test_another_run_never_reuses_this_runs_issues_or_epics(live):
+    """A live run showed DYL-6 reused by a second project: BL-001 and epic names repeat across runs."""
+    fake, client = live
+    first = list(create_backlog(_items(3), "run_aaaaaaaa", client))
+    second = list(create_backlog(_items(3), "run_bbbbbbbb", client))
+    ids_first = {e.payload["linear_id"] for e in first}
+    ids_second = {e.payload["linear_id"] for e in second}
+    assert ids_first.isdisjoint(ids_second)
+    by_id = {i["identifier"]: i for i in fake.issues}
+    epics_first = {by_id[i]["parentId"] for i in ids_first}
+    epics_second = {by_id[i]["parentId"] for i in ids_second}
+    assert epics_first.isdisjoint(epics_second)  # each run has its own "Auth" epic
+    assert all(e.payload["external_id"].startswith("ext-") for e in second)  # payload id unchanged

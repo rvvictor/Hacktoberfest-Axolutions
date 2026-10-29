@@ -141,18 +141,20 @@ def create_backlog(
             raise LinearError("LINEAR_API_KEY and LINEAR_TEAM_ID are required when DEMO_MODE=0")
         client = LinearClient(settings.LINEAR_API_KEY, settings.LINEAR_TEAM_ID)
 
+    # Dedupe markers are scoped to this run: `external_id` (BL-001…) and epic names repeat across
+    # projects, and an unscoped marker made a new project reuse another project's issues.
     epic_ids: dict[str, str] = {}
     for item in items:
         if item.epic not in epic_ids:
             epic = client.ensure_issue(
                 title=f"Epic: {item.epic}",
-                external_id=f"epic:{item.epic}",
+                external_id=f"epic:{item.epic} run:{run_id}",
                 acceptance=[],
             )
             epic_ids[item.epic] = epic["id"]
         issue = client.ensure_issue(
             title=item.title,
-            external_id=item.external_id,
+            external_id=f"{item.external_id} run:{run_id}",
             acceptance=item.acceptance,
             parent_id=epic_ids[item.epic],
         )
