@@ -130,7 +130,14 @@ def _complete_gemini(system: str, user: str) -> str:
             break
         time.sleep(GEMINI_BACKOFF_S * (attempt + 1))
     response.raise_for_status()
-    parts = response.json()["candidates"][0]["content"].get("parts", [])
+    data = response.json()
+    candidates = data.get("candidates") or []
+    if not candidates:
+        # A blocked prompt comes back with no candidates: an invalid answer, so `_run` retries
+        # once and then raises LLMOutputError instead of leaking an IndexError.
+        reason = (data.get("promptFeedback") or {}).get("blockReason", "no candidates")
+        raise ValueError(f"Gemini returned no answer ({reason})")
+    parts = (candidates[0].get("content") or {}).get("parts", [])
     return "".join(p.get("text", "") for p in parts if not p.get("thought"))
 
 
