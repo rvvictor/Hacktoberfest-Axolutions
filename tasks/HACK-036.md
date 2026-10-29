@@ -9,14 +9,17 @@ Priority: P1
 Paths: app/services/llm.py, app/services/prompts/, app/fixtures/llm/, app/tests/test_llm.py
 Depends: HACK-004
 Verify: `uv run pytest -q app/tests/test_llm.py`
-Lease-Until: 1793255663
-Updated: 1793241263
+Lease-Until: 1793256140
+Updated: 1793241740
 Task-Base: 55216fad502f12b230beb8e615f8eb7684062a48
 Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/34; run .uak/bin/smoke
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/34
 Evidence: pytest all pass with keys blanked; ruff clean; real Gemini run with gemma-4-26b-a4b-it: clarify dev+client, spec, architecture, backlog validated
-Events: 4
+Events: 5
 Checkpoints: 0
 Sessions: 2
 Last-Checkpoint: 0
 Task-Tip: 9640917dbe29504931ef0d34b897e01866505e89
+Progress: 2 commit(s) since the claim · last: 9640917 fix(HACK-036): retry Gemini 429/5xx and isolate LLM tests from a local .env (8 minutes ago) · 0 uncommitted tracked file(s) · at 1793241740
+Progress-Head: 9640917/4294967295
+Progress-Changed: 1793241740
