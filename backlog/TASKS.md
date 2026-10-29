@@ -197,3 +197,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Hunter AI drafts use Gemma 4 via the Gemini API when LLM_MODEL selects it
 - **Verify:** `uv run pytest -q app/tests/test_outreach.py`
+
+## HACK-039 · Test isolation: app/tests/conftest.py blanks provider keys and forces DEMO_MODE so a developer .env never makes real API calls (follow-up of HACK-001)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-001
+- **Follow-up of:** HACK-001
+- **Paths:** pyproject.toml, uv.lock, .python-version, .env.example, Dockerfile, .dockerignore, render.yaml, .uak/bin/smoke-project, app/__init__.py, app/main.py, app/config.py, app/routers/__init__.py, app/services/__init__.py, app/tests/__init__.py, app/tests/test_health.py, web/package.json, web/package-lock.json, web/index.html, web/vite.config.ts, web/tsconfig.json, web/eslint.config.js, web/src/main.tsx, web/src/App.tsx, web/src/index.css, web/src/lib/api.ts, web/src/lib/sse.ts, web/src/vite-env.d.ts
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Test isolation: app/tests/conftest.py blanks provider keys and forces DEMO_MODE so a developer .env never makes real API calls
+- **Verify:** `uv run pytest -q app/tests/test_health.py && npm --prefix web run build`
