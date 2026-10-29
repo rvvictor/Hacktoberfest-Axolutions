@@ -6,7 +6,7 @@
 - Why: the stage now generates the app itself and quality checks the generated file; unstubbed, the test would call the real LLM wherever .env has keys
 - Failing: No validation run yet
 - Commands: `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
-- Next: Apply option: test_stages live_services also stubs the new SpeedHack generator; the live-run test then expects generator speedhack with a /api/prototypes/ url and stage 8 real (no demo stage left) instead of lovable + stage 8 demo
+- Next: Integrated in main: 45ebbf070bedf1c1d6d5f6783c4404fa89fa0149
 
 ## History
 - 1793310963 | CLAIMED | dylan-1 | claim; next: spike done 2026-10-29: gemma-4-26b with maxOutputTokens 16384 produced a complete 12k-char app (finishReason STOP, ~114 s, 0 page errors, one screen per backlog item); 4096 truncates. The generator call needs its own maxOutputTokens 16384 and timeout ≥ 300 s and keeps the 500/503 retries (two 500s before success in the spike). Read stages.py `_prototype_stage`/`_quality_stage` and generator.py; add SpeedHackGenerator behind the CodeGenerator protocol.
@@ -15,3 +15,4 @@
 - 1793312030 | REVIEW | dylan-1 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/51; evidence: pytest -q green; ruff app clean; web build + design-lint pass; judge_path PASS steps=8; live Gemini run 4/4 checks pass; route 200 CSP sandbox origin null 0 errors at 55e9077; reviewer: -
 - 1793312104 | REVIEW | scheduler | deadline decision HACK-050-1793311092; option: test_stages live_services also stubs the new SpeedHack generator; the live-run test then expects generator speedhack with a /api/prototypes/ url and stage 8 real (no demo stage left) instead of lovable + stage 8 demo; Why: the stage now generates the app itself and quality checks the generated file; unstubbed, the test would call the real LLM wherever .env has keys
 - 1793312255 | REVIEW | dylan-2 | review; approve; SHA 55e90773b18140f80246a515db3fd2f37d709b10; reviewer dylan-2
+- 1793312582 | INTEGRATED | dylan-1 | merge; smoke and Verify PASS; commit 45ebbf070bedf1c1d6d5f6783c4404fa89fa0149; reviewer dylan-2
