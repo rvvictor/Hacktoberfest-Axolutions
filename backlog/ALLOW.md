@@ -9,3 +9,4 @@ Append-only. Format: - ID | epoch | human | reason. Why: a freeze exception is a
 - HACK-040 | 1793244802 | Dylan | Post-hackathon: conectar el pipeline a los servicios reales
 - HACK-041 | 1793247063 | Dylan | Post-hackathon: las notas de Miro caben en su marco
 - HACK-043 | 1793291438 | Dylan | Linear: no mezclar issues entre proyectos
+- HACK-044 | 1793291447 | Dylan | Gemini: mas reintentos ante 500
