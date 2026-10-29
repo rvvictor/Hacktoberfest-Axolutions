@@ -74,3 +74,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793238258 | HACK-036 | follow-up of HACK-004 by dylan-2: LLM provider: Gemma 4 via Gemini API (gemma-4-31b-it) selected by LLM_MODEL, Anthropic kept | Why: same Paths, no scope change
 - 1793238461 | allow | Dylan | freeze exception: HACK-036 | Why: Terminar el proyecto despues del hackathon: Gemma 4 via Gemini API
 - 1793241827 | HACK-037 | follow-up of HACK-036 by dylan-2: LLM: empty or blocked Gemini response (no candidates) raises LLMOutputError, not IndexError | Why: same Paths, no scope change
+- 1793241878 | allow | Dylan | freeze exception: HACK-037 | Why: Post-hackathon: respuesta vacia de Gemini da LLMOutputError
