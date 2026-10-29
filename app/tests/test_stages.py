@@ -211,3 +211,67 @@ def test_prototype_previews_the_prebuilt_app_and_keeps_this_runs_build_link(clie
     assert proto.payload["url"] == "https://prebuilt.lovable.app"
     assert proto.payload["build_url"].startswith("https://lovable.dev/")
     assert proto.demo_data  # not generated from this run's spec
+
+
+def _real_board_with_mocked_miro(monkeypatch, router, ids, first_note_status=None):
+    import re
+
+    import httpx
+
+    from app.services import miro as miro_service
+
+    monkeypatch.setattr(stages.miro, "build_board", lambda arch, **kw: miro_service.BoardRun(arch, **kw))
+    router.post("https://api.miro.com/v2/boards").mock(return_value=httpx.Response(201, json={"id": "board-1"}))
+    responses = iter(first_note_status or [])
+
+    def reply(request):
+        status = next(responses, None)
+        if status == 429:
+            return httpx.Response(429, headers={"Retry-After": "3"})
+        if status == "boom":
+            raise httpx.ConnectError("miro down")
+        return httpx.Response(201, json={"id": f"item-{next(ids)}"})
+
+    router.post(url__regex=re.compile(r"https://api\.miro\.com/v2/boards/board-1/.*")).mock(side_effect=reply)
+
+
+def test_live_miro_rate_limit_really_waits_and_the_stage_stays_real(client, live_services, monkeypatch):
+    import itertools
+
+    import respx
+
+    waits = []
+
+    async def record_wait(seconds):
+        waits.append(seconds)
+
+    monkeypatch.setattr(stages, "_backoff", record_wait)
+    with respx.mock() as router:
+        _real_board_with_mocked_miro(monkeypatch, router, itertools.count(1), first_note_status=[429])
+        run_id = _start(client)
+        _approve(client, run_id, 1)
+    assert waits == [3.0]  # Retry-After honoured instead of retrying in a tight loop
+    items = stages._payloads(run_id, 5, EventType.miro_item)
+    assert items and not any(p.get("demo_data") for p in items)
+
+
+def test_items_created_before_a_failure_show_up_on_the_rerun(client, live_services, monkeypatch):
+    import itertools
+
+    import respx
+
+    ids = itertools.count(1)
+    # first attempt: frames (3) + first note created, then Miro fails on the second note
+    with respx.mock() as router:
+        _real_board_with_mocked_miro(monkeypatch, router, ids, first_note_status=[None, None, None, None, "boom"])
+        run_id = _start(client)
+        _approve(client, run_id, 1)
+    assert store.get_externals(run_id, 5)  # the ids created before the failure were kept
+    with respx.mock(assert_all_called=False) as router:  # the board exists: no new board is created
+        _real_board_with_mocked_miro(monkeypatch, router, ids)
+        _approve(client, run_id, 2, approved=False, comment="otra vez")
+        assert not router.routes[0].called
+    titles = sorted(
+        p["title"] for p in stages._payloads(run_id, 5, EventType.miro_item) if p["kind"] in stages.GROUPS
+    )
+    assert titles == ["Gasto", "Login", "Supabase"]

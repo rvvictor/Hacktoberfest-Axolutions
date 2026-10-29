@@ -106,7 +106,12 @@ def _collect(items: AsyncIterable[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 async def _no_wait(_seconds: float) -> None:
-    """The pipeline paces the events itself; the Miro service must not sleep on top of it."""
+    """The pipeline paces the recorded replay itself; the Miro service must not sleep on top of it."""
+
+
+async def _backoff(seconds: float) -> None:
+    """Live Miro calls: honour the 429 Retry-After wait."""
+    await asyncio.sleep(seconds)
 
 
 # --- stages -----------------------------------------------------------------------------------
@@ -157,7 +162,9 @@ def _architecture_stage(ctx: StageContext) -> Events:
     demo = (
         settings.DEMO_MODE or not settings.MIRO_ACCESS_TOKEN or architecture.demo_data or spec.demo_data
     )
-    board = miro.build_board(architecture, demo=demo, ids=ids, sleep=_no_wait)
+    # In demo the pipeline paces the replay itself; live, BoardRun also sleeps for Miro's 429
+    # Retry-After backoff, which must really wait.
+    board = miro.build_board(architecture, demo=demo, ids=ids, sleep=_no_wait if demo else _backoff)
     try:
         items = _collect(board)
     finally:
@@ -183,6 +190,12 @@ def _already_on_board(
         if e.stage == 5 and e.type is EventType.miro_item and miro_id in on_board:
             earlier[miro_id] = e.payload
     current = {kind: set(getattr(architecture, name)) for kind, name in GROUPS.items()}
+    # A note created by an attempt that failed before emitting it has an id but no event yet:
+    # BoardRun keys notes as "<kind>:<text>", so it can still be shown (at the frame origin).
+    for key, miro_id in ids.items():
+        kind, _, title = key.partition(":")
+        if miro_id in on_board and miro_id not in earlier and title in current.get(kind, ()):
+            earlier[miro_id] = {"kind": kind, "title": title, "miro_id": miro_id, "x": 0, "y": 0}
     return [
         {k: v for k, v in p.items() if k != "demo_data"}
         for p in earlier.values()
