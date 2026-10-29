@@ -20,9 +20,9 @@ An owner is not a prerequisite for everyone: consumers work on published contrac
 | web/src/lib/sse.ts | HACK-001 |
 | .github/workflows/ | HACK-001 |
 | .uak/PROJECT.md | HACK-001 |
-| app/schemas/ | HACK-002 |
+| app/schemas/ | HACK-050 |
 | app/fixtures/demo/ | HACK-002 |
-| web/src/lib/types.ts | HACK-002 |
+| web/src/lib/types.ts | HACK-050 |
 | web/src/lib/mock.ts | HACK-002 |
 | web/DESIGN.md | HACK-003 |
 | web/src/styles/ | HACK-003 |
