@@ -9,9 +9,9 @@ Priority: P0
 Paths: app/fixtures/research/, app/fixtures/llm/, scripts/record_fixtures.py
 Depends: HACK-005
 Verify: `uv run pytest -q app/tests/test_research.py app/tests/test_llm.py && ! grep -rq 'example.invalid' app/fixtures/research/`
-Lease-Until: 1793312939
-Updated: 1793298539
+Lease-Until: 1793313133
+Updated: 1793298733
 Task-Base: fa2f0ffdf9b68fb2f442b9a12160498f954df5cd
-Next: Humano: Edits a file outside Paths: app/services/research.py (Paths of HACK-005). Revert that file on the branch (git checkout origin/main -- app/services/research.py), or the human merges the PR
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/49; run .uak/bin/smoke
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/49
 Evidence: -

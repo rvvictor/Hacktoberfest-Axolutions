@@ -1,5 +1,5 @@
 Task: HACK-025
-Events: 8
+Events: 9
 Checkpoints: 0
 Sessions: 4
 Last-Checkpoint: 0
