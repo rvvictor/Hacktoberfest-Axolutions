@@ -259,7 +259,7 @@ export default function Project() {
             <Panel className="pj-card">
               {own && (
                 // Our own generated app: scripts only, no same-origin, so it cannot reach SpeedHack.
-                <iframe className="pj-frame" title="Tu prototipo" src={c.prototype.url} sandbox="allow-scripts allow-forms allow-modals" loading="lazy" />
+                <iframe className="pj-frame" title="Tu prototipo" src={c.prototype.url} sandbox="allow-scripts allow-forms allow-modals" />
               )}
               <a className="sh-btn sh-btn--secondary pj-cta" href={c.prototype.url} target="_blank" rel="noreferrer">
                 Abrir el prototipo
