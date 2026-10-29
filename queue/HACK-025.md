@@ -1,5 +1,5 @@
 ID: HACK-025
-State: MERGING
+State: HUMAN
 Owner: dylan-3
-Queued: 1793298675
-Reason: Waiting for queue
+Updated: 1793298689
+Reason: Edits a file outside Paths: app/services/research.py (Paths of HACK-005). Revert that file on the branch (git checkout origin/main -- app/services/research.py), or the human merges the PR
