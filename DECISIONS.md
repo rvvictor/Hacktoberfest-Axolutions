@@ -113,3 +113,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793314624 | HACK-052 | follow-up of HACK-051 by dylan-1: Prototype iframe loads eagerly so the judge-path capture 06-prototype.png shows the app, not a blank frame | Why: same Paths, no scope change
 - 1793314769 | allow | Dylan | freeze exception: HACK-052 | Why: captura E2E del prototipo
 - 1793314799 | plan | Dylan/Dylan | tasks added: HACK-053 | Why: backlog without PR (Plan-Channel: claims)
+- 1793314830 | allow | Dylan | freeze exception: HACK-053 | Why: demo con investigación real
