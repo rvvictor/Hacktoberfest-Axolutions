@@ -1,1 +1,102 @@
-{"screens": ["Inicio de sesión", "Registro de gasto", "Bandeja de aprobaciones", "Reportes"], "data_model": ["Empresa", "Usuario", "Gasto", "Aprobación", "Alerta"], "integrations": ["Supabase Auth", "Correo de alertas"], "items": [{"kind": "screen", "title": "Registro de gasto"}, {"kind": "screen", "title": "Bandeja de aprobaciones"}, {"kind": "data_model", "title": "Gasto"}, {"kind": "integration", "title": "Correo de alertas"}], "demo_data": true}
+{
+  "screens": [
+    "Dashboard de gastos",
+    "Panel de aprobación de gastos",
+    "Gestión de gastos personales",
+    "Administración de usuarios y roles"
+  ],
+  "data_model": [
+    "Organización (Multi-tenant)",
+    "Usuario y Roles (RBAC)",
+    "Gasto",
+    "Flujo de aprobación"
+  ],
+  "integrations": [
+    "Supabase",
+    "Sistema de alertas por correo electrónico"
+  ],
+  "miro_board_id": null,
+  "items": [
+    {
+      "kind": "screen",
+      "title": "Dashboard de gastos",
+      "miro_id": null,
+      "x": 0.0,
+      "y": 0.0,
+      "demo_data": false
+    },
+    {
+      "kind": "screen",
+      "title": "Panel de aprobación de gastos",
+      "miro_id": null,
+      "x": 0.0,
+      "y": 0.0,
+      "demo_data": false
+    },
+    {
+      "kind": "screen",
+      "title": "Gestión de gastos personales",
+      "miro_id": null,
+      "x": 0.0,
+      "y": 0.0,
+      "demo_data": false
+    },
+    {
+      "kind": "screen",
+      "title": "Administración de usuarios y roles",
+      "miro_id": null,
+      "x": 0.0,
+      "y": 0.0,
+      "demo_data": false
+    },
+    {
+      "kind": "data_model",
+      "title": "Organización (Multi-tenant)",
+      "miro_id": null,
+      "x": 0.0,
+      "y": 0.0,
+      "demo_data": false
+    },
+    {
+      "kind": "data_model",
+      "title": "Usuario y Roles (RBAC)",
+      "miro_id": null,
+      "x": 0.0,
+      "y": 0.0,
+      "demo_data": false
+    },
+    {
+      "kind": "data_model",
+      "title": "Gasto",
+      "miro_id": null,
+      "x": 0.0,
+      "y": 0.0,
+      "demo_data": false
+    },
+    {
+      "kind": "data_model",
+      "title": "Flujo de aprobación",
+      "miro_id": null,
+      "x": 0.0,
+      "y": 0.0,
+      "demo_data": false
+    },
+    {
+      "kind": "integration",
+      "title": "Supabase",
+      "miro_id": null,
+      "x": 0.0,
+      "y": 0.0,
+      "demo_data": false
+    },
+    {
+      "kind": "integration",
+      "title": "Sistema de alertas por correo electrónico",
+      "miro_id": null,
+      "x": 0.0,
+      "y": 0.0,
+      "demo_data": false
+    }
+  ],
+  "demo_data": false
+}

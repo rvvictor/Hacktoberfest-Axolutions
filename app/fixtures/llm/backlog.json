@@ -1,5 +1,71 @@
-{"items": [
-{"epic": "Gastos", "title": "Registrar un gasto con comprobante", "acceptance": ["El empleado sube un comprobante y un monto", "El gasto queda en estado pendiente"], "external_id": "BL-001"},
-{"epic": "Aprobaciones", "title": "Aprobar o rechazar un gasto", "acceptance": ["El aprobador ve los gastos pendientes de su área", "Rechazar exige un comentario"], "external_id": "BL-002"},
-{"epic": "Alertas", "title": "Alertar al superar el límite", "acceptance": ["Se envía un correo cuando el total del área supera su límite"], "external_id": "BL-003"}
-]}
+{
+  "items": [
+    {
+      "epic": "Arquitectura y Seguridad",
+      "title": "Implementación de arquitectura multi-tenant",
+      "acceptance": [
+        "Aislamiento de datos entre empresas mediante Supabase",
+        "Configuración del modelo de datos de Organización (Multi-tenant)"
+      ],
+      "external_id": "BL-001",
+      "linear_id": null,
+      "url": null
+    },
+    {
+      "epic": "Arquitectura y Seguridad",
+      "title": "Gestión de roles y permisos (RBAC)",
+      "acceptance": [
+        "Acceso a la pantalla de Administración de usuarios y roles",
+        "Implementación de permisos para Empleados, Gerentes de aprobación y Administradores de la organización"
+      ],
+      "external_id": "BL-002",
+      "linear_id": null,
+      "url": null
+    },
+    {
+      "epic": "Gestión de Gastos",
+      "title": "Gestión de gastos personales",
+      "acceptance": [
+        "Acceso a la pantalla de Gestión de gastos personales",
+        "Registro y control de gastos individuales"
+      ],
+      "external_id": "BL-003",
+      "linear_id": null,
+      "url": null
+    },
+    {
+      "epic": "Gestión de Gastos",
+      "title": "Visualización de gastos corporativos",
+      "acceptance": [
+        "Acceso al Dashboard de gastos",
+        "Visibilidad clara sobre el gasto de la organización"
+      ],
+      "external_id": "BL-004",
+      "linear_id": null,
+      "url": null
+    },
+    {
+      "epic": "Flujo de Aprobación",
+      "title": "Gestión del flujo de aprobación",
+      "acceptance": [
+        "Acceso al Panel de aprobación de gastos",
+        "Ejecución del flujo de aprobación de gastos definido en el modelo de datos"
+      ],
+      "external_id": "BL-005",
+      "linear_id": null,
+      "url": null
+    },
+    {
+      "epic": "Flujo de Aprobación",
+      "title": "Sistema de alertas automatizadas",
+      "acceptance": [
+        "Integración con el sistema de alertas por correo electrónico",
+        "Envío de notificaciones para la gestión de aprobaciones"
+      ],
+      "external_id": "BL-006",
+      "linear_id": null,
+      "url": null
+    }
+  ],
+  "demo_data": false
+}
