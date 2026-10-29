@@ -15,7 +15,7 @@ Task-Base: fa2f0ffdf9b68fb2f442b9a12160498f954df5cd
 Next: pedir a Fer las 3 keys en .env; luego python -m app.services.research --record
 PR: -
 Evidence: -
-Events: 4
+Events: 5
 Checkpoints: 0
 Sessions: 2
 Last-Checkpoint: 0
