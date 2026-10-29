@@ -12,10 +12,10 @@ Verify: `uv run pytest -q && uv run ruff check app && npm --prefix web run build
 Lease-Until: 1793326430
 Updated: 1793312030
 Task-Base: 477bd15f93b00e4a4d8eba0cf2e70b50c92e41bf
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/51; run .uak/bin/smoke
+Next: Apply option: test_stages live_services also stubs the new SpeedHack generator; the live-run test then expects generator speedhack with a /api/prototypes/ url and stage 8 real (no demo stage left) instead of lovable + stage 8 demo
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/51
 Evidence: pytest -q green; ruff app clean; web build + design-lint pass; judge_path PASS steps=8; live Gemini run 4/4 checks pass; route 200 CSP sandbox origin null 0 errors at 55e9077
-Events: 4
+Events: 5
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
