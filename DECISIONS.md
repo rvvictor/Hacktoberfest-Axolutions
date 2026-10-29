@@ -86,3 +86,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793246931 | HACK-041 | follow-up of HACK-006 by dylan-2: Miro: frame height grows with its notes (3rd note was outside the 700px frame: 400 outside of parent boundaries) | Why: same Paths, no scope change
 - 1793247063 | allow | Dylan | freeze exception: HACK-041 | Why: Post-hackathon: las notas de Miro caben en su marco
 - 1793247982 | HACK-042 | follow-up of HACK-003 by dylan-1: Design lock v2: warm 60-30-10 with blue/violet accent, 3 moments (Idea, Plan, Producto), Nielsen heuristics | Why: same Paths, no scope change
+- 1793248300 | HACK-043 | follow-up of HACK-007 by dylan-2: Linear: scope issue and epic dedupe markers by run_id so a new project never reuses another project's issues | Why: same Paths, no scope change

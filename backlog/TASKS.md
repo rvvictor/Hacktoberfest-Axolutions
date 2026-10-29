@@ -245,3 +245,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Design lock v2: warm 60-30-10 with blue/violet accent, 3 moments (Idea, Plan, Producto), Nielsen heuristics
 - **Verify:** `test -s web/DESIGN.md && ls web/public/design-lock/*.png`
+
+## HACK-043 · Linear: scope issue and epic dedupe markers by run_id so a new project never reuses another project's issues (follow-up of HACK-007)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-007
+- **Follow-up of:** HACK-007
+- **Paths:** app/services/linear.py, app/fixtures/linear/, app/tests/test_linear.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Linear: scope issue and epic dedupe markers by run_id so a new project never reuses another project's issues
+- **Verify:** `uv run pytest -q app/tests/test_linear.py`
