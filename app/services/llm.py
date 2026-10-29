@@ -10,10 +10,13 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from collections.abc import Callable, Iterable
 from pathlib import Path
 
+import httpx
 from pydantic import BaseModel, ValidationError
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.config import settings
 from app.schemas import (
@@ -37,6 +40,21 @@ CLIENT_JARGON = re.compile(
     re.IGNORECASE,
 )
 NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+GEMINI_PREFIXES = ("gemma-", "gemini-")  # LLM_MODEL=gemma-4-26b-a4b-it selects the Gemini API
+GEMINI_ATTEMPTS = 3
+GEMINI_RETRY_STATUS = {429, 500, 502, 503, 504}
+GEMINI_BACKOFF_S = 2.0
+
+
+class _GeminiEnv(BaseSettings):
+    """GEMINI_API_KEY from `.env`; lives here until app/config.py declares it."""
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    GEMINI_API_KEY: str | None = None
+
+
+gemini_env = _GeminiEnv()
 
 
 class LLMError(Exception):
@@ -55,8 +73,16 @@ class Passage(BaseModel):
 # --- plumbing -------------------------------------------------------------
 
 
+def _uses_gemini() -> bool:
+    return settings.LLM_MODEL.startswith(GEMINI_PREFIXES)
+
+
+def _api_key() -> str | None:
+    return gemini_env.GEMINI_API_KEY if _uses_gemini() else settings.ANTHROPIC_API_KEY
+
+
 def _demo() -> bool:
-    return bool(settings.DEMO_MODE) or not settings.ANTHROPIC_API_KEY
+    return bool(settings.DEMO_MODE) or not _api_key()
 
 
 def _fixture(name: str):
@@ -72,6 +98,8 @@ def _prompt(name: str) -> str:
 
 def _complete(system: str, user: str) -> str:
     """One model call. Kept tiny so tests can replace it."""
+    if _uses_gemini():
+        return _complete_gemini(system, user)
     import anthropic
 
     client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -82,6 +110,28 @@ def _complete(system: str, user: str) -> str:
         messages=[{"role": "user", "content": user}],
     )
     return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
+
+
+def _complete_gemini(system: str, user: str) -> str:
+    # Gemma on the Gemini API takes no system instruction, so it leads the user turn.
+    # The key goes in a header, never in the URL, so it stays out of request logs.
+    # The Gemini API answers Gemma with intermittent 500/503 and rate-limits with 429: retry those.
+    for attempt in range(GEMINI_ATTEMPTS):
+        response = httpx.post(
+            GEMINI_URL.format(model=settings.LLM_MODEL),
+            headers={"x-goog-api-key": gemini_env.GEMINI_API_KEY or ""},
+            json={
+                "contents": [{"role": "user", "parts": [{"text": f"{system}\n\n{user}"}]}],
+                "generationConfig": {"maxOutputTokens": 4096},
+            },
+            timeout=120,
+        )
+        if response.status_code not in GEMINI_RETRY_STATUS or attempt == GEMINI_ATTEMPTS - 1:
+            break
+        time.sleep(GEMINI_BACKOFF_S * (attempt + 1))
+    response.raise_for_status()
+    parts = response.json()["candidates"][0]["content"].get("parts", [])
+    return "".join(p.get("text", "") for p in parts if not p.get("thought"))
 
 
 def _json(text: str) -> dict:
