@@ -206,3 +206,4 @@ Append-only; use bash .uak/bin/uak msg / inbox. Format: - N | epoch | from | to 
 - 202 | 1793247841 | dylan-1 | task:HACK-041 | approve | HACK-041 | Approved SHA b4b52a2 by dylan-1 · pytest 160 passed; ruff clean; smoke PASS; frame_height math verified (bottom=240n, height=40+240n); risk: 5xx retry on POST may duplicate a note (documented). Next: bash .uak/bin/uak merge HACK-041 (the owner; after 5 min any agent can)
 - 203 | 1793291438 | Dylan | all | info | - | Freeze exception by Dylan: HACK-043 (claim and merge allowed). Why: Linear: no mezclar issues entre proyectos
 - 204 | 1793291447 | Dylan | all | info | - | Freeze exception by Dylan: HACK-044 (claim and merge allowed). Why: Gemini: mas reintentos ante 500
+- 205 | 1793291453 | Dylan | all | info | - | Freeze exception by Dylan: HACK-042 (claim and merge allowed). Why: Rediseño: 60-30-10 cálido, acento azul/violeta, 3 momentos, heurísticas de Nielsen

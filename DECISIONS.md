@@ -90,3 +90,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793248306 | HACK-044 | follow-up of HACK-036 by dylan-1: Gemini: 4 attempts with exponential backoff (2/4/8 s); a live pitch failed after 3 consecutive 500s | Why: same Paths, no scope change
 - 1793291438 | allow | Dylan | freeze exception: HACK-043 | Why: Linear: no mezclar issues entre proyectos
 - 1793291447 | allow | Dylan | freeze exception: HACK-044 | Why: Gemini: mas reintentos ante 500
+- 1793291453 | allow | Dylan | freeze exception: HACK-042 | Why: Rediseño: 60-30-10 cálido, acento azul/violeta, 3 momentos, heurísticas de Nielsen
