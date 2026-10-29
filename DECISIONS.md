@@ -115,3 +115,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793314799 | plan | Dylan/Dylan | tasks added: HACK-053 | Why: backlog without PR (Plan-Channel: claims)
 - 1793314830 | allow | Dylan | freeze exception: HACK-053 | Why: demo con investigación real
 - 1793317021 | HACK-054 | follow-up of HACK-053 by dylan-3: Demo replays build the Linear issues (and Miro items) from the recorded backlog.json and architecture.json, not Issue demo N | Why: same Paths, no scope change
+- 1793317079 | allow | Dylan | freeze exception: HACK-054 | Why: demo con backlog y arquitectura reales

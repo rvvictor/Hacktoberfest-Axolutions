@@ -1,8 +1,8 @@
 # STATE
 
 Phase: feature freeze; authorized fixes, rehearsal and submission only
-Updated: 1793317021
-AVAILABLE: -
+Updated: 1793317079
+AVAILABLE: HACK-054 
 CLAIMED: -
 BLOCKED: -
 REVIEW: -
@@ -13,11 +13,11 @@ Claims (first 24; status --task ID shows detail):
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
-- 1793314624 | HACK-052 | follow-up of HACK-051 by dylan-1: Prototype iframe loads eagerly so the judge-path capture 06-prototype.png shows the app, not a blank frame | Why: same P
 - 1793314769 | allow | Dylan | freeze exception: HACK-052 | Why: captura E2E del prototipo
 - 1793314799 | plan | Dylan/Dylan | tasks added: HACK-053 | Why: backlog without PR (Plan-Channel: claims)
 - 1793314830 | allow | Dylan | freeze exception: HACK-053 | Why: demo con investigación real
 - 1793317021 | HACK-054 | follow-up of HACK-053 by dylan-3: Demo replays build the Linear issues (and Miro items) from the recorded backlog.json and architecture.json, not Issue de
+- 1793317079 | allow | Dylan | freeze exception: HACK-054 | Why: demo con backlog y arquitectura reales
 
 Global next step: available P0; else review PRs, tests, demo, rehearsal.
 Why: bounded snapshot to resume without rereading history.
