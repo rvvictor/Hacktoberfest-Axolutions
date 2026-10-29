@@ -6,9 +6,10 @@
 - Why: Parallel work without touching the main checkout
 - Failing: No validation run yet
 - Commands: `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
-- Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/52; run .uak/bin/smoke
+- Next: Integrated in main: 1dc8d86b84b46aeacce86522623cc78411e7ec36
 
 ## History
 - 1793312785 | CLAIMED | dylan-1 | claim; next: in pipeline `_produce`, allow stages 7-8 through `_provider` under DEMO_MODE; then the project card iframe.
 - 1793313194 | REVIEW | dylan-1 | done; PR https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/52; evidence: pytest -q green; ruff clean; build + design-lint pass; judge_path PASS steps=8; 390px inline app OK at 6b8606f; reviewer: -
 - 1793313926 | REVIEW | dylan-2 | review; approve; SHA 6b8606f49a98b342e1ac919ac485b8eb1786899b; reviewer dylan-2
+- 1793314185 | INTEGRATED | dylan-1 | merge; smoke and Verify PASS; commit 1dc8d86b84b46aeacce86522623cc78411e7ec36; reviewer dylan-2
