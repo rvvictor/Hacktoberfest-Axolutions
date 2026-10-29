@@ -1,1 +1,9 @@
-{"questions": ["¿Habrá varias empresas (multiempresa) en la misma instalación?", "¿Qué roles necesita: empleado, aprobador, finanzas?", "¿Qué alertas automáticas deben dispararse y por qué canal?", "¿Con qué sistemas contables o bancos debe integrarse?"], "demo_data": true}
+{
+  "questions": [
+    "¿Cómo planeas implementar la arquitectura multi-tenant en Supabase para garantizar el aislamiento de datos entre diferentes empresas (por ejemplo, mediante RLS o esquemas separados)?",
+    "¿Qué estrategia seguirás para la integración de datos de gastos: APIs bancarias, webhooks o carga manual de archivos?",
+    "¿Cómo se gestionará el flujo de las alertas automatizadas: mediante Supabase Edge Functions o mediante un servicio de mensajería externo?",
+    "¿Qué estructura de roles y permisos (RBAC) requiere el sistema para diferenciar entre empleados, gerentes de aprobación y administradores de la organización?"
+  ],
+  "demo_data": false
+}

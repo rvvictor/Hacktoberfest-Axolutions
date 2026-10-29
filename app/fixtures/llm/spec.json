@@ -1,1 +1,28 @@
-{"problem": "Las empresas pequeñas controlan sus gastos corporativos en hojas de cálculo y se enteran tarde de los excesos.", "users": ["Empleado que registra gastos", "Aprobador de área", "Finanzas"], "mvp_features": ["Registro de gastos con comprobante", "Flujo de aprobación por rol", "Alertas automáticas al superar un límite"], "assumptions": ["Cada empresa define sus propios límites (unverified)"], "sources": ["https://example.invalid/competitor-a"], "demo_data": true}
+{
+  "problem": "La gestión de gastos corporativos suele presentar errores manuales, lentitud en los procesos de reembolso y una falta de visibilidad clara sobre el gasto de la organización.",
+  "users": [
+    "Empleados",
+    "Gerentes de aprobación",
+    "Administradores de la organización"
+  ],
+  "mvp_features": [
+    "Arquitectura multi-tenant para el aislamiento de datos entre empresas",
+    "Sistema de gestión de roles y permisos (RBAC)",
+    "Alertas automatizadas por correo electrónico",
+    "Flujo de aprobación de gastos",
+    "Control de gastos corporativos"
+  ],
+  "assumptions": [
+    "La arquitectura multi-tenant se gestionará de forma segura mediante Supabase",
+    "El uso de React y Supabase es suficiente para cubrir las necesidades de la plataforma",
+    "Los usuarios requieren notificaciones por correo electrónico para gestionar aprobaciones"
+  ],
+  "sources": [
+    "https://tipalti.com/blog/travel-and-expense-management-software",
+    "https://www.bill.com/blog/best-expense-management-software",
+    "https://www.ofx.com/en-us/blog/best-expense-management-software-solutions",
+    "https://wise.com/gb/blog/best-international-expense-software",
+    "https://payhawk.com/product-expense-management"
+  ],
+  "demo_data": false
+}

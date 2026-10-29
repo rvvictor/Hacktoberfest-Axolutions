@@ -1,1 +1,11 @@
-{"answer": "Según el pasaje recuperado, el producto envía alertas automáticas por correo (unverified, respuesta de ejemplo).", "sources": ["https://example.invalid/competitor-a"]}
+{
+  "answer": "Existen diversas soluciones de gestión de gastos: BILL ofrece funciones gratuitas y automatización de AP con planes SaaS o Enterprise (que incluye sincronización adicional y soporte prioritario). Tipalti combina la gestión de viajes y gastos con la automatización de AP. Ramp cuenta con planes gratuito, Plus (con controles granulares y personalización) y Enterprise (con seguridad, cumplimiento y soporte dedicado), además de tableros de gestión de gastos con IA en tiempo real. Zoho Expense ofrece gestión para pequeñas y medianas empresas con integraciones como Zoho Books y QuickBooks. Expensify se especializa en automatización simple y económica. SAP Concur destaca por su cumplimiento global y personalización. Brex es ideal para startups y ofrece tarjetas corporativas, automatización de AP, inventario de Priceline y re-reserva automática de hoteles. Navan se enfoca en reservas de viajes. OFX integra la gestión de gastos y pagos internacionales con cuentas multimoneda y tarjetas corporativas. Wise Business ofrece un nivel gratuito para empresas de hasta 300 empleados y detalles de cuenta local en varias divisas. Payhawk proporciona control de gastos mediante IA para la aprobación, categorización y conciliación en tiempo real.",
+  "sources": [
+    "https://tipalti.com/blog/travel-and-expense-management-software",
+    "https://www.bill.com/blog/best-expense-management-software",
+    "https://www.ofx.com/en-us/blog/best-expense-management-software-solutions",
+    "https://wise.com/gb/blog/best-international-expense-software",
+    "https://payhawk.com/product-expense-management"
+  ],
+  "demo_data": false
+}

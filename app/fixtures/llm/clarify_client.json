@@ -1,1 +1,9 @@
-{"questions": ["¿Cuántas personas atienden en tu negocio y en qué horarios?", "¿Cómo te piden hoy una cita tus clientes: llamada, mensaje o en persona?", "¿Quieres que tus clientes reciban un recordatorio antes de su cita?", "¿Cobras por adelantado o al terminar el servicio?"], "demo_data": true}
+{
+  "questions": [
+    "¿Quieres que los clientes paguen en el momento de reservar o que solo aparten su lugar?",
+    "¿Cómo prefieres recibir el aviso de que alguien ha pedido una cita?",
+    "¿Necesitas poder cambiar tus precios o tus horarios tú mismo fácilmente?",
+    "¿Te gustaría que el sistema deje de aceptar citas automáticamente cuando ya no tengas disponibilidad?"
+  ],
+  "demo_data": false
+}
