@@ -1,0 +1,211 @@
+"""Stage adapters: connect each pipeline stage to its real service (IDEA.md §5, §7).
+
+`pipeline` imports `run_stage(ctx)` for stages 1-9. Each adapter reads what earlier stages produced
+from the run's events (the latest attempt only, so a rejection never doubles anything) and returns
+`(event_type, payload)` pairs. The services fall back to their own recorded data when a key is
+missing; those payloads carry `demo_data: true` and the pipeline keeps the stage labeled as demo.
+Raising makes the pipeline replay the labeled fixture for the stage.
+"""
+from __future__ import annotations
+
+import asyncio
+from collections.abc import AsyncIterable, Iterable
+from concurrent.futures import ThreadPoolExecutor
+from typing import TYPE_CHECKING, Any
+
+from app.config import settings
+from app.schemas import (
+    Architecture,
+    BacklogItem,
+    EventType,
+    ResearchItem,
+    Spec,
+    StageEvent,
+)
+from app.services import generator, linear, llm, miro, research, store
+
+if TYPE_CHECKING:
+    from app.services.pipeline import StageContext
+
+Events = list[tuple[str, dict[str, Any]]]
+REJECTION_NOTE = "Cambio pedido por la persona que revisó"
+# BoardRun's own ids (board, frames, notes, connectors) live in `externals` under this prefix, so a
+# rerun of stage 5 reuses the same Miro board instead of creating a new one.
+BOARD_IDS = "boardrun:"
+GROUPS = {"screen": "screens", "data_model": "data_model", "integration": "integrations"}
+
+
+class StageUnavailable(Exception):
+    """No honest real output for this stage: the pipeline replays the labeled fixture."""
+
+
+# --- reading earlier stages -------------------------------------------------------------------
+
+
+def _latest(run_id: str, stage: int) -> list[StageEvent]:
+    """Events of the latest attempt of `stage` (everything after its last stage_started)."""
+    events = [e for _, e in store.list_events(run_id) if e.stage == stage]
+    starts = [i for i, e in enumerate(events) if e.type is EventType.stage_started]
+    return events[starts[-1] + 1 :] if starts else events
+
+
+def _payloads(run_id: str, stage: int, etype: EventType) -> list[dict[str, Any]]:
+    return [e.payload for e in _latest(run_id, stage) if e.type is etype]
+
+
+def _research(run_id: str) -> list[ResearchItem]:
+    return [ResearchItem.model_validate(p) for p in _payloads(run_id, 3, EventType.research_item)]
+
+
+def _answers(ctx: StageContext) -> dict[str, str]:
+    questions = [p.get("text", "") for p in _payloads(ctx.run.run_id, 2, EventType.question)]
+    return {q: a for q, a in zip(questions, ctx.answers, strict=False) if q}
+
+
+def _rejection(run_id: str, number: int) -> str | None:
+    """The comment of approval `number` if its latest decision was a rejection."""
+    last = None
+    for _, e in store.list_events(run_id):
+        if e.payload.get("approval") == number and e.type in (EventType.approval_given, EventType.approval_rejected):
+            last = e
+    if last is not None and last.type is EventType.approval_rejected:
+        return last.payload.get("comment") or None
+    return None
+
+
+def _spec(ctx: StageContext) -> Spec:
+    if not ctx.spec:
+        raise StageUnavailable("no spec of record yet")
+    return Spec.model_validate(ctx.spec)
+
+
+def _architecture(run_id: str) -> Architecture:
+    """Rebuild the architecture from the Miro items of the latest stage-5 attempt."""
+    groups: dict[str, list[str]] = {name: [] for name in GROUPS.values()}
+    for p in _payloads(run_id, 5, EventType.miro_item):
+        name = GROUPS.get(p.get("kind", ""))
+        if name and p.get("title") not in groups[name]:
+            groups[name].append(p["title"])
+    if not any(groups.values()):
+        raise StageUnavailable("no architecture items from stage 5")
+    return Architecture(**groups)
+
+
+def _collect(items: AsyncIterable[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Drain an async iterator from this (worker) thread, even if an event loop is running here."""
+
+    async def drain() -> list[dict[str, Any]]:
+        return [item async for item in items]
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(drain())
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, drain()).result()
+
+
+async def _no_wait(_seconds: float) -> None:
+    """The pipeline paces the events itself; the Miro service must not sleep on top of it."""
+
+
+# --- stages -----------------------------------------------------------------------------------
+
+
+def _intake(ctx: StageContext) -> Events:
+    return []  # the idea is already stored; nothing to call
+
+
+def _clarify(ctx: StageContext) -> Events:
+    mode = ctx.project.mode
+    # `clarify` returns bare strings, so whether they came from the recording is asked of the service.
+    demo = llm._demo()
+    questions = llm.clarify(ctx.project.idea, mode)
+    return [("question", {"text": q, "mode": mode.value, "demo_data": demo}) for q in questions]
+
+
+def _research_stage(ctx: StageContext) -> Events:
+    draft = " ".join([ctx.project.idea, *ctx.answers])
+    items = research.research(
+        draft,
+        ctx.project.mode.value,
+        data_dir=settings.DATA_DIR,
+        api_key=settings.TAVILY_API_KEY,
+        firecrawl_key=settings.FIRECRAWL_API_KEY,
+        stack=ctx.project.stack_prefs,
+    )
+    return [("research_item", item.model_dump(mode="json")) for item in items]
+
+
+def _spec_stage(ctx: StageContext) -> Events:
+    answers = _answers(ctx)
+    comment = _rejection(ctx.run.run_id, 1)
+    if comment:
+        answers[REJECTION_NOTE] = comment
+    version = (ctx.spec or {}).get("version", 0) + 1
+    spec = llm.build_spec(ctx.project.idea, ctx.project.mode, answers, _research(ctx.run.run_id), version)
+    return [("spec_ready", spec.model_dump(mode="json"))]
+
+
+def _architecture_stage(ctx: StageContext) -> Events:
+    spec = _spec(ctx)
+    comment = _rejection(ctx.run.run_id, 2)
+    if comment:  # build_architecture only reads the spec: carry the request as an assumption
+        spec = spec.model_copy(update={"assumptions": [*spec.assumptions, f"{REJECTION_NOTE}: {comment}"]})
+    architecture = llm.build_architecture(spec)
+    ids = {k[len(BOARD_IDS) :]: v for k, v in ctx.externals.items() if k.startswith(BOARD_IDS)}
+    demo = (
+        settings.DEMO_MODE or not settings.MIRO_ACCESS_TOKEN or architecture.demo_data or spec.demo_data
+    )
+    board = miro.build_board(architecture, demo=demo, ids=ids, sleep=_no_wait)
+    try:
+        items = _collect(board)
+    finally:
+        if not demo:
+            for key, value in board.ids.items():
+                store.set_external(ctx.run.run_id, ctx.stage, BOARD_IDS + key, value)
+    return [("miro_item", {**item, "demo_data": item.get("demo_data", demo)}) for item in items]
+
+
+def _backlog_stage(ctx: StageContext) -> Events:
+    spec = _spec(ctx)
+    items: list[BacklogItem] = llm.build_backlog(spec, _architecture(ctx.run.run_id))
+    if settings.DEMO_MODE or any(i.demo_data for i in items):
+        return [("linear_issue", {**i.model_dump(mode="json"), "demo_data": True}) for i in items]
+    # Linear dedupes by the external_id marker, so a rerun reuses the issues already created.
+    return [("linear_issue", e.payload) for e in linear.create_backlog(items, ctx.run.run_id)]
+
+
+def _prototype_stage(ctx: StageContext) -> Events:
+    spec = _spec(ctx)
+    backlog = [BacklogItem.model_validate(p) for p in _payloads(ctx.run.run_id, 6, EventType.linear_issue)]
+    prototype = generator.LovableGenerator().generate(spec, backlog)
+    return [("prototype_ready", prototype.model_dump(mode="json"))]
+
+
+def _quality_stage(ctx: StageContext) -> Events:
+    # There is no local checkout of the generated app to build, lint or scan: reporting checks we did
+    # not run would be invented, so the stage keeps the labeled recorded report.
+    raise StageUnavailable("no local repository of the generated app to check")
+
+
+def _pitch_stage(ctx: StageContext) -> Events:
+    deck = llm.build_deck(_spec(ctx), _research(ctx.run.run_id))
+    return [("pitch_ready", deck.model_dump(mode="json"))]
+
+
+ADAPTERS = {
+    1: _intake,
+    2: _clarify,
+    3: _research_stage,
+    4: _spec_stage,
+    5: _architecture_stage,
+    6: _backlog_stage,
+    7: _prototype_stage,
+    8: _quality_stage,
+    9: _pitch_stage,
+}
+
+
+def run_stage(ctx: StageContext) -> Iterable[tuple[str, dict[str, Any]]]:
+    return ADAPTERS[ctx.stage](ctx)
