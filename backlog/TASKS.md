@@ -357,3 +357,19 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
   - Prompt quality: the generation prompt includes the spec's user stories, the backlog titles and the IDEA case, asks for Spanish UI, realistic sample data marked as sample, and every backlog screen reachable from a nav.
 - **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
 - **Next step:** spike done 2026-10-29: gemma-4-26b with maxOutputTokens 16384 produced a complete 12k-char app (finishReason STOP, ~114 s, 0 page errors, one screen per backlog item); 4096 truncates. The generator call needs its own maxOutputTokens 16384 and timeout ≥ 300 s and keeps the 500/503 retries (two 500s before success in the spike). Read stages.py `_prototype_stage`/`_quality_stage` and generator.py; add SpeedHackGenerator behind the CodeGenerator protocol.
+## HACK-051 · The main flow shows the prototype SpeedHack built: inline preview in #/project, and DEMO_MODE uses it too
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 60 min
+- **Rubric / Spec:** C1 · `IDEA.md` §4 step 4
+- **Depends on:** HACK-050
+- **Paths:** web/src/features/project/, web/public/demo-prototype/, app/services/pipeline.py, app/tests/test_pipeline_prototype.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - In `#/project`, the prototype card previews a `speedhack` prototype inline in an `<iframe sandbox="allow-scripts allow-forms allow-modals">` (no `allow-same-origin`), keeps "Abrir el prototipo" (full screen, same app) and shows "Seguir en Lovable" from `build_url`; `lovable`/`planb` prototypes keep today's links. The `secrets` check has a Spanish label ("Sin llaves expuestas" family), like the other chips.
+  - With `DEMO_MODE` on (the config default, what a judge without keys runs), stages 7 and 8 run their real adapters: the recorded SpeedHack app is copied for the run (no network, `demo_data: true`) and the quality checks really run on it; every other stage keeps replaying `run.jsonl`. If either adapter raises, the stage replays the fixture as today.
+  - The local replay without `?run=` (`web/src/features/project/demo.ts`) points its prototype at a static copy of the recorded app in `web/public/demo-prototype/index.html`, not at an `example.invalid` URL.
+  - The judge-path E2E keeps passing.
+- **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** in pipeline `_produce`, allow stages 7-8 through `_provider` under DEMO_MODE; then the project card iframe.
