@@ -6,6 +6,7 @@ from pathlib import Path
 from app.services import research
 
 RUN = Path(__file__).parents[1] / "fixtures" / "demo" / "run.jsonl"
+NOTE_KINDS = {"screen", "data_model", "integration"}
 
 
 def _events():
@@ -30,3 +31,16 @@ def test_replay_spec_cites_only_that_research():
 def test_replay_has_no_placeholders():
     text = RUN.read_text(encoding="utf-8")
     assert "example.invalid" not in text and "Placeholder" not in text
+
+
+def test_replay_board_and_backlog_are_the_recorded_ones():
+    llm = Path(__file__).parents[1] / "fixtures" / "llm"
+    events = _events()
+    notes = [e["payload"]["title"] for e in events if e["type"] == "miro_item" and e["payload"]["kind"] in NOTE_KINDS]
+    arch = json.loads((llm / "architecture.json").read_text(encoding="utf-8"))
+    assert notes == [i["title"] for i in arch["items"]]
+    issues = [e["payload"] for e in events if e["type"] == "linear_issue"]
+    backlog = json.loads((llm / "backlog.json").read_text(encoding="utf-8"))["items"]
+    assert [i["title"] for i in issues] == [i["title"] for i in backlog]
+    assert all(i["demo_data"] is True and i["acceptance"] for i in issues)
+    assert "Issue demo" not in RUN.read_text(encoding="utf-8")

@@ -1,7 +1,7 @@
 import type { StageEvent } from "../../lib/types";
 
 // Recorded example for the expense-control case (IDEA.md §3), played one decision at a time when no run is open.
-// Every event carries demo_data. Research and plan come from the real recordings (HACK-025), the rest is simulated.
+// Every event carries demo_data. Research, plan, board and backlog come from the real recordings (HACK-025).
 const run_id = "run_demo_project";
 
 function ev(stage: number, type: StageEvent["type"], payload: Record<string, unknown>): StageEvent {
@@ -91,6 +91,247 @@ const RECORDED_SPEC = {
   "demo_data": true,
   "version": 1
 };
+const RECORDED_BOARD = [
+  {
+    "kind": "frame",
+    "title": "Pantallas",
+    "miro_id": "demo_miro_2",
+    "x": 0,
+    "y": 0,
+    "w": 520,
+    "h": 1000,
+    "color": "#e6e6e6",
+    "demo_data": true
+  },
+  {
+    "kind": "screen",
+    "title": "Dashboard de gastos",
+    "miro_id": "demo_miro_3",
+    "x": 0,
+    "y": -360.0,
+    "w": 200,
+    "h": 200,
+    "color": "#fff9b1",
+    "demo_data": true
+  },
+  {
+    "kind": "screen",
+    "title": "Panel de aprobación de gastos",
+    "miro_id": "demo_miro_4",
+    "x": 0,
+    "y": -120.0,
+    "w": 200,
+    "h": 200,
+    "color": "#fff9b1",
+    "demo_data": true
+  },
+  {
+    "kind": "screen",
+    "title": "Gestión de gastos personales",
+    "miro_id": "demo_miro_5",
+    "x": 0,
+    "y": 120.0,
+    "w": 200,
+    "h": 200,
+    "color": "#fff9b1",
+    "demo_data": true
+  },
+  {
+    "kind": "screen",
+    "title": "Administración de usuarios y roles",
+    "miro_id": "demo_miro_6",
+    "x": 0,
+    "y": 360.0,
+    "w": 200,
+    "h": 200,
+    "color": "#fff9b1",
+    "demo_data": true
+  },
+  {
+    "kind": "frame",
+    "title": "Modelo de datos",
+    "miro_id": "demo_miro_7",
+    "x": 640,
+    "y": 0,
+    "w": 520,
+    "h": 1000,
+    "color": "#e6e6e6",
+    "demo_data": true
+  },
+  {
+    "kind": "data_model",
+    "title": "Organización (Multi-tenant)",
+    "miro_id": "demo_miro_8",
+    "x": 640,
+    "y": -360.0,
+    "w": 200,
+    "h": 200,
+    "color": "#c6dcff",
+    "demo_data": true
+  },
+  {
+    "kind": "data_model",
+    "title": "Usuario y Roles (RBAC)",
+    "miro_id": "demo_miro_9",
+    "x": 640,
+    "y": -120.0,
+    "w": 200,
+    "h": 200,
+    "color": "#c6dcff",
+    "demo_data": true
+  },
+  {
+    "kind": "data_model",
+    "title": "Gasto",
+    "miro_id": "demo_miro_10",
+    "x": 640,
+    "y": 120.0,
+    "w": 200,
+    "h": 200,
+    "color": "#c6dcff",
+    "demo_data": true
+  },
+  {
+    "kind": "data_model",
+    "title": "Flujo de aprobación",
+    "miro_id": "demo_miro_11",
+    "x": 640,
+    "y": 360.0,
+    "w": 200,
+    "h": 200,
+    "color": "#c6dcff",
+    "demo_data": true
+  },
+  {
+    "kind": "frame",
+    "title": "Integraciones",
+    "miro_id": "demo_miro_12",
+    "x": 1280,
+    "y": 0,
+    "w": 520,
+    "h": 700,
+    "color": "#e6e6e6",
+    "demo_data": true
+  },
+  {
+    "kind": "integration",
+    "title": "Supabase",
+    "miro_id": "demo_miro_13",
+    "x": 1280,
+    "y": -210.0,
+    "w": 200,
+    "h": 200,
+    "color": "#d5f692",
+    "demo_data": true
+  },
+  {
+    "kind": "integration",
+    "title": "Sistema de alertas por correo electrónico",
+    "miro_id": "demo_miro_14",
+    "x": 1280,
+    "y": 30.0,
+    "w": 200,
+    "h": 200,
+    "color": "#d5f692",
+    "demo_data": true
+  },
+  {
+    "kind": "connector",
+    "title": "Dashboard de gastos → Organización (Multi-tenant)",
+    "miro_id": "demo_miro_15",
+    "x": 0,
+    "y": 0,
+    "w": 0,
+    "h": 0,
+    "color": "#1a1a1a",
+    "demo_data": true
+  },
+  {
+    "kind": "connector",
+    "title": "Organización (Multi-tenant) → Supabase",
+    "miro_id": "demo_miro_16",
+    "x": 0,
+    "y": 0,
+    "w": 0,
+    "h": 0,
+    "color": "#1a1a1a",
+    "demo_data": true
+  }
+];
+const RECORDED_BACKLOG = [
+  {
+    "epic": "Arquitectura y Seguridad",
+    "title": "Implementación de arquitectura multi-tenant",
+    "acceptance": [
+      "Aislamiento de datos entre empresas mediante Supabase",
+      "Configuración del modelo de datos de Organización (Multi-tenant)"
+    ],
+    "external_id": "BL-001",
+    "linear_id": "DEMO-1",
+    "url": null,
+    "demo_data": true
+  },
+  {
+    "epic": "Arquitectura y Seguridad",
+    "title": "Gestión de roles y permisos (RBAC)",
+    "acceptance": [
+      "Acceso a la pantalla de Administración de usuarios y roles",
+      "Implementación de permisos para Empleados, Gerentes de aprobación y Administradores de la organización"
+    ],
+    "external_id": "BL-002",
+    "linear_id": "DEMO-2",
+    "url": null,
+    "demo_data": true
+  },
+  {
+    "epic": "Gestión de Gastos",
+    "title": "Gestión de gastos personales",
+    "acceptance": [
+      "Acceso a la pantalla de Gestión de gastos personales",
+      "Registro y control de gastos individuales"
+    ],
+    "external_id": "BL-003",
+    "linear_id": "DEMO-3",
+    "url": null,
+    "demo_data": true
+  },
+  {
+    "epic": "Gestión de Gastos",
+    "title": "Visualización de gastos corporativos",
+    "acceptance": [
+      "Acceso al Dashboard de gastos",
+      "Visibilidad clara sobre el gasto de la organización"
+    ],
+    "external_id": "BL-004",
+    "linear_id": "DEMO-4",
+    "url": null,
+    "demo_data": true
+  },
+  {
+    "epic": "Flujo de Aprobación",
+    "title": "Gestión del flujo de aprobación",
+    "acceptance": [
+      "Acceso al Panel de aprobación de gastos",
+      "Ejecución del flujo de aprobación de gastos definido en el modelo de datos"
+    ],
+    "external_id": "BL-005",
+    "linear_id": "DEMO-5",
+    "url": null,
+    "demo_data": true
+  },
+  {
+    "epic": "Flujo de Aprobación",
+    "title": "Sistema de alertas automatizadas",
+    "acceptance": [
+      "Integración con el sistema de alertas por correo electrónico",
+      "Envío de notificaciones para la gestión de aprobaciones"
+    ],
+    "external_id": "BL-006",
+    "linear_id": "DEMO-6",
+    "url": null,
+    "demo_data": true
+  }
+];
 // </recorded>
 
 export const DEMO_SEGMENTS: { events: StageEvent[]; awaiting: string | null }[] = [
@@ -115,24 +356,9 @@ export const DEMO_SEGMENTS: { events: StageEvent[]; awaiting: string | null }[] 
     awaiting: "approval:2",
     events: [
       ev(5, "stage_started", { name: "architecture" }),
-      ...["Inicio de sesión", "Mis gastos", "Nuevo gasto", "Aprobaciones"].map((title, i) =>
-        ev(5, "miro_item", { kind: "screen", title, miro_id: `demo_s${i}`, x: i * 220, y: 0, demo_data: true }),
-      ),
-      ...["Empresa", "Usuario", "Gasto"].map((title, i) =>
-        ev(5, "miro_item", { kind: "data_model", title, miro_id: `demo_d${i}`, x: i * 220, y: 160, demo_data: true }),
-      ),
-      ...["Supabase Auth", "Correo de alertas"].map((title, i) =>
-        ev(5, "miro_item", { kind: "integration", title, miro_id: `demo_i${i}`, x: i * 220, y: 320, demo_data: true }),
-      ),
+      ...RECORDED_BOARD.map((item) => ev(5, "miro_item", { ...item })),
       ev(6, "stage_started", { name: "backlog" }),
-      ...[
-        ["Cuentas", "Alta de empresa y primer administrador"],
-        ["Gastos", "Captura de gasto con foto"],
-        ["Aprobaciones", "Aprobación del gerente con comentario"],
-        ["Alertas", "Correo al pasar el límite"],
-      ].map(([epic, title], i) =>
-        ev(6, "linear_issue", { epic, title, acceptance: ["Criterio verificable"], external_id: `BL-00${i + 1}`, linear_id: `DEMO-${i + 1}`, url: null, demo_data: true }),
-      ),
+      ...RECORDED_BACKLOG.map((issue) => ev(6, "linear_issue", { ...issue })),
       ev(6, "approval_required", { approval: 2 }),
     ],
   },

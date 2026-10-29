@@ -4,27 +4,43 @@
 
 - `app/fixtures/demo/run.jsonl`: stage-3 `research_item` events come from `recorded_tavily.json` exactly as
   `research.research` serves them, `pricing` only when `extract_pricing` finds it verbatim in the recorded page;
-  the stage-4 `spec_ready` payload is `app/fixtures/llm/spec.json`; the stage-7 fallback is the plan B page.
-- The web local replays get the same research and spec between their `// <recorded>` markers.
+  the stage-4 `spec_ready` payload is `app/fixtures/llm/spec.json`; stage-5 `miro_item` events are what the
+  live board (`miro.BoardRun`) emits for the recorded `architecture.json`, run against a local stand-in for the
+  Miro API; stage-6 `linear_issue` events are the recorded `backlog.json`;
+  the stage-7 fallback is the plan B page.
+- The web local replays get the same data between their `// <recorded>` markers.
 Every event and item keeps `demo_data: true`. Nothing is typed by hand.
 """
 
 from __future__ import annotations
 
+import asyncio
+import itertools
 import json
 import re
 import sys
 from pathlib import Path
 
+import httpx
+
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.services import generator, research
+from app.config import settings
+from app.schemas import Architecture
+from app.services import generator, miro, research
 
 RUN = ROOT / "app" / "fixtures" / "demo" / "run.jsonl"
 SPEC = ROOT / "app" / "fixtures" / "llm" / "spec.json"
+ARCHITECTURE = ROOT / "app" / "fixtures" / "llm" / "architecture.json"
+BACKLOG = ROOT / "app" / "fixtures" / "llm" / "backlog.json"
 PAGES = research.FIXDIR / "recorded_firecrawl.json"
-WEB = [ROOT / "web" / "src" / "features" / "project" / "demo.ts", ROOT / "web" / "src" / "features" / "spec" / "demo.ts"]
+# Each web replay gets only the constants it uses (TypeScript flags unused locals).
+WEB = {
+    ROOT / "web" / "src" / "features" / "project" / "demo.ts": ("RESEARCH", "SPEC", "BOARD", "BACKLOG"),
+    ROOT / "web" / "src" / "features" / "spec" / "demo.ts": ("RESEARCH", "SPEC"),
+}
+
 BLOCK = re.compile(r"// <recorded>\n.*?// </recorded>\n", re.DOTALL)
 # Scraped page text can carry emoji; the UI uses its own icon set (design-lint), so they are dropped from the text.
 EMOJI = re.compile(r"[\U0001F000-\U0001FAFF\u2600-\u27BF\uFE0F]")
@@ -47,14 +63,47 @@ def recorded_spec(urls: list[str]) -> dict:
     return spec
 
 
-def rewrite_run(items: list[dict], spec: dict) -> None:
-    lines = [json.loads(line) for line in RUN.read_text(encoding="utf-8").splitlines() if line.strip()]
-    first = next(i for i, d in enumerate(lines) if d["stage"] == 3 and d["type"] == "research_item")
+def recorded_board() -> list[dict]:
+    """The events the live board code emits for the recorded architecture; Miro ids are local demo ids."""
+    counter = itertools.count(1)
+    api = httpx.MockTransport(lambda _request: httpx.Response(201, json={"id": f"demo_miro_{next(counter)}"}))
+    architecture = Architecture.model_validate(json.loads(ARCHITECTURE.read_text(encoding="utf-8")))
+
+    async def run() -> list[dict]:
+        async with httpx.AsyncClient(transport=api) as client:
+            board = miro.BoardRun(architecture, demo=False, client=client, sleep=_no_wait)
+            return [{**item, "demo_data": True} async for item in board]
+
+    settings.MIRO_ACCESS_TOKEN = settings.MIRO_ACCESS_TOKEN or "local-stand-in"  # never sent anywhere
+    return asyncio.run(run())
+
+
+async def _no_wait(_seconds: float) -> None:
+    return None
+
+
+def recorded_backlog() -> list[dict]:
+    items = json.loads(BACKLOG.read_text(encoding="utf-8"))["items"]
+    return [{**item, "linear_id": f"DEMO-{n}", "url": None, "demo_data": True} for n, item in enumerate(items, 1)]
+
+
+def _replace(lines: list[dict], stage: int, etype: str, payloads: list[dict]) -> list[dict]:
+    """Swap a stage's events of one type for `payloads`, spread evenly before that stage's stage_done."""
+    first = next(i for i, d in enumerate(lines) if d["stage"] == stage and d["type"] == etype)
     template = lines[first]
-    kept = [d for d in lines if not (d["stage"] == 3 and d["type"] == "research_item")]
-    ts = template["ts"]
-    fresh = [{**template, "payload": item, "ts": round(ts + 0.7 * n, 1)} for n, item in enumerate(items)]
-    out = kept[:first] + fresh + kept[first:]
+    kept = [d for d in lines if not (d["stage"] == stage and d["type"] == etype)]
+    done = next(d["ts"] for d in kept[first:] if d["stage"] == stage and d["type"] == "stage_done")
+    step = (done - template["ts"]) / (len(payloads) + 1)
+    fresh = [{**template, "payload": p, "ts": round(template["ts"] + step * n, 1)} for n, p in enumerate(payloads)]
+    return kept[:first] + fresh + kept[first:]
+
+
+def rewrite_run(data: dict[str, list[dict] | dict]) -> None:
+    lines = [json.loads(line) for line in RUN.read_text(encoding="utf-8").splitlines() if line.strip()]
+    out = _replace(lines, 3, "research_item", data["RESEARCH"])
+    out = _replace(out, 5, "miro_item", data["BOARD"])
+    out = _replace(out, 6, "linear_issue", data["BACKLOG"])
+    spec = data["SPEC"]
     for d in out:
         if d["type"] == "spec_ready":
             d["payload"] = spec
@@ -65,27 +114,28 @@ def rewrite_run(items: list[dict], spec: dict) -> None:
     RUN.write_text("".join(json.dumps(d, ensure_ascii=False) + "\n" for d in out), encoding="utf-8")
 
 
-def rewrite_web(items: list[dict], spec: dict) -> None:
-    body = (
-        "// <recorded>\n"
-        "// Generated by scripts/demo_from_recordings.py from the HACK-025 recordings; do not edit by hand.\n"
-        f"const RECORDED_RESEARCH = {json.dumps(items, ensure_ascii=False, indent=2)};\n"
-        f"const RECORDED_SPEC = {json.dumps(spec, ensure_ascii=False, indent=2)};\n"
-        "// </recorded>\n"
-    )
-    for path in WEB:
+def rewrite_web(data: dict[str, list[dict] | dict]) -> None:
+    for path, names in WEB.items():
+        body = (
+            "// <recorded>\n"
+            "// Generated by scripts/demo_from_recordings.py from the HACK-025 recordings; do not edit by hand.\n"
+            + "".join(f"const RECORDED_{name} = {json.dumps(data[name], ensure_ascii=False, indent=2)};\n" for name in names)
+            + "// </recorded>\n"
+        )
         text = path.read_text(encoding="utf-8")
         if not BLOCK.search(text):
             sys.exit(f"{path.relative_to(ROOT)} has no // <recorded> block")
-        path.write_text(BLOCK.sub(lambda _m: body, text, count=1), encoding="utf-8")
+        path.write_text(BLOCK.sub(lambda _m, body=body: body, text, count=1), encoding="utf-8")
 
 
 def main() -> int:
     items = recorded_research()
-    spec = recorded_spec([i["url"] for i in items])
-    rewrite_run(items, spec)
-    rewrite_web(items, spec)
-    print(f"demo replays rebuilt: {len(items)} research items, spec citing {len(spec['sources'])} sources")
+    data = {"RESEARCH": items, "SPEC": recorded_spec([i["url"] for i in items]),
+            "BOARD": recorded_board(), "BACKLOG": recorded_backlog()}
+    rewrite_run(data)
+    rewrite_web(data)
+    print(f"demo replays rebuilt: {len(items)} research items, spec citing {len(data['SPEC']['sources'])} sources, "
+          f"{len(data['BOARD'])} board items, {len(data['BACKLOG'])} issues")
     return 0
 
 
