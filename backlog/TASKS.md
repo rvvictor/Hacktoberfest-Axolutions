@@ -209,3 +209,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Test isolation: app/tests/conftest.py blanks provider keys and forces DEMO_MODE so a developer .env never makes real API calls
 - **Verify:** `uv run pytest -q app/tests/test_health.py && npm --prefix web run build`
+
+## HACK-040 · Wire the pipeline to the real services: stage adapters for stages 1-9, demo flag derived from payloads (follow-up of HACK-013)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-013
+- **Follow-up of:** HACK-013
+- **Paths:** app/routers/runs.py, app/services/pipeline.py, app/services/store.py, app/tests/test_pipeline.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Wire the pipeline to the real services: stage adapters for stages 1-9, demo flag derived from payloads
+- **Verify:** `uv run pytest -q app/tests/test_pipeline.py`
