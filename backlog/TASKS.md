@@ -339,3 +339,21 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - ruff check e2e clean: 4 lint errors in e2e/judge_path.py
 - **Verify:** `uv run python e2e/judge_path.py`
+## HACK-050 · SpeedHack builds the prototype itself: in-house generator, preview inside the app, real quality checks
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 150 min
+- **Rubric / Spec:** C1 · `IDEA.md` §4 step 4
+- **Depends on:** HACK-018, HACK-049
+- **Paths:** app/services/generator.py, app/services/stages.py, app/services/quality.py, app/services/llm.py, app/schemas/content.py, app/routers/prototypes.py, app/fixtures/generator/, app/tests/test_generator.py, app/tests/test_quality_generated.py, web/src/lib/types.ts, web/src/features/delivery/, app/tests/test_stages.py, e2e/
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - `generator.SpeedHackGenerator` turns the approved spec + backlog into one self-contained web app (index.html with inline CSS/JS, no external scripts or network calls) through the configured LLM (own call with maxOutputTokens 16384, timeout ≥ 300 s, 500/503 retries); the output is validated (parses as HTML, `node --check` on the inline script, size cap) with one retry, and saved under `DATA_DIR/prototypes/<run_id>/index.html`.
+  - `GET /api/prototypes/{run_id}/` validates `run_id` against the run-id pattern and that the run exists (no path traversal), then serves that file with a restrictive CSP (`default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:`); the delivery view previews it in an `<iframe sandbox="allow-scripts">` (no `allow-same-origin`), so the user never leaves SpeedHack.
+  - `_prototype_stage` uses SpeedHackGenerator first; Lovable stays as an extra "Seguir en Lovable" link (`build_url`), and the prebuilt URL / recorded page is only the fallback when generation fails or in DEMO_MODE (labeled `demo_data: true`). `Prototype.generator` accepts `speedhack` (schemas + `web/src/lib/types.ts` together).
+  - `_quality_stage` runs real checks on the generated file instead of the recorded report: build (HTML parses, script passes `node --check`), lint (no external URLs, no `eval`), gitleaks-style secret scan, smoke (headless load with zero page errors); each check reports what it actually ran in `details`; a tool missing on the server (node, Playwright) reports the check as not run, never `passed`, and the secret check is not named gitleaks unless gitleaks ran. Without a generated file it keeps the current labeled fallback.
+  - A recorded generator output in `app/fixtures/generator/` keeps DEMO_MODE and the tests working without keys. `test_stages.py` expectations (`generator == "lovable"`, only stage 8 demo) change by `uak decision` recorded before editing; the judge-path E2E keeps passing (delivery selectors and copy kept).
+  - Prompt quality: the generation prompt includes the spec's user stories, the backlog titles and the IDEA case, asks for Spanish UI, realistic sample data marked as sample, and every backlog screen reachable from a nav.
+- **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** spike done 2026-10-29: gemma-4-26b with maxOutputTokens 16384 produced a complete 12k-char app (finishReason STOP, ~114 s, 0 page errors, one screen per backlog item); 4096 truncates. The generator call needs its own maxOutputTokens 16384 and timeout ≥ 300 s and keeps the 500/503 retries (two 500s before success in the spike). Read stages.py `_prototype_stage`/`_quality_stage` and generator.py; add SpeedHackGenerator behind the CodeGenerator protocol.

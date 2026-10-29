@@ -103,3 +103,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793295951 | HACK-049 | follow-up of HACK-048 by dylan-1: ruff check e2e clean: 4 lint errors in e2e/judge_path.py | Why: same Paths, no scope change
 - 1793297516 | allow | Dylan | freeze exception: HACK-049 | Why: lint e2e
 - 1793297524 | allow | Dylan | freeze exception: HACK-025 | Why: fixtures reales con claves
+- 1793299058 | plan | Dylan/Dylan | tasks added: HACK-050 | Why: backlog without PR (Plan-Channel: claims)
