@@ -54,7 +54,7 @@ class BacklogItem(BaseModel):
 
 
 class Prototype(BaseModel):
-    generator: str = Field(pattern="^(lovable|planb)$")
+    generator: str = Field(pattern="^(speedhack|lovable|planb)$")
     url: str
     build_url: str | None = None
     repo_url: str | None = None
@@ -62,7 +62,7 @@ class Prototype(BaseModel):
 
 
 class QualityCheck(BaseModel):
-    name: str = Field(pattern="^(build|lint|gitleaks|rls|smoke)$")
+    name: str = Field(pattern="^(build|lint|gitleaks|secrets|rls|smoke)$")
     passed: bool
     details: str = ""
 

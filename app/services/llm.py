@@ -46,6 +46,9 @@ GEMINI_PREFIXES = ("gemma-", "gemini-")  # LLM_MODEL=gemma-4-26b-a4b-it selects 
 GEMINI_ATTEMPTS = 4
 GEMINI_RETRY_STATUS = {429, 500, 502, 503, 504}
 GEMINI_BACKOFF_S = 2.0
+# A whole single-file app is ~3.5k output tokens plus ~2k of thinking on gemma: 4096 truncates it.
+APP_MAX_TOKENS = 16384
+APP_TIMEOUT_S = 300
 
 
 class _GeminiEnv(BaseSettings):
@@ -97,23 +100,24 @@ def _prompt(name: str) -> str:
     )
 
 
-def _complete(system: str, user: str) -> str:
+def _complete(system: str, user: str, *, max_tokens: int = 4096, timeout: float = 120) -> str:
     """One model call. Kept tiny so tests can replace it."""
     if _uses_gemini():
-        return _complete_gemini(system, user)
+        return _complete_gemini(system, user, max_tokens=max_tokens, timeout=timeout)
     import anthropic
 
     client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
     msg = client.messages.create(
         model=settings.LLM_MODEL,
-        max_tokens=4096,
+        max_tokens=max_tokens,
         system=system,
         messages=[{"role": "user", "content": user}],
+        timeout=timeout,
     )
     return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
 
 
-def _complete_gemini(system: str, user: str) -> str:
+def _complete_gemini(system: str, user: str, *, max_tokens: int = 4096, timeout: float = 120) -> str:
     # Gemma on the Gemini API takes no system instruction, so it leads the user turn.
     # The key goes in a header, never in the URL, so it stays out of request logs.
     # The Gemini API answers Gemma with intermittent 500/503 and rate-limits with 429: retry those.
@@ -123,9 +127,9 @@ def _complete_gemini(system: str, user: str) -> str:
             headers={"x-goog-api-key": gemini_env.GEMINI_API_KEY or ""},
             json={
                 "contents": [{"role": "user", "parts": [{"text": f"{system}\n\n{user}"}]}],
-                "generationConfig": {"maxOutputTokens": 4096},
+                "generationConfig": {"maxOutputTokens": max_tokens},
             },
-            timeout=120,
+            timeout=timeout,
         )
         if response.status_code not in GEMINI_RETRY_STATUS or attempt == GEMINI_ATTEMPTS - 1:
             break
@@ -171,6 +175,20 @@ def _run[T](prompt: str, user: str, parse: Callable[[dict], T]) -> T:
         ) as exc:  # JSONDecodeError is a ValueError
             last = exc
     raise LLMOutputError(f"{prompt}: invalid output after retry: {last}")
+
+
+def build_app(system: str, user: str, validate: Callable[[str], str]) -> str:
+    """A whole single-file web app; `validate` returns the cleaned file or raises ValueError. One retry."""
+    last: Exception | None = None
+    for _ in range(2):
+        message = user
+        if last is not None:
+            message += f"\n\nTu respuesta anterior fue inválida: {last}. Corrígela."
+        try:
+            return validate(_complete(system, message, max_tokens=APP_MAX_TOKENS, timeout=APP_TIMEOUT_S))
+        except ValueError as exc:
+            last = exc
+    raise LLMOutputError(f"app: invalid output after retry: {last}")
 
 
 def _data(label: str, payload) -> str:

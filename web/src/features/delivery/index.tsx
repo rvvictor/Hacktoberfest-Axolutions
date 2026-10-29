@@ -40,10 +40,17 @@ type State = {
 
 const initial: State = { prototype: null, checks: [], backlog: [], gate: false, decided: null, demo: false, failed: null };
 
+const GENERATOR: Record<Prototype["generator"], { meta: string; name: string }> = {
+  speedhack: { meta: "Construido por SpeedHack", name: "SpeedHack (desde tu plan)" },
+  lovable: { meta: "Generado con Lovable", name: "Lovable" },
+  planb: { meta: "Generado con plan B", name: "Plan B (pregenerado)" },
+};
+
 const CHECK_LABEL: Record<string, string> = {
   build: "Compilación",
   lint: "Lint",
   gitleaks: "Secretos (gitleaks)",
+  secrets: "Sin claves expuestas",
   rls: "Políticas RLS",
   smoke: "Prueba de humo",
 };
@@ -134,7 +141,10 @@ export default function Delivery() {
   };
 
   const proto = state.prototype;
-  const openUrl = proto?.build_url ?? proto?.url ?? null;
+  const own = proto?.generator === "speedhack";
+  // Our own app: open it here and offer Lovable only to keep building. Anything else opens in Lovable.
+  const openUrl = own ? (proto?.url ?? null) : (proto?.build_url ?? proto?.url ?? null);
+  const lovableUrl = own ? (proto?.build_url ?? null) : null;
   const status = state.gate
     ? "Revisa el prototipo y la calidad, y decide."
     : state.decided === "approved"
@@ -160,22 +170,23 @@ export default function Delivery() {
 
       <div className="delivery__body">
         <div className="delivery__col">
-          <Panel title="Prototipo" meta={proto ? (proto.generator === "lovable" ? "Generado con Lovable" : "Generado con plan B") : undefined}>
+          <Panel title="Prototipo" meta={proto ? GENERATOR[proto.generator].meta : undefined}>
             {!proto ? (
               <Item pending>{runId && !loaded ? "Generando el prototipo…" : "Sin prototipo todavía."}</Item>
             ) : (
               <>
                 {proto.url ? (
-                  <iframe className="delivery__frame" title="Vista previa del prototipo" src={proto.url} sandbox="allow-scripts allow-same-origin" loading="lazy" />
+                  <iframe className="delivery__frame" title="Vista previa del prototipo" src={proto.url} sandbox={own ? "allow-scripts allow-forms allow-modals" : "allow-scripts allow-same-origin"} loading="lazy" />
                 ) : (
                   <p className="delivery__empty">Vista previa no disponible: abre el prototipo en Lovable.</p>
                 )}
                 <div className="delivery__links">
-                  {openUrl && <a href={openUrl} target="_blank" rel="noreferrer">Abrir en Lovable</a>}
+                  {openUrl && <a href={openUrl} target="_blank" rel="noreferrer">{own ? "Abrir en pantalla completa" : "Abrir en Lovable"}</a>}
+                  {lovableUrl && <a href={lovableUrl} target="_blank" rel="noreferrer">Seguir en Lovable</a>}
                   {proto.repo_url ? <a href={proto.repo_url} target="_blank" rel="noreferrer">Ver repositorio</a> : <Chip>Sin repositorio</Chip>}
                 </div>
                 <dl className="delivery__facts">
-                  <div><dt>Generador</dt><dd>{proto.generator === "lovable" ? "Lovable" : "Plan B (pregenerado)"}</dd></div>
+                  <div><dt>Generador</dt><dd>{GENERATOR[proto.generator].name}</dd></div>
                   <div><dt>Repositorio</dt><dd>{proto.repo_url ?? "sin enlace"}</dd></div>
                 </dl>
               </>
