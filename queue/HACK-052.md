@@ -1,5 +1,5 @@
 ID: HACK-052
-State: MERGING
+State: HUMAN
 Owner: dylan-1
-Queued: 1793315193
-Reason: Waiting for queue
+Updated: 1793315414
+Reason: Base moved; revalidate the candidate
