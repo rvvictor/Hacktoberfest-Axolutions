@@ -94,3 +94,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793292950 | plan | Dylan/Dylan | tasks added: HACK-045 HACK-046 HACK-047 | Why: backlog without PR (Plan-Channel: claims)
 - 1793292957 | allow | Dylan | freeze exception: HACK-045 | Why: Rediseño: conversación
 - 1793292964 | allow | Dylan | freeze exception: HACK-046 | Why: Rediseño: navegación
+- 1793292970 | allow | Dylan | freeze exception: HACK-047 | Why: Rediseño: portada e idea

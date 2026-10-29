@@ -217,3 +217,4 @@ Append-only; use bash .uak/bin/uak msg / inbox. Format: - N | epoch | from | to 
 - 213 | 1793292950 | Dylan | all | info | - | Backlog: new tasks HACK-045 HACK-046 HACK-047 published by Dylan. uak next shows them.
 - 214 | 1793292957 | Dylan | all | info | - | Freeze exception by Dylan: HACK-045 (claim and merge allowed). Why: Rediseño: conversación
 - 215 | 1793292964 | Dylan | all | info | - | Freeze exception by Dylan: HACK-046 (claim and merge allowed). Why: Rediseño: navegación
+- 216 | 1793292970 | Dylan | all | info | - | Freeze exception by Dylan: HACK-047 (claim and merge allowed). Why: Rediseño: portada e idea
