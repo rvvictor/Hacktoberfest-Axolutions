@@ -43,7 +43,7 @@ def test_fixture_is_a_complete_run():
     assert {e.stage for e in evs if e.type == EventType.stage_started} == set(range(1, 10))
     assert c[EventType.approval_given] == 3
     assert c[EventType.miro_item] >= 12
-    assert c[EventType.linear_issue] >= 8
+    assert c[EventType.linear_issue] >= 6  # the recorded backlog (HACK-054 decision)
     ts = [e.ts for e in evs]
     assert ts == sorted(ts)
 

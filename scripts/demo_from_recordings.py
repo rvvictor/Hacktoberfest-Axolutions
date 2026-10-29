@@ -115,6 +115,8 @@ def rewrite_run(data: dict[str, list[dict] | dict]) -> None:
 
 
 def rewrite_web(data: dict[str, list[dict] | dict]) -> None:
+    # The web replay draws the board with its own tokens (design-lint): Miro's hex colors stay in run.jsonl only.
+    data = {**data, "BOARD": [{k: v for k, v in item.items() if k != "color"} for item in data["BOARD"]]}
     for path, names in WEB.items():
         body = (
             "// <recorded>\n"

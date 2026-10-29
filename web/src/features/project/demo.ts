@@ -100,7 +100,6 @@ const RECORDED_BOARD = [
     "y": 0,
     "w": 520,
     "h": 1000,
-    "color": "#e6e6e6",
     "demo_data": true
   },
   {
@@ -111,7 +110,6 @@ const RECORDED_BOARD = [
     "y": -360.0,
     "w": 200,
     "h": 200,
-    "color": "#fff9b1",
     "demo_data": true
   },
   {
@@ -122,7 +120,6 @@ const RECORDED_BOARD = [
     "y": -120.0,
     "w": 200,
     "h": 200,
-    "color": "#fff9b1",
     "demo_data": true
   },
   {
@@ -133,7 +130,6 @@ const RECORDED_BOARD = [
     "y": 120.0,
     "w": 200,
     "h": 200,
-    "color": "#fff9b1",
     "demo_data": true
   },
   {
@@ -144,7 +140,6 @@ const RECORDED_BOARD = [
     "y": 360.0,
     "w": 200,
     "h": 200,
-    "color": "#fff9b1",
     "demo_data": true
   },
   {
@@ -155,7 +150,6 @@ const RECORDED_BOARD = [
     "y": 0,
     "w": 520,
     "h": 1000,
-    "color": "#e6e6e6",
     "demo_data": true
   },
   {
@@ -166,7 +160,6 @@ const RECORDED_BOARD = [
     "y": -360.0,
     "w": 200,
     "h": 200,
-    "color": "#c6dcff",
     "demo_data": true
   },
   {
@@ -177,7 +170,6 @@ const RECORDED_BOARD = [
     "y": -120.0,
     "w": 200,
     "h": 200,
-    "color": "#c6dcff",
     "demo_data": true
   },
   {
@@ -188,7 +180,6 @@ const RECORDED_BOARD = [
     "y": 120.0,
     "w": 200,
     "h": 200,
-    "color": "#c6dcff",
     "demo_data": true
   },
   {
@@ -199,7 +190,6 @@ const RECORDED_BOARD = [
     "y": 360.0,
     "w": 200,
     "h": 200,
-    "color": "#c6dcff",
     "demo_data": true
   },
   {
@@ -210,7 +200,6 @@ const RECORDED_BOARD = [
     "y": 0,
     "w": 520,
     "h": 700,
-    "color": "#e6e6e6",
     "demo_data": true
   },
   {
@@ -221,7 +210,6 @@ const RECORDED_BOARD = [
     "y": -210.0,
     "w": 200,
     "h": 200,
-    "color": "#d5f692",
     "demo_data": true
   },
   {
@@ -232,7 +220,6 @@ const RECORDED_BOARD = [
     "y": 30.0,
     "w": 200,
     "h": 200,
-    "color": "#d5f692",
     "demo_data": true
   },
   {
@@ -243,7 +230,6 @@ const RECORDED_BOARD = [
     "y": 0,
     "w": 0,
     "h": 0,
-    "color": "#1a1a1a",
     "demo_data": true
   },
   {
@@ -254,7 +240,6 @@ const RECORDED_BOARD = [
     "y": 0,
     "w": 0,
     "h": 0,
-    "color": "#1a1a1a",
     "demo_data": true
   }
 ];
