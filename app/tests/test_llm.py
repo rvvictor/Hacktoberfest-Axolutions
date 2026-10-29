@@ -395,3 +395,19 @@ def test_gemma_empty_or_blocked_answer_is_typed_error(gemma, reply):
         with pytest.raises(llm.LLMOutputError):
             llm.clarify("barbería", Mode.client)
     assert route.call_count == 2  # the usual single retry, then the typed error
+
+
+def test_gemma_survives_three_consecutive_server_errors_with_growing_waits(gemma, monkeypatch):
+    import httpx
+    import respx
+
+    waits = []
+    monkeypatch.setattr(llm.time, "sleep", waits.append)
+    ok = {"candidates": [{"content": {"parts": [{"text": json.dumps({"questions": ["¿A?", "¿B?", "¿C?"]})}]}}]}
+    with respx.mock() as router:
+        route = router.post(GEMINI).mock(
+            side_effect=[httpx.Response(500), httpx.Response(500), httpx.Response(503), httpx.Response(200, json=ok)]
+        )
+        assert llm.clarify("barbería", Mode.client) == ["¿A?", "¿B?", "¿C?"]
+    assert route.call_count == 4
+    assert waits == [2.0, 4.0, 8.0]

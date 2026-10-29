@@ -42,7 +42,8 @@ CLIENT_JARGON = re.compile(
 NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 GEMINI_PREFIXES = ("gemma-", "gemini-")  # LLM_MODEL=gemma-4-26b-a4b-it selects the Gemini API
-GEMINI_ATTEMPTS = 3
+# A live run lost its pitch to 3 consecutive 500s: 4 attempts, waiting 2, 4 and 8 s in between.
+GEMINI_ATTEMPTS = 4
 GEMINI_RETRY_STATUS = {429, 500, 502, 503, 504}
 GEMINI_BACKOFF_S = 2.0
 
@@ -128,7 +129,7 @@ def _complete_gemini(system: str, user: str) -> str:
         )
         if response.status_code not in GEMINI_RETRY_STATUS or attempt == GEMINI_ATTEMPTS - 1:
             break
-        time.sleep(GEMINI_BACKOFF_S * (attempt + 1))
+        time.sleep(GEMINI_BACKOFF_S * 2**attempt)
     response.raise_for_status()
     data = response.json()
     candidates = data.get("candidates") or []
