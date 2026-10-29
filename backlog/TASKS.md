@@ -221,3 +221,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Wire the pipeline to the real services: stage adapters for stages 1-9, demo flag derived from payloads
 - **Verify:** `uv run pytest -q app/tests/test_pipeline.py`
+
+## HACK-041 · Miro: frame height grows with its notes (3rd note was outside the 700px frame: 400 outside of parent boundaries) (follow-up of HACK-006)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-006
+- **Follow-up of:** HACK-006
+- **Paths:** app/services/miro.py, app/fixtures/miro/, app/tests/test_miro.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Miro: frame height grows with its notes (3rd note was outside the 700px frame: 400 outside of parent boundaries)
+- **Verify:** `uv run pytest -q app/tests/test_miro.py`

@@ -83,3 +83,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793244665 | HACK-040 | follow-up of HACK-013 by dylan-1: Wire the pipeline to the real services: stage adapters for stages 1-9, demo flag derived from payloads | Why: same Paths, no scope change
 - 1793244802 | allow | Dylan | freeze exception: HACK-040 | Why: Post-hackathon: conectar el pipeline a los servicios reales
 - 1793244810 | plan --amend | Dylan/Dylan | amended: HACK-040 Paths: app/routers/runs.py, app/services/pipeline.py, app/services/store.py, app/tests/test_pipeline.py → app/routers/runs.py, app/services/pipeline.py, app/services/store.py, app/tests/test_pipeline.py, app/services/stages.py, app/tests/test_stages.py; Verify changed; | Why: scope or criteria fixed before review
+- 1793246931 | HACK-041 | follow-up of HACK-006 by dylan-2: Miro: frame height grows with its notes (3rd note was outside the 700px frame: 400 outside of parent boundaries) | Why: same Paths, no scope change
