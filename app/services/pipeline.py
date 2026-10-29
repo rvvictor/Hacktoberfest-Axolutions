@@ -41,6 +41,9 @@ GATES = {4: 1, 6: 2, 8: 3}
 STAGE_MODULES = dict.fromkeys(range(1, 10), "stages")
 # Events the pipeline emits itself, so they are dropped when replaying the fixture.
 OWN_EVENTS = {EventType.stage_started, EventType.stage_done, EventType.approval_required, EventType.approval_given}
+# Stages that run for real even in DEMO_MODE: they need no key or network (the recorded SpeedHack app is
+# copied for the run and checked locally), so a judge without keys sees the prototype and real checks.
+DEMO_LIVE_STAGES = {7, 8}
 
 Produced = list[tuple[float, EventType, dict[str, Any]]]  # (delay before, type, payload)
 
@@ -119,7 +122,8 @@ def _emit(run_id: str, stage: int, etype: EventType, payload: dict[str, Any], de
 
 def _produce(ctx: StageContext) -> tuple[Produced, bool]:
     """Events for the stage and whether they are demo data."""
-    fn = None if settings.DEMO_MODE else _provider(ctx.stage)
+    live = not settings.DEMO_MODE or ctx.stage in DEMO_LIVE_STAGES
+    fn = _provider(ctx.stage) if live else None
     if fn is not None:
         try:
             events = _validated(ctx.stage, fn(ctx))
