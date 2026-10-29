@@ -97,3 +97,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793292970 | allow | Dylan | freeze exception: HACK-047 | Why: Rediseño: portada e idea
 - 1793294296 | HACK-048 | follow-up of HACK-029 by dylan-2: Judge-path E2E follows the conversation flow: intake → #/project, questions one at a time, decisions per card | Why: same Paths, no scope change
 - 1793294345 | allow | Dylan | freeze exception: HACK-048 | Why: E2E del juez al flujo de conversación
+- 1793294841 | HACK-046 | Más uses native <details>; menu names mapped in App.tsx | Why: DESIGN.md rule 6: max 3 visible entries
