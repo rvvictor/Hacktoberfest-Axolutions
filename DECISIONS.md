@@ -75,3 +75,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793238461 | allow | Dylan | freeze exception: HACK-036 | Why: Terminar el proyecto despues del hackathon: Gemma 4 via Gemini API
 - 1793241827 | HACK-037 | follow-up of HACK-036 by dylan-2: LLM: empty or blocked Gemini response (no candidates) raises LLMOutputError, not IndexError | Why: same Paths, no scope change
 - 1793241878 | allow | Dylan | freeze exception: HACK-037 | Why: Post-hackathon: respuesta vacia de Gemini da LLMOutputError
+- 1793242364 | HACK-038 | follow-up of HACK-011 by dylan-1: Hunter AI drafts use Gemma 4 via the Gemini API when LLM_MODEL selects it | Why: same Paths, no scope change

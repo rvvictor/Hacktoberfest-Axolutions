@@ -185,3 +185,15 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - LLM: empty or blocked Gemini response (no candidates) raises LLMOutputError, not IndexError
 - **Verify:** `uv run pytest -q app/tests/test_llm.py`
+
+## HACK-038 · Hunter AI drafts use Gemma 4 via the Gemini API when LLM_MODEL selects it (follow-up of HACK-011)
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Depends on:** HACK-011
+- **Follow-up of:** HACK-011
+- **Paths:** n8n/, app/services/outreach.py, app/fixtures/outreach/, app/tests/test_outreach.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Hunter AI drafts use Gemma 4 via the Gemini API when LLM_MODEL selects it
+- **Verify:** `uv run pytest -q app/tests/test_outreach.py`
