@@ -9,8 +9,8 @@ Priority: P1
 Paths: app/tests/conftest.py, app/tests/test_isolation.py
 Depends: HACK-001
 Verify: `uv run pytest -q app/tests`
-Lease-Until: 1793257959
-Updated: 1793243559
+Lease-Until: 1793258053
+Updated: 1793243653
 Task-Base: e6753290c9887821dead264b60fabb99a0871aa4
 Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/37; run .uak/bin/smoke
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/37
