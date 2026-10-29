@@ -21,7 +21,7 @@ An owner is not a prerequisite for everyone: consumers work on published contrac
 | .github/workflows/ | HACK-001 |
 | .uak/PROJECT.md | HACK-001 |
 | app/schemas/ | HACK-050 |
-| app/fixtures/demo/ | HACK-002 |
+| app/fixtures/demo/ | HACK-053 |
 | web/src/lib/types.ts | HACK-050 |
 | web/src/lib/mock.ts | HACK-002 |
 | web/DESIGN.md | HACK-003 |
