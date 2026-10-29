@@ -37,10 +37,8 @@ FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "demo" / "run.js
 # The human approves after these stages: spec, backlog, quality report.
 GATES = {4: 1, 6: 2, 8: 3}
 # Module (under app.services) that implements each stage; absent modules fall back to the fixture.
-STAGE_MODULES = {
-    2: "clarify", 3: "research", 4: "spec", 5: "architecture",
-    6: "backlog", 7: "generator", 8: "quality", 9: "pitch",
-}
+# `stages` connects every stage, the intake included, to its real service.
+STAGE_MODULES = dict.fromkeys(range(1, 10), "stages")
 # Events the pipeline emits itself, so they are dropped when replaying the fixture.
 OWN_EVENTS = {EventType.stage_started, EventType.stage_done, EventType.approval_required, EventType.approval_given}
 
@@ -124,7 +122,9 @@ def _produce(ctx: StageContext) -> tuple[Produced, bool]:
     fn = None if settings.DEMO_MODE else _provider(ctx.stage)
     if fn is not None:
         try:
-            return _validated(ctx.stage, fn(ctx)), False
+            events = _validated(ctx.stage, fn(ctx))
+            # A service that answered from its own recorded data (no key, plan B) is still demo data.
+            return events, any(payload.get("demo_data") for _, _, payload in events)
         except Exception:
             log.exception("stage %s failed, falling back to the recorded run", ctx.stage)
         finally:
