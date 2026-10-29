@@ -70,8 +70,7 @@ def _cache_path(data_dir: Path, query: str) -> Path:
 
 
 def _fixture() -> dict:
-    # A recording holds real URLs, but for the demo query, not this run's idea: served, it is demo.
-    return {**json.loads((RECORDED if RECORDED.exists() else FIXTURE).read_text()), "demo_data": True}
+    return json.loads((RECORDED if RECORDED.exists() else FIXTURE).read_text())
 
 
 def _stack_fixture(stack_item: str) -> dict:

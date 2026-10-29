@@ -49,6 +49,11 @@ def main(argv: list[str]) -> int:
         sys.exit("DEMO_MODE is on or the LLM key is missing; nothing written")
     if "--answer-only" not in argv:
         research.record()
+        # Real URLs, but for the demo query, not a run's idea: served as the fallback, it is demo.
+        data = json.loads(research.RECORDED.read_text(encoding="utf-8"))
+        data.update(demo_data=True, note="REAL Tavily results recorded for the demo query; "
+                    "served only as the no-key fallback, so labeled demo_data.")
+        research.RECORDED.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     recorded = json.loads(research.RECORDED.read_text(encoding="utf-8"))
     items = list(research._items(recorded))
     if not items:

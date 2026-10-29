@@ -47,6 +47,7 @@
   ],
   "response_time": 1.99,
   "request_id": "5a0cc877-c84c-481d-919e-9b47df1c478c",
-  "demo_data": false,
-  "fetched_at": "2026-10-29T18:18:59.493135+00:00"
+  "demo_data": true,
+  "fetched_at": "2026-10-29T18:18:59.493135+00:00",
+  "note": "REAL Tavily results recorded for the demo query; served only as the no-key fallback, so labeled demo_data."
 }
