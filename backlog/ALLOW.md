@@ -18,3 +18,4 @@ Append-only. Format: - ID | epoch | human | reason. Why: a freeze exception is a
 - HACK-049 | 1793297516 | Dylan | lint e2e
 - HACK-025 | 1793297524 | Dylan | fixtures reales con claves
 - HACK-050 | 1793299071 | Dylan | SpeedHack construye el prototipo
+- HACK-051 | 1793312752 | Dylan | prototipo en la vista principal y en demo
