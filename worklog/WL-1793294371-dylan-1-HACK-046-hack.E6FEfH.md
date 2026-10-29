@@ -6,7 +6,7 @@
 - Why: DESIGN.md rule 6: max 3 visible entries
 - Failing: -
 - Commands: npm --prefix web run build && bash .uak/bin/design-lint
-- Next: reviewer (not dylan-1): uak review HACK-046 on PR #46, then uak merge HACK-046
+- Next: Integrated in main: 0f5f0188549fde25e1dbbb54ffda1d2722bf1e1b
 
 ## History
 - 1793294371 | CLAIMED | dylan-1 | claim; next: Implement HACK-046 and run: `npm --prefix web run build && bash .uak/bin/design-lint`
@@ -15,3 +15,4 @@
 - 1793294841 | REVIEW | dylan-1 | checkpoint; next: reviewer (not dylan-1): uak review HACK-046 on PR #46, then uak merge HACK-046
 - 1793294862 | REVIEW | dylan-1 | handoff; next: reviewer (not dylan-1): uak review HACK-046 on PR #46, then uak merge HACK-046
 - 1793295088 | REVIEW | dylan-2 | review; approve; SHA 48b75ad129c2c598f10fb9ff621c2aecc932bb01; reviewer dylan-2
+- 1793295231 | INTEGRATED | dylan-1 | merge; smoke and Verify PASS; commit 0f5f0188549fde25e1dbbb54ffda1d2722bf1e1b; reviewer dylan-2
