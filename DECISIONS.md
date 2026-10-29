@@ -104,3 +104,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793297516 | allow | Dylan | freeze exception: HACK-049 | Why: lint e2e
 - 1793297524 | allow | Dylan | freeze exception: HACK-025 | Why: fixtures reales con claves
 - 1793299058 | plan | Dylan/Dylan | tasks added: HACK-050 | Why: backlog without PR (Plan-Channel: claims)
+- 1793299071 | allow | Dylan | freeze exception: HACK-050 | Why: SpeedHack construye el prototipo
