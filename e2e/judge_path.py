@@ -123,32 +123,6 @@ def get_run(p: int, run_id: str) -> dict:
         return json.loads(r.read())
 
 
-def post_answers(p: int, run_id: str, answers: list[str]) -> None:
-    body = json.dumps({"answers": answers}).encode()
-    req = urllib.request.Request(
-        f"http://127.0.0.1:{p}/api/runs/{run_id}/answers",
-        data=body,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=10) as r:
-        if r.status != 200:
-            raise Fail(f"POST answers returned {r.status}")
-
-
-def post_approval(p: int, run_id: str, number: int) -> None:
-    body = json.dumps({"approved": True, "comment": ""}).encode()
-    req = urllib.request.Request(
-        f"http://127.0.0.1:{p}/api/runs/{run_id}/approvals/{number}",
-        data=body,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=10) as r:
-        if r.status != 200:
-            raise Fail(f"POST approval {number} returned {r.status}")
-
-
 def wait_run(p: int, run_id: str, ok: Callable[[dict], bool], what: str) -> None:
     deadline = time.time() + T / 1000
     run: dict = {}
@@ -185,17 +159,31 @@ def shot(page: Page, name: str) -> None:
     page.screenshot(path=str(OUT / f"{name}.png"), full_page=True)
 
 
+def decide(page: Page, p: int, run_id: str, number: int, confirm: str) -> None:
+    """Approve gate `number` from its card in the conversation, the way a judge does."""
+    wait_run(p, run_id, lambda r: r.get("awaiting") == f"approval:{number}", f"approval {number} gate")
+    approve = page.get_by_role("button", name="Sí, sigamos", exact=True)
+    expect(approve).to_be_enabled(timeout=T)
+    with page.expect_response(lambda r: f"/approvals/{number}" in r.url) as decision:
+        approve.click()
+    if decision.value.status != 200:
+        raise Fail(f"approval {number} returned {decision.value.status}")
+    wait_run(p, run_id, lambda r: r.get("awaiting") != f"approval:{number}", f"approval {number} accepted")
+    expect(page.get_by_text(confirm).first).to_be_visible(timeout=T)
+
+
 def judge(page: Page, base: str, p: int, shots: list[str]) -> str:
-    # 1. Intake: dictation (the STT fixture in DEMO_MODE), then typing, then the real POST /api/projects.
+    # 1. Intake, the first turn: dictation (the STT fixture in DEMO_MODE), then typing, then POST /api/projects,
+    #    which hands off to the conversation at ?run=ID#/project.
     page.goto(f"{base}/#/intake")
-    # The idea field is the only textarea on step 1 (its <label> wraps it; get_by_label did not resolve in the run).
-    idea = page.locator("textarea").first
+    idea = page.get_by_label("Tu idea")
     with step(page, "1 intake: dictate", shots):
-        page.get_by_role("radio", name=re.compile("Desarrollador")).click()
+        page.get_by_role("radio", name=re.compile("Soy desarrollador")).click()
         page.get_by_role("button", name="Dictar por voz", exact=True).click()
-        expect(page.get_by_role("button", name="Detener grabación", exact=True)).to_be_visible(timeout=T)
+        stop = page.get_by_role("button", name="Detener y transcribir", exact=True)
+        expect(stop).to_be_visible(timeout=T)
         page.wait_for_timeout(1500)
-        page.get_by_role("button", name="Detener grabación", exact=True).click()
+        stop.click()
         expect(idea).to_have_value(re.compile(r"\S"), timeout=T)
         shot(page, "01-intake-dictated")
     with step(page, "1 intake: type and start", shots):
@@ -204,79 +192,71 @@ def judge(page: Page, base: str, p: int, shots: list[str]) -> str:
         idea.press_sequentially(" Para el equipo de finanzas.")
         with page.expect_response(lambda r: r.url.endswith("/api/projects") and r.request.method == "POST") as created:
             page.get_by_role("button", name="Empezar", exact=True).click()
-        response = created.value
-        if response.status != 201:
-            raise Fail(f"POST /api/projects returned {response.status}")
-        run_id = response.json()["run_id"]
-        expect(page.get_by_text("Preguntas de aclaración", exact=True)).to_be_visible(timeout=T)
-        shot(page, "02-questions")
+        if created.value.status != 201:
+            raise Fail(f"POST /api/projects returned {created.value.status}")
+        # The intake navigates to the conversation right away, so the run id is read from that URL.
+        page.wait_for_url(lambda u: "run=" in u and "#/project" in u, timeout=T)
+        match = re.search(r"[?&]run=([^&#]+)", page.url)
+        if not match:
+            raise Fail(f"no run id in {page.url}")
+        run_id = match.group(1)
 
-    # 2. Questions, then stages 1-4 and approval 1 at the spec.
-    with step(page, "2 questions: answer and send", shots):
-        boxes = page.locator("textarea")
-        expect(boxes.first).to_be_visible(timeout=T)
-        for i in range(boxes.count()):
-            boxes.nth(i).fill(ANSWER)
+    # 2. The questions arrive one at a time in the conversation; the last answer posts them all.
+    with step(page, "2 questions: answer one at a time", shots):
         wait_run(p, run_id, lambda r: r.get("awaiting") == "answers", "stage 2 waiting for answers")
-        # APP BUG (not fixed here, Paths is e2e/): intake sets demo from demo_data, which is true under DEMO_MODE,
-        # so "Enviar respuestas" navigates without POST /api/runs/{id}/answers and the run stalls at stage 2.
-        # Post the answers to the same endpoint so the run continues; the UI click below then just navigates.
-        post_answers(p, run_id, [ANSWER] * boxes.count())
-        wait_run(p, run_id, lambda r: r.get("awaiting") is None, "answers accepted")
-        page.get_by_role("button", name="Enviar respuestas", exact=True).click()
-        page.wait_for_url(lambda u: f"run={run_id}" in u and "#/run" in u, timeout=T)
-    with step(page, "3 run: stages 1-4 and gate 1", shots):
-        expect(page.get_by_text("Esperando aprobación", exact=True).first).to_be_visible(timeout=T)
-        wait_run(p, run_id, lambda r: r.get("awaiting") == "approval:1", "approval 1 gate")
-        shot(page, "03-run-gate-1")
-    with step(page, "4 approval 1: spec", shots):
-        go(page, base, run_id, "spec")
-        approve_spec = page.get_by_role("button", name="Aprobar spec", exact=True)
-        expect(approve_spec).to_be_enabled(timeout=T)
-        shot(page, "04-spec")
-        with page.expect_response(lambda r: "/approvals/1" in r.url) as decision:
-            approve_spec.click()
-        if decision.value.status != 200:
-            raise Fail(f"approval 1 returned {decision.value.status}")
-        expect(page.get_by_text("Spec aprobado. Sigue la arquitectura.", exact=True)).to_be_visible(timeout=T)
+        reply = page.get_by_label("Tu respuesta")
+        expect(reply).to_be_visible(timeout=T)
+        shot(page, "02-first-question")
+        answered = 0
+        while True:
+            last = page.get_by_role("button", name="Responder y seguir", exact=True)
+            reply.fill(ANSWER)
+            answered += 1
+            if last.count():
+                with page.expect_response(lambda r: r.url.endswith("/answers") and r.request.method == "POST") as sent:
+                    last.click()
+                if sent.value.status != 200:
+                    raise Fail(f"POST answers returned {sent.value.status}")
+                break
+            page.get_by_role("button", name="Responder", exact=True).click()
+            if answered > 10:
+                raise Fail("more than 10 questions: the conversation never offered 'Responder y seguir'")
+        wait_run(p, run_id, lambda r: r.get("awaiting") != "answers", "answers accepted")
 
-    # 3. Miro and Linear fill from the same spec; approval 2 on the board.
-    with step(page, "5 approval 2: board wow", shots):
+    # 3. Research and the plan; approval 1 on the plan card.
+    with step(page, "3 plan: sources and approval 1", shots):
+        expect(page.get_by_text("Qué vamos a construir", exact=True)).to_be_visible(timeout=T)
+        shot(page, "03-plan")
+        decide(page, p, run_id, 1, "Aprobado. Seguimos.")
+
+    # 4. Miro and Linear fill from the same plan; approval 2 on the tasks card. The board view is the wow.
+    with step(page, "4 board and tasks: approval 2", shots):
+        expect(page.get_by_text(re.compile(r"^Dibujé la arquitectura en Miro"))).to_be_visible(timeout=T)
+        expect(page.get_by_text(re.compile(r"^Creé \d+ tareas en Linear"))).to_be_visible(timeout=T)
+        shot(page, "04-board-and-tasks")
+        decide(page, p, run_id, 2, "Aprobado. Seguimos.")
         go(page, base, run_id, "live-board")
         expect(page.get_by_text(re.compile(r"^[1-9]\d* elementos$"))).to_be_visible(timeout=T)
-        expect(page.get_by_text(re.compile(r"^[1-9]\d* creados$"))).to_be_visible(timeout=T)
-        wait_run(p, run_id, lambda r: r.get("awaiting") == "approval:2", "approval 2 gate")
         shot(page, "05-board-wow")
-        approve_design = page.get_by_role("button", name="Aprobar diseño", exact=True)
-        expect(approve_design).to_be_enabled(timeout=T)
-        with page.expect_response(lambda r: "/approvals/2" in r.url) as decision:
-            approve_design.click()
-        if decision.value.status != 200:
-            raise Fail(f"approval 2 returned {decision.value.status}")
-        expect(page.get_by_text("Diseño aprobado. Sigue el prototipo.", exact=True)).to_be_visible(timeout=T)
+        go(page, base, run_id, "project")
 
-    # 4. Delivery and approval 3.
-    # APP BUG (not fixed here, Paths is e2e/): web/src/lib/sse.ts subscribes with onmessage only, but the runs
-    # router sends named events, so the delivery screen never receives approval_required / prototype_ready /
-    # quality_check and its "Aprobar entrega" button never appears in a real run. Approval 3 is therefore posted
-    # to the API; the delivery screen is still opened and screenshotted.
-    with step(page, "6 approval 3: delivery (API workaround)", shots):
-        wait_run(p, run_id, lambda r: r.get("awaiting") == "approval:3", "approval 3 gate")
-        go(page, base, run_id, "delivery")
-        shot(page, "06-delivery")
-        post_approval(p, run_id, 3)
-        wait_run(p, run_id, lambda r: r.get("awaiting") is None, "approval 3 accepted")
+    # 5. Prototype and its review; approval 3 on the prototype card.
+    with step(page, "5 prototype: approval 3", shots):
+        expect(page.get_by_role("link", name="Abrir el prototipo")).to_be_visible(timeout=T)
+        shot(page, "06-prototype")
+        decide(page, p, run_id, 3, "Aprobado. Seguimos.")
 
-    # 5. The run reaches its final state: 9 of 9 stages, status done.
-    with step(page, "7 run: final state", shots):
+    # 6. The run reaches its final state: the pitch card in the conversation, 9 of 9 in the detail view.
+    with step(page, "6 run: final state", shots):
+        wait_run(p, run_id, lambda r: r.get("status") == "done", "run status done")
+        expect(page.get_by_role("link", name="Ir a la sala de pitch")).to_be_visible(timeout=T)
+        shot(page, "07-project-done")
         go(page, base, run_id, "run")
         expect(page.get_by_text("Ejecución terminada.", exact=True)).to_be_visible(timeout=T)
         expect(page.get_by_text("9/9", exact=True)).to_be_visible(timeout=T)
-        wait_run(p, run_id, lambda r: r.get("status") == "done", "run status done")
-        shot(page, "07-run-done")
 
-    # 6. Pitch room: the deck and one question answered with its sources.
-    with step(page, "8 pitch: deck and Q&A", shots):
+    # 7. Pitch room: the deck and one question answered with its sources.
+    with step(page, "7 pitch: deck and Q&A", shots):
         go(page, base, run_id, "pitch")
         expect(page.get_by_role("heading", name="Sala de pitch")).to_be_visible(timeout=T)
         expect(page.locator(".pitch-slide h2").first).to_be_visible(timeout=T)
@@ -326,16 +306,10 @@ def main() -> int:
     finally:
         if proc is not None:
             stop_api(proc)
-    # KNOWN APP BUG, allowlisted here (not fixed: Paths is e2e/): web/src/features/run/index.tsx lists "error" among
-    # its named SSE types, so the browser's connection-close `error` event (no data) reaches JSON.parse(undefined)
-    # on #/run after the run ends. Any other page or server error still fails the check.
-    known = [e for e in errors if "is not valid JSON" in e and "#/run" in e]
-    unexpected = [e for e in errors if e not in known]
-    if unexpected:
-        print(f"FAIL page or server errors: {unexpected[:5]}", flush=True)
+    # The run-screen JSON.parse(undefined) bug once allowlisted here was fixed in HACK-034: every error fails now.
+    if errors:
+        print(f"FAIL page or server errors: {errors[:5]}", flush=True)
         return 1
-    if known:
-        print(f"NOTE known app bug, allowlisted: {len(known)} x run-screen JSON.parse(undefined)", flush=True)
     print(
         f"PASS judge path run={run_id} steps={len(shots)} demo_data=true screenshots={OUT}",
         flush=True,
