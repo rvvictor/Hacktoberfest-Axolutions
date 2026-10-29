@@ -9,14 +9,17 @@ Priority: P1
 Paths: app/services/miro.py, app/fixtures/miro/, app/tests/test_miro.py
 Depends: HACK-006
 Verify: `uv run pytest -q app/tests/test_miro.py`
-Lease-Until: 1793262151
-Updated: 1793247751
+Lease-Until: 1793262271
+Updated: 1793247871
 Task-Base: d023a58475eb2c44ed8abf769f04818dc679a7c1
 Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/39; run .uak/bin/smoke
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/39
 Evidence: pytest all pass (+4 miro tests); ruff clean; smoke PRODUCT_PASS; 3 real Miro boards created OK (15 items each)
-Events: 3
+Events: 4
 Checkpoints: 0
 Sessions: 2
 Last-Checkpoint: 0
 Task-Tip: b4b52a23d55081afef6bc83857d048ee1864ca73
+Progress: 1 commit(s) since the claim · last: b4b52a2 fix(HACK-041): Miro frames fit their notes, connectors join notes, transient 5xx retried (2 minutes ago) · 0 uncommitted tracked file(s) · at 1793247871
+Progress-Head: b4b52a2/4294967295
+Progress-Changed: 1793247871
