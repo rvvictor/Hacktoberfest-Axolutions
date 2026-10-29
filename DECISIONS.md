@@ -77,3 +77,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793241878 | allow | Dylan | freeze exception: HACK-037 | Why: Post-hackathon: respuesta vacia de Gemini da LLMOutputError
 - 1793242364 | HACK-038 | follow-up of HACK-011 by dylan-1: Hunter AI drafts use Gemma 4 via the Gemini API when LLM_MODEL selects it | Why: same Paths, no scope change
 - 1793242370 | HACK-039 | follow-up of HACK-001 by dylan-2: Test isolation: app/tests/conftest.py blanks provider keys and forces DEMO_MODE so a developer .env never makes real API calls | Why: same Paths, no scope change
+- 1793242639 | allow | Dylan | freeze exception: HACK-038 | Why: Post-hackathon: borradores del Cazador con Gemma 4
