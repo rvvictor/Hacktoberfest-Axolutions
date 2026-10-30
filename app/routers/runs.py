@@ -70,6 +70,16 @@ def post_approval(run_id: str, number: int, body: ApprovalIn, background: Backgr
     return {"run_id": run_id, "approval": number, "approved": body.approved}
 
 
+@router.post("/runs/{run_id}/retry")
+def post_retry(run_id: str, background: BackgroundTasks) -> dict[str, Any]:
+    _state(run_id)
+    try:
+        background.add_task(pipeline.retry(run_id))
+    except pipeline.Conflict as exc:
+        raise HTTPException(409, str(exc))
+    return {"run_id": run_id, "accepted": True}
+
+
 @router.get("/runs/{run_id}/events")
 async def stream_events(
     run_id: str,
