@@ -2,7 +2,7 @@ import asyncio
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sse_starlette.sse import EventSourceResponse
 
 from app.schemas import Mode, RunStatus
@@ -11,6 +11,9 @@ from app.services import pipeline, store
 router = APIRouter(prefix="/api")
 
 POLL_SECONDS = 0.1
+# Caps on what a visitor can send to the LLM (HACK-063 security review); the 422 message is shown in the UI.
+IDEA_MAX = 2000
+ANSWER_MAX = 1000
 
 
 class ProjectIn(BaseModel):
@@ -18,9 +21,23 @@ class ProjectIn(BaseModel):
     idea: str = Field(min_length=1)
     stack_prefs: list[str] = Field(default_factory=list)
 
+    @field_validator("idea")
+    @classmethod
+    def _idea_cap(cls, idea: str) -> str:
+        if len(idea) > IDEA_MAX:
+            raise ValueError(f"La idea es demasiado larga: máximo {IDEA_MAX} caracteres.")
+        return idea
+
 
 class AnswersIn(BaseModel):
     answers: list[str] = Field(min_length=1)
+
+    @field_validator("answers")
+    @classmethod
+    def _answer_cap(cls, answers: list[str]) -> list[str]:
+        if any(len(a) > ANSWER_MAX for a in answers):
+            raise ValueError(f"Una respuesta es demasiado larga: máximo {ANSWER_MAX} caracteres.")
+        return answers
 
 
 class ApprovalIn(BaseModel):
