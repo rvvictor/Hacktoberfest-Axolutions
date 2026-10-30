@@ -65,3 +65,31 @@ def test_real_run_costs_durations_and_failures(data_dir) -> None:
     assert by_stage["research"]["status"] == "pending"
     units = {s["step"]: s["unit"] for s in run["steps"]}
     assert units == {"clarify": "tokens", "pitch": "minutes"}
+
+
+def test_a_recovered_error_does_not_count_as_a_failed_stage(data_dir) -> None:
+    conn = sqlite3.connect(data_dir / "speedhack.db")
+    conn.executescript(
+        """
+        CREATE TABLE runs (run_id TEXT PRIMARY KEY, project_id TEXT, stage INTEGER, status TEXT,
+            awaiting TEXT, approvals TEXT, demo_data INTEGER, created REAL);
+        CREATE TABLE events (seq INTEGER PRIMARY KEY AUTOINCREMENT, run_id TEXT, event TEXT);
+        CREATE TABLE costs (run_id TEXT, step TEXT, usd REAL, PRIMARY KEY (run_id, step));
+        """
+    )
+    conn.execute("INSERT INTO runs VALUES ('r2','p2',5,'awaiting_approval','approval:2','[]',0,1.0)")
+    for stage, type_, ts, payload in [
+        (5, "stage_started", 0.0, {}),
+        (5, "error", 1.0, {"message": "Miro no pudo crear 1 nota(s): Login.", "recovered": True, "skipped": ["Login"]}),
+        (5, "stage_done", 2.0, {}),
+    ]:
+        event = {"run_id": "r2", "stage": stage, "type": type_, "payload": payload, "ts": ts, "demo_data": False}
+        conn.execute("INSERT INTO events (run_id, event) VALUES ('r2', ?)", (json.dumps(event),))
+    conn.commit()
+    conn.close()
+
+    run = client.get("/api/ops/runs").json()["runs"][0]
+    architecture = {s["name"]: s for s in run["stages"]}["architecture"]
+    assert architecture["status"] == "done" and architecture["failures"] == 0
+    assert run["failures"] == 0
+    assert architecture["warning"] == "Miro no pudo crear 1 nota(s): Login."

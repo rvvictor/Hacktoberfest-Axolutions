@@ -97,17 +97,20 @@ def test_wrong_calls_are_rejected(client):
     assert _approve(client, run_id, 2).status_code == 409  # approval 1 comes first
 
 
-def test_failing_provider_falls_back_to_recorded_run(client, monkeypatch):
-    monkeypatch.setattr(settings, "DEMO_MODE", False)
-
+def test_failing_provider_in_demo_mode_falls_back_to_recorded_run(client, monkeypatch):
+    # HACK-064: a real run no longer replays the recording (see test_live_failures.py). DEMO_MODE does,
+    # and stages 7 and 8 are the ones that run for real even there.
     def broken(ctx):
         raise RuntimeError("provider down")
 
-    pipeline.register(3, broken)
+    pipeline.register(7, broken)
     run_id = _create(client)
     client.post(f"/api/runs/{run_id}/answers", json={"answers": ["a"]})
-    research = [e for _, e in store.list_events(run_id) if e.type is EventType.research_item]
-    assert research and all(e.demo_data for e in research)
+    _approve(client, run_id, 1)
+    _approve(client, run_id, 2)
+    prototypes = [e for _, e in store.list_events(run_id) if e.stage == 7 and e.type is EventType.prototype_ready]
+    assert prototypes and all(e.demo_data for e in prototypes)
+    assert not [e for _, e in store.list_events(run_id) if e.type is EventType.error]
     assert client.get(f"/api/runs/{run_id}").json()["status"] == "awaiting_approval"
 
 
@@ -161,13 +164,17 @@ def test_free_fallback_records_no_cost(client):
     assert client.get(f"/api/runs/{run_id}").json()["cost_by_step"] == {}
 
 
-def test_provider_with_invalid_payload_falls_back(client, monkeypatch):
+def test_provider_with_invalid_payload_stops_the_stage_in_a_real_run(client, monkeypatch):
+    # HACK-064: an invalid payload is a failure like any other; the run waits to be retried
+    # instead of showing the recording of another project.
     monkeypatch.setattr(settings, "DEMO_MODE", False)
     pipeline.register(3, lambda ctx: [("research_item", {"competitor": "Acme"})])  # no url: breaks the contract
     run_id = _create(client)
     client.post(f"/api/runs/{run_id}/answers", json={"answers": ["a"]})
-    items = [e for _, e in store.list_events(run_id) if e.type is EventType.research_item]
-    assert items and all(e.demo_data for e in items)
+    assert not [e for _, e in store.list_events(run_id) if e.type is EventType.research_item]
+    assert [e for _, e in store.list_events(run_id) if e.stage == 3 and e.type is EventType.error]
+    state = client.get(f"/api/runs/{run_id}").json()
+    assert state["status"] == "failed" and state["awaiting"] == "retry:3"
 
 
 def test_external_ids_are_stored_per_stage(client):
