@@ -1,6 +1,6 @@
 # HACK-065
 ID: HACK-065
-State: CLAIMED
+State: REVIEW
 Owner: victor-2
 Branch: feat/hack-065
 Worktree: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions-wt/hack-065
@@ -9,10 +9,10 @@ Priority: P0
 Paths: app/services/pitch.py, app/services/voice.py, app/routers/pitch.py, app/services/prompts/narration.md, app/fixtures/voice/, app/tests/test_pitch_narration.py, web/src/features/pitch/
 Depends: None
 Verify: `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
-Lease-Until: 1793356986
-Updated: 1793342586
+Lease-Until: 1793429112
+Updated: 1793342712
 Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
-Next: apply security-reviewer findings, push, gh pr create, uak done HACK-065
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/77; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/77
 Evidence: -
 Thread-Read: 294
