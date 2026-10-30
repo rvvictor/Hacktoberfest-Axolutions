@@ -407,3 +407,63 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
   - The plan-B video link is recorded in `docs/demo/`, and a rehearsal from a clean clone is logged.
 - **Verify:** `test -s README.md && test -s docs/demo/script.md && bash .uak/bin/smoke`
 - **Next step:** write `docs/demo/script.md` from `IDEA.md` §4.
+
+## HACK-059 · The board view no longer throws "undefined is not valid JSON" when its event stream closes
+
+- **Type:** bug
+- **Priority:** P0
+- **Estimate:** 30 min
+- **Rubric / Spec:** `IDEA.md` §4 step 3 (the board)
+- **Depends on:** None
+- **Paths:** web/src/features/live-board/useBoardEvents.ts, e2e/judge_path.py
+- **Acceptance:**
+  - Found on https://speedhack.onrender.com (2026-10-30, run `run_f5460ad2`): opening `/?run=ID#/live-board` logs two page errors `"undefined" is not valid JSON`. `useBoardEvents.ts:24` parses every event with `JSON.parse(m.data)`, and the browser's own `error` event (stream closed or reconnecting) has no data. The run view had the same bug and fixed it in HACK-034.
+  - Events without data, or with data that is not JSON, are ignored (the stream's own reconnect keeps working); a named `error` event that carries a StageEvent still reaches the view.
+  - `e2e/judge_path.py` fails if the board view logs any page error while the run is finished (the stream closes), and passes after the fix; checked once against the unfixed hook.
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** read `useBoardEvents.ts` and how `web/src/features/run/` guards the same parse.
+
+## HACK-060 · The board's standalone example plays the real recording, not its own sample data
+
+- **Type:** chore
+- **Priority:** P1
+- **Estimate:** 40 min
+- **Rubric / Spec:** `IDEA.md` §3
+- **Depends on:** None
+- **Paths:** web/src/features/live-board/demo.ts, scripts/demo_from_recordings.py, app/tests/test_demo_fixture.py
+- **Acceptance:**
+  - `#/live-board` without `?run=` today plays its own invented example (Login, Empresa, GAS-1…GAS-8), which tells a different story from the recorded plan the rest of the demo shows (HACK-053/054).
+  - `scripts/demo_from_recordings.py` also fills a `// <recorded>` block in `web/src/features/live-board/demo.ts` with the same board (what `miro.BoardRun` emits for `architecture.json`, colors dropped) and the 6 recorded issues; the replay keeps its timing and labels everything `demo_data: true`.
+  - Running the script twice leaves no diff; the replay at 1280×720 shows no overlapping labels and no page scroll.
+- **Verify:** `uv run pytest -q && uv run ruff check app scripts && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** read `web/src/features/live-board/demo.ts` and the `WEB` table of `scripts/demo_from_recordings.py`.
+
+## HACK-061 · Pitch Q&A does not answer an unrelated question with a quote that only shares one word
+
+- **Type:** bug
+- **Priority:** P1
+- **Estimate:** 40 min
+- **Rubric / Spec:** `IDEA.md` §4 step 7 · PROJECT principle 4
+- **Depends on:** None
+- **Paths:** app/services/pitch.py, app/tests/test_pitch_unrelated.py
+- **Acceptance:**
+  - `ask()` keeps any passage that shares one word with the question, so "¿Cuál es el precio del dólar hoy?" can quote a competitor's research note because both contain "precio" (seen while reviewing HACK-058).
+  - A question about something the project does not cover answers "no tengo ese dato"; questions about the project's competitors, prices, features, alerts and its general purpose keep their current answers and sources (HACK-058 tests unchanged).
+  - New tests cover the dollar question, a competitor-price question and an alerts question, in DEMO_MODE and with the LLM stubbed; no existing test is edited.
+- **Verify:** `uv run pytest -q && uv run ruff check app && uv run python e2e/judge_path.py`
+- **Next step:** read `ask()` and `_words()`; measure which passages each question keeps today before changing the rule.
+
+## HACK-062 · Docs describe the product, not the hackathon
+
+- **Type:** docs
+- **Priority:** P1
+- **Estimate:** 30 min
+- **Rubric / Spec:** `.uak/PROJECT.md` §Purpose
+- **Depends on:** None
+- **Paths:** README.md, IDEA.md, docs/demo/
+- **Acceptance:**
+  - README no longer addresses judges ("Judges should wait…", "the board wow starts at 00:55") and states plainly what the public deployment is: demo mode, recorded data, no accounts, free plan that sleeps after 15 minutes.
+  - `IDEA.md` keeps its content but its header says the hackathon was phase 0 and SpeedHack is now Dylan's own product; event-only items (rubric C1, plan-B video deadline) are marked historical, not deleted.
+  - No figure, URL or date is invented; the links in the README still resolve.
+- **Verify:** `bash .uak/bin/q bash -c 'test -s README.md && bash .uak/bin/smoke'`
+- **Next step:** list every hackathon reference with `rg -n -i "juez|judge|hackathon|jury|rubric|C1|plan-b|submission" README.md IDEA.md docs/`.
