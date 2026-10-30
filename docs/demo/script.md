@@ -10,7 +10,7 @@ Machine time to the wow, measured in the clean-clone rehearsal (`rehearsal.md`,
 4.8 s to the board and tasks). The rest of the 90 seconds is the presenter: typing,
 three answers and one approval.
 
-Rubric: the official rubric is not published (`IDEA.md` §8). Each part names the
+Rubric (historical, event only): the official rubric was never published (`IDEA.md` §8). Each part names the
 `IDEA.md` §4 step it shows and C1; remap the column when the rubric is published.
 
 | Time | Part | Do and say | On screen | `IDEA.md` §4 · rubric | Fallback |
