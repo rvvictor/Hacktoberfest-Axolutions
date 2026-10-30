@@ -611,3 +611,34 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
   - One real run with keys (within the test budget) is reported in the PR: top 5 titles and URLs for the pump-catalog idea.
 - **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint`
 - **Next step:** failing tests for the 422 cap and the log content.
+
+## HACK-072 · Narration never pays twice for the same slide, and has a daily character cap
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `.uak/PROJECT.md` principle 4
+- **Depends on:** HACK-065
+- **Follow-up of:** HACK-065
+- **Paths:** app/services/pitch.py, app/services/voice.py, app/config.py, app/tests/test_narration_spend.py
+- **Acceptance:**
+  - Independent review of HACK-065 (SHA c73ddf6, 2026-10-30) found two LOW issues: `narrate()` checks the audio cache before taking `NARRATION_SLOTS` and never re-checks it, so N concurrent requests for the same uncached slide each pay one LLM call and one ElevenLabs call; and nothing caps the total ElevenLabs characters an unauthenticated visitor can trigger.
+  - The cache is re-checked inside the semaphore (or a per-key lock is held), so N concurrent requests for one slide make exactly one LLM call and one TTS call (test with a counting stub and `asyncio.gather`).
+  - A daily ElevenLabs character cap (`ELEVENLABS_DAILY_CHARS` in `app/config.py`, default within the test budget) is counted on disk under `DATA_DIR`; above it narration answers 503 with a Spanish message and the deck stays usable without voice. The count never stores slide text.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test: two concurrent `narrate()` calls for one slide, counting the TTS stub's calls.
+
+## HACK-073 · Research keeps businesses, not PDF catalogues, directory profiles or map listings
+
+- **Type:** bug
+- **Priority:** P1
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `IDEA.md` §4 step 2 · `.uak/PROJECT.md` principle 1
+- **Depends on:** HACK-071
+- **Paths:** app/services/research.py, app/tests/test_research_filter.py
+- **Acceptance:**
+  - The real run reported in HACK-071 (PR #79, idea "negocio de catálogo de productos de bombas de agua y motores") returned 5 real items, but none was a competitor's own site: two PDF catalogues (one for car coolant pumps), two `rocketreach.co` company profiles and a `mapquest.com` listing.
+  - `is_competitor_page` drops PDFs and pages on company-directory and map hosts (rocketreach, mapquest, and others of the same kind found in the same runs); each dropped host is named in a test with the real URL from that run.
+  - The same idea, run once with keys within the test budget, is reported in the PR with its top 5 titles and URLs; if fewer than 3 remain, the PR says so and the "no competitors" notice of HACK-071 is what the user sees (nothing is invented).
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** tests with the 5 real URLs from PR #79, then the filter.
