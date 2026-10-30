@@ -1,7 +1,5 @@
-# Integration queue
-Task: HACK-071
-State: PENDING
+ID: HACK-071
+State: WAITING
 Owner: dylan-1
-Task-Tip: 640081b74180327bbd61313f94efd62a21acb3e4
-PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/79
-Updated: 1793381166
+Queued: 1793382190
+Reason: Waiting for queue
