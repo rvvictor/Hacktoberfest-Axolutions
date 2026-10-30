@@ -44,3 +44,25 @@ def test_replay_board_and_backlog_are_the_recorded_ones():
     assert [i["title"] for i in issues] == [i["title"] for i in backlog]
     assert all(i["demo_data"] is True and i["acceptance"] for i in issues)
     assert "Issue demo" not in RUN.read_text(encoding="utf-8")
+
+
+def _web_block(path: str, name: str) -> list[dict]:
+    text = (Path(__file__).parents[2] / "web" / "src" / "features" / path).read_text(encoding="utf-8")
+    block = text.split("// <recorded>")[1].split("// </recorded>")[0]
+    return json.loads(block.split(f"const RECORDED_{name} = ")[1].split(";\n")[0])
+
+
+def test_live_board_example_is_the_recorded_board_and_backlog():
+    llm = Path(__file__).parents[1] / "fixtures" / "llm"
+    events = _events()
+    board = _web_block("live-board/demo.ts", "BOARD")
+    arch = json.loads((llm / "architecture.json").read_text(encoding="utf-8"))
+    assert [i["title"] for i in board if i["kind"] in NOTE_KINDS] == [i["title"] for i in arch["items"]]
+    replay = [e["payload"] for e in events if e["type"] == "miro_item"]
+    assert board == [{k: v for k, v in p.items() if k != "color"} for p in replay]
+    assert all(i["demo_data"] is True for i in board)
+    issues = _web_block("live-board/demo.ts", "BACKLOG")
+    backlog = json.loads((llm / "backlog.json").read_text(encoding="utf-8"))["items"]
+    assert [i["title"] for i in issues] == [i["title"] for i in backlog]
+    assert issues == [e["payload"] for e in events if e["type"] == "linear_issue"]
+    assert all(i["demo_data"] is True and i["acceptance"] for i in issues)

@@ -39,6 +39,7 @@ PAGES = research.FIXDIR / "recorded_firecrawl.json"
 WEB = {
     ROOT / "web" / "src" / "features" / "project" / "demo.ts": ("RESEARCH", "SPEC", "BOARD", "BACKLOG"),
     ROOT / "web" / "src" / "features" / "spec" / "demo.ts": ("RESEARCH", "SPEC"),
+    ROOT / "web" / "src" / "features" / "live-board" / "demo.ts": ("BOARD", "BACKLOG"),
 }
 
 BLOCK = re.compile(r"// <recorded>\n.*?// </recorded>\n", re.DOTALL)
