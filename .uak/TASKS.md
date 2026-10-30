@@ -578,3 +578,21 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
   - Measure the image size and peak memory of a run with Node + Playwright Chromium added; if it fits the Render plan in use, add them and verify the four checks on Render; if not, write the ADR with the numbers and the alternative (a larger plan, or running build/smoke elsewhere).
 - **Verify:** `test -s docs/adr/0001-render-quality-checks.md || docker build -t speedhack-check .`
 - **Next step:** build the image locally with Node + Chromium and measure.
+
+## HACK-070 · Research debt from the HACK-063 security review
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `.uak/PROJECT.md` principles 1 and 4
+- **Depends on:** HACK-063
+- **Follow-up of:** HACK-063
+- **Paths:** app/routers/runs.py, app/services/stages.py, app/tests/test_research_debt.py, web/src/features/project/
+- **Acceptance:**
+  - Security review of HACK-063 (dylan-3, SHA d882c0c, 2026-10-30) found two LOW issues and two criteria declared as debt.
+  - `POST /api/projects` caps `idea` (and each answer) with a `max_length`, answering 422 in Spanish above it; the LLM never receives more than that.
+  - The research stage never logs the idea, the answers or the LLM's invalid queries: an `LLMOutputError` is logged by type only.
+  - When research finds no competitor, the conversation (`#/project`) shows that notice to the user, not only the spec stage.
+  - One real run with keys (within the test budget) is reported in the PR: top 5 titles and URLs for the pump-catalog idea.
+- **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint`
+- **Next step:** failing tests for the 422 cap and the log content.
