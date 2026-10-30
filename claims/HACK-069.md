@@ -9,10 +9,10 @@ Priority: P1
 Paths: Dockerfile, render.yaml, docs/adr/0001-render-quality-checks.md
 Depends: None
 Verify: `test -s docs/adr/0001-render-quality-checks.md || docker build -t speedhack-check .`
-Lease-Until: 1793353950
-Updated: 1793339550
+Lease-Until: 1793354136
+Updated: 1793339736
 Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
-Next: build the image locally with Node + Chromium and measure.
+Next: PR + done
 PR: -
 Evidence: -
 Thread-Read: 0
