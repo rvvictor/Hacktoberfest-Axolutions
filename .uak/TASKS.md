@@ -492,7 +492,7 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
 - **Estimate:** 0.5 day
 - **Rubric / Spec:** `.uak/PROJECT.md` principle 4
 - **Depends on:** None
-- **Paths:** app/services/pipeline.py, app/services/miro.py, app/services/stages.py, app/services/costs.py, app/tests/test_live_failures.py, app/tests/test_pipeline.py, app/tests/test_stages.py, app/tests/test_ops.py
+- **Paths:** app/services/pipeline.py, app/services/miro.py, app/services/stages.py, app/routers/runs.py, app/tests/test_live_failures.py, app/tests/test_pipeline.py, app/tests/test_stages.py, web/src/features/project/
 - **Acceptance:**
   - Found in `run_242dc4bf`: Miro answered `500 Internal error occurred` on a sticky note after its retries, stage 5 raised, and `pipeline._produce` replayed `app/fixtures/demo/run.jsonl` stage 5 — the expense-SaaS board ("Dashboard de gastos"…) in a pump-catalog project. Half a real board was left in Miro.
   - Outside `DEMO_MODE`, a stage that raises emits an `error` event with a Spanish message naming the provider and what to do (never the exception text: it can carry URLs or keys), and keeps the run waiting on that stage as `awaiting: retry:<stage>` with `status: failed`. It never replays the recorded run. `DEMO_MODE` keeps today's replay. `pipeline.retry(run_id)` reruns only that stage and reuses the ids already created.
