@@ -1,9 +1,10 @@
+import httpx
 from anthropic import APIError
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field, field_validator
 
-from app.schemas import Pitch
-from app.services import llm, pitch
+from app.schemas import Pitch, Slide
+from app.services import llm, pitch, voice
 
 router = APIRouter(prefix="/api/pitch", tags=["pitch"])
 
@@ -17,6 +18,20 @@ class Question(BaseModel):
         if not value.strip():
             raise ValueError("Escribe una pregunta")
         return value.strip()
+
+
+class NarrationRequest(BaseModel):
+    index: int = Field(ge=0)
+    slide: Slide
+
+
+@router.post("/{run_id}/narration")
+async def narrate(run_id: str, body: NarrationRequest) -> Response:
+    try:
+        audio, demo = await pitch.narrate(run_id, body.index, body.slide)
+    except (voice.VoiceUnavailable, llm.LLMError, APIError, httpx.HTTPError, OSError) as exc:
+        raise HTTPException(503, "La voz no está disponible. Lee el texto de la diapositiva.") from exc
+    return Response(audio, media_type="audio/mpeg", headers={"X-Demo-Data": str(demo).lower()})
 
 
 @router.get("/{run_id}", response_model=Pitch)

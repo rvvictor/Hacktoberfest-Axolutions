@@ -38,3 +38,6 @@
   .pitch-slide { display: block !important; min-height: 80vh; break-after: page; }
   .pitch-slide:last-child { break-after: auto; }
 }
+.pitch-ai-badge { font-size: 13.5px; font-weight: 600; color: var(--sh-ink); border: 1px solid var(--sh-line); border-radius: 999px; padding: 6px 12px; }
+.pitch-narration { margin-bottom: 4px; }
+@media print { .pitch-narration { display: none !important; } }
