@@ -15,7 +15,7 @@ Task-Base: ea6dda0d1d5ea2f8ffa4a967bcc5a16b152afbdb
 Next: after PR #57 (kit 5.8) is on main, `wt new HACK-057`; run the new `design-lint` and fix finding by finding.
 PR: -
 Evidence: -
-Events: 1
+Events: 2
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
