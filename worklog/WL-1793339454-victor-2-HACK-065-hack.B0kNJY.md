@@ -6,7 +6,7 @@
 - Why: security review: client-supplied slide = forged speech + spend
 - Failing: none
 - Commands: Verify + smoke
-- Next: Wait for review of SHA c73ddf6e31beefd809e0c4cde23d9474c3a5bdb4
+- Next: Humano: Queue/base push rejected; check remote, atomic push and permissions
 
 ## History
 - 1793339454 | CLAIMED | victor-2 | claim; next: failing test for the per-slide script validation, then the narration endpoint.
@@ -17,3 +17,4 @@
 - 1793342719 | REVIEW | victor-2 | checkpoint; next: Wait for review of SHA c73ddf6e31beefd809e0c4cde23d9474c3a5bdb4
 - 1793343809 | REVIEW | victor-2 | heartbeat; lease until 1793430209
 - 1793345068 | REVIEW | victor-3 | review; approve; SHA c73ddf6e31beefd809e0c4cde23d9474c3a5bdb4; reviewer victor-3
+- 1793379703 | REVIEW | dylan-1 | merge rechazado; Queue/base push rejected; check remote, atomic push and permissions
