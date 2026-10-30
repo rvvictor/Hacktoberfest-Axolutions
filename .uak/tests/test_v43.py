@@ -94,6 +94,7 @@ def rotation_skips_ghosts_and_asks_the_rejecter(r):
     last = [l for l in f.show("inbox/log.md").splitlines() if "| review |" in l][-1]
     expect("agent:agent-3" in last and "you rejected the previous SHA" in last and "fixed a.txt:1" in last,
            "the re-review goes to the rejecter in ONE message with the note: " + last)
+    rm.judge(f)                                          # v5.7.1: --to names someone who can review
     f.hack(0, "done", "HACK-001", "--pr", "https://example.test/pull/1", "--evidence", "fixed", "--to", "judge", now=1000014)
     last = [l for l in f.show("inbox/log.md").splitlines() if "| review |" in l][-1]
     expect("agent:judge" in last and "asked by agent-1" in last, "--to picks the reviewer: " + last)
@@ -225,7 +226,7 @@ def output_cap_everywhere(r):
         expect(hook("wrap", shell(skip), env=winenv) == "", "not wrapped on Windows: " + skip)
     q1 = r.run([r.bash, ".uak/bin/q", "false"], cwd=w, allowed=None).stdout
     q2 = r.run([r.bash, ".uak/bin/q", "false"], cwd=w, allowed=None).stdout
-    expect(q1.split("log ")[1].split()[0] != q2.split("log ")[1].split()[0], "q keeps one log per run: " + q1 + q2)
+    expect(q1.split(" · log ")[1].splitlines()[0] != q2.split(" · log ")[1].splitlines()[0], "q keeps one log per run: " + q1 + q2)
     return {"codex": "pre-rewrite", "windows": True, "diff_index": True}
 
 

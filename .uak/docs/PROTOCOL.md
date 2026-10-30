@@ -23,7 +23,7 @@ Every change is a commit pushed fast-forward. On contention, uak fetches, rebase
 | Situation | Mechanism |
 |---|---|
 | Backlog not approved | After 10 min, only P0 can start, and only with `Autonomy: yes`. |
-| Reversible product question | `uak decision`. After 15 min an authorized routine option is applied and logged. |
+| Reversible product question | `uak decision ID --option "TEXT" --why "TEXT" --reversible yes --authorized yes --class routine` (`--class` routine\|money\|accounts\|publish\|scope). After 15 min an authorized routine option is applied and logged. |
 | Money, accounts, publishing, scope | Never by timeout. The task stays BLOCKED; take another task. |
 | Freeze (`Freeze-Epoch`) | New claims and merges only for `Freeze-Allowed: yes`. |
 
@@ -40,12 +40,12 @@ Deadlines run when any agent calls `next` or `status` (or cron or a GitHub Actio
    - `smoke` and Verify, with no tracked file modified.
 
    Then it pushes base and claims atomically. If anything fails, the task goes to the human queue (`digest`) and the agent moves on.
-4. Human merges: `done ID --integrated COMMIT`, verified by ancestry or a rebuilt tree hash, so squash and rebase merges work.
+4. Human merges: `done ID --pr URL --evidence "human merge" --integrated COMMIT`, verified by ancestry or a rebuilt tree hash, so squash and rebase merges work.
 5. In marathon, agents only pre-review. Humans merge through branch protection and CI.
 
 ## Merged outside uak
-- A human merged the PR on GitHub and the owner agent is offline: any agent runs `uak integrate ID`. It needs a valid approval for the merged SHA and proof that the SHA is in the remote base. For a squash merge, pass `--integrated COMMIT`.
-- Generated files that every task touches (permission matrices, OpenAPI dumps, snapshots) get one owner in `OWNERS.md`. Other tasks regenerate them after `git merge origin/main` instead of hand-merging.
+- A human merged the PR on GitHub and the owner agent is offline: any agent runs `uak integrate ID`. It needs a valid approval for the merged SHA and proof that the SHA is in the remote base. For a squash merge, pass `--integrated COMMIT`. Without an approval only the human who merged records it (`UAK_HUMAN=NAME UAK_AGENT= bash .uak/bin/uak integrate ID`), and over a standing reject with `--reason TEXT`.
+- Generated files that every task touches (permission matrices, OpenAPI dumps, snapshots) get one owner in `OWNERS.md`. Other tasks regenerate them after `git merge --no-edit origin/main` instead of hand-merging.
 - New test files outside a task's `Paths`: list the test dirs in `Additive-Paths` (PROJECT.md). New files there pass the scope gate; edits to existing files still need a reservation.
 
 ## Offline

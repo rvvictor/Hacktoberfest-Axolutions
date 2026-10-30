@@ -12,6 +12,13 @@ warn() { printf 'WARN  %s\n' "$*"; warns=$((warns + 1)); }
 bad()  { printf 'FAIL  %s\n' "$*"; fails=$((fails + 1)); }
 field() { sed -n "s/^[-* ]*$1:[* ]*//p" "$project" 2>/dev/null | head -n 1 | tr -d '\r`'; }
 
+# A checkout's .git marked bare: uak-mcp 5.4.5-5.5.0, started through its git alias in a task worktree, re-initialized
+# the main repository (core.bare=true) and git then refused every command there ("must be run in a work tree").
+common=$(git rev-parse --git-common-dir 2>/dev/null) && common=$(cd "$common" 2>/dev/null && pwd -P)
+if [ "$(git rev-parse --is-bare-repository 2>/dev/null)" = true ] && [ "$(basename "${common:-x}")" = .git ]; then
+  if [ "$fix" = yes ] && git --git-dir="$common" config core.bare false; then ok "core.bare=false restored on $common"
+  else bad "core.bare=true on a checkout ($common): fix with git --git-dir=\"$common\" config core.bare false (or uak doctor --fix)"; exit 1; fi
+fi
 root=$(git rev-parse --show-toplevel 2>/dev/null) || { bad "not a Git repository"; exit 1; }
 cd "$root" || exit 1
 project=.uak/PROJECT.md
@@ -25,7 +32,8 @@ command -v python3 >/dev/null 2>&1 && ok "python3 $(python3 -c 'import sys;print
   warn "no python3: uak works, but the kit test suite cannot run"
 if printf 'AKIA%s\n' ZZZZZZZZZZZZZZZZ | grep -Eq 'AKIA[A-Z0-9]{16}'; then ok "grep -E supports intervals (secret scanner active)"
 else bad "grep -E lacks intervals: the secret scanner would miss keys"; fi
-awk_name=$(awk -W version 2>&1 | head -n 1 | awk '{print $1}')
+# </dev/null: BSD awk (macOS) ignores -W, takes "version" as the program and would wait on the terminal.
+awk_name=$(awk -W version </dev/null 2>&1 | head -n 1 | awk '{print $1}')
 case "$awk_name" in mawk) warn "awk is mawk: uak avoids awk {n} intervals; do not add rules that use them";; esac
 
 # Claude Code orchestration needs Haiku 5.5 (v2.1.293+) and the advisor tool (Anthropic API).
@@ -53,7 +61,7 @@ hooks_dir=.uak/githooks; [ -d "$hooks_dir" ] || hooks_dir=.githooks   # v5.2 mov
 cur_hooks=$(git config --get core.hooksPath 2>/dev/null || true)
 case "$cur_hooks" in
   "$hooks_dir"|"$hooks_dir/") ok "pre-commit secret scanner active ($hooks_dir)";;
-  ?*) grep -qs 'secret-scan\|uak/githooks/pre-commit' "$cur_hooks/pre-commit" "$cur_hooks/../pre-commit" &&
+  ?*) grep -Eqs 'secret-scan|uak/githooks/pre-commit' "$cur_hooks/pre-commit" "$cur_hooks/../pre-commit" &&
         ok "pre-commit secret scanner active (through your $cur_hooks)" ||
         warn "core.hooksPath is $cur_hooks (yours or another hook manager): add 'bash .uak/githooks/pre-commit' to its pre-commit";;
   *)

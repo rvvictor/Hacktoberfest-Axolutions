@@ -3,7 +3,7 @@
 # Why: a declared name never proves an independent approval.
 RM_REASON= APPROVED_BY= RM_TIP= RM_ELIGIBLE_VIA= RM_PROOF=
 RM_COUNTER=0 RM_HELD=no RM_FINISHED=no RM_TOKEN= RM_BUILD= RM_CANDIDATE= RM_BASE_TIP= RM_REVIEWED_TIP=
-RM_ACTION= RM_QUEUE_REASON= RM_TREE= RM_REVIEW_MODE= RM_GH_MERGED= RM_GH_MERGE= RM_ADOPTED=no RM_MAIN= RM_GATE_PATH=
+RM_ACTION= RM_QUEUE_REASON= RM_TREE= RM_REVIEW_MODE= RM_GH_MERGED= RM_GH_MERGE= RM_ADOPTED=no RM_MAIN= RM_GATE_PATH= RM_GATE_PORT= RM_RENEWER=
 
 rm_config() {
   if typeset -f coord_config >/dev/null 2>&1; then coord_config "$1" "$2";
@@ -16,6 +16,22 @@ registered_reviewer() {
   [ ! -f "$TX/meta/retired/$1.md" ] && [ -f "$TX/roles/reviewers/$1.md" ] &&
     [ "$(field "$TX/roles/reviewers/$1.md" Reviewer)" = "$1" ] &&
     [ -n "$(field "$TX/roles/reviewers/$1.md" Registered-By)" ]
+}
+# The human behind an identity: its Human: field on claims, else the name before the last dash (ana-2 → ana).
+rm_human_of() {
+  local h=
+  [ ! -f "$TX/meta/agents/$1.md" ] || h=$(field "$TX/meta/agents/$1.md" Human)
+  [ -n "$h" ] || h=${1%-*}
+  printf '%s\n' "$h" | tr '[:upper:]' '[:lower:]'
+}
+# Verify and Paths as the backlog says (main's TASKS.md, plus what a human published with uak plan), not as the
+# task's own record says: an agent writes its record on every claim. Why (audit, Oct 2026): a record rewritten
+# with "Verify: <any command>" ran on the merger's machine. The record is the fallback for a task the backlog lacks.
+rm_task_value() {
+  local v=
+  if [ -f "${BACKLOG:-}" ] && typeset -f task_field >/dev/null 2>&1; then v=$(task_field "$1"); fi
+  [ -n "$v" ] || v=$(field "$RECORD" "$1")
+  printf '%s\n' "$v"
 }
 review_identity_eligible() {
   local who=${1:-$AGENT} c until state
@@ -121,15 +137,33 @@ rm_main_merges_only() {
     c=$p1
   done
 }
+# A reject that still covers the current tip: same SHA, or later commits that are only clean merges of the base
+# (the rejected code is unchanged). Sets RM_REJECTER. Why (audit of v5.5.0): a second reviewer undid a reject by
+# rejecting too and then approving, or by approving the rejected SHA after the owner merged main into the branch.
+RM_REJECTER=
+rm_standing_reject() {
+  local rv="$TX/reviews/$ID.md" rsha
+  RM_REJECTER=
+  [ -f "$rv" ] && [ "$(field "$rv" Verdict)" = reject ] || return 1
+  rsha=$(field "$rv" SHA); [ -n "$rsha" ] || return 1
+  [ "$rsha" = "$RM_TIP" ] || rm_main_merges_only "$rsha" "$RM_TIP" || return 1
+  RM_REJECTER=$(field "$rv" Rejected-By); [ -n "$RM_REJECTER" ] || RM_REJECTER=$(field "$rv" Reviewer)
+  return 0
+}
 review_mutate() {
   RECORD=$(task_file)
   [ -f "$RECORD" ] || conflict "$ID has no claimed task."
   # --stop: give the review back (could not finish). Why (MLB): a reviewer that could not read the diff had to
   # say "my lock expires in 20 min" by message.
-  if [ "$REVIEW_STOP" = yes ]; then
-    [ -f "$TX/reviews/$ID.reviewing" ] && [ "$(field "$TX/reviews/$ID.reviewing" Reviewer)" = "$AGENT" ] ||
-      { say "OK review --stop $ID | you hold no review lock on it"; return 0; }
-    rm -f "$TX/reviews/$ID.reviewing"; return 0
+  # --decline (and --stop): the offer moves to another agent now, not after the 15-min window. Why (Hacktoberfest):
+  # a reviewer declined by message as the review skill says, and the re-offer came 8.5 min later.
+  if [ "$REVIEW_STOP" = yes ] || [ "$REVIEW_DECLINE" = yes ]; then
+    if [ -f "$TX/reviews/$ID.reviewing" ] && [ "$(field "$TX/reviews/$ID.reviewing" Reviewer)" = "$AGENT" ]; then
+      rm -f "$TX/reviews/$ID.reviewing"
+    elif [ "$REVIEW_STOP" = yes ]; then say "OK review --stop $ID | you hold no review lock on it"
+    fi
+    MSG_DECLINED="$ID $AGENT"; msg_reoffer_reviews; MSG_DECLINED=
+    return 0
   fi
   [ "$AGENT" != "$(field "$RECORD" Owner)" ] || conflict "The owner cannot approve their own task."
   review_identity_eligible "$AGENT" || conflict "The reviewer needs an active own claim or a registered role."
@@ -145,6 +179,10 @@ review_mutate() {
       say "SKIP review $ID | already approved by $(field "$TX/reviews/$ID.md" Reviewer) on this SHA; it needs a merge, not a reviewer."
       return 0
     fi
+    if rm_standing_reject && [ "$RM_REJECTER" != "$AGENT" ]; then
+      say "SKIP review $ID | $RM_REJECTER rejected this code; it needs a fix from its owner (a new commit), not another review."
+      return 0
+    fi
     local lock="$TX/reviews/$ID.reviewing" until who
     if [ -f "$lock" ]; then
       who=$(field "$lock" Reviewer); until=$(field "$lock" Until)
@@ -158,6 +196,7 @@ review_mutate() {
     REVIEW_STARTED=yes
     return 0
   fi
+  [ -n "$REVIEW_SHA" ] || die "review needs --sha SHA: the reviewed commit (Task-Tip: $(printf '%s' "$RM_TIP" | cut -c 1-7); uak status --task $ID)."
   # A short SHA of the current HEAD is the HEAD.
   case "$RM_TIP" in "$REVIEW_SHA"*) [ "${#REVIEW_SHA}" -lt 7 ] || REVIEW_SHA=$RM_TIP;; esac
   local carried=
@@ -172,6 +211,22 @@ review_mutate() {
     fi
   fi
   case "$REVIEW_VERDICT" in approve|reject) ;; *) die "--verdict must be approve or reject.";; esac
+  # Someone else holds the review of this SHA: their verdict decides. Why (Hacktoberfest): --start said CONFLICT,
+  # the reviewer's chained command still sent an approve, and it landed while the holder was reviewing.
+  local lk="$TX/reviews/$ID.reviewing" lk_until standing=no
+  ! rm_standing_reject || standing=yes
+  if [ -f "$lk" ] && [ "$(field "$lk" Reviewer)" != "$AGENT" ] && [ "$(field "$lk" SHA)" = "$RM_TIP" ] &&
+     { [ "$standing" = no ] || [ "$RM_REJECTER" != "$AGENT" ]; }; then
+    lk_until=$(field "$lk" Until); case "$lk_until" in ''|*[!0-9]*) lk_until=0;; esac
+    [ "$NOW" -ge "$lk_until" ] || conflict "$(field "$lk" Reviewer) is reviewing $ID at this SHA ($(((lk_until - NOW + 59) / 60)) min left); their verdict decides. Nothing recorded."
+  fi
+  # A reject stands until a new commit: another reviewer's approve of the same SHA would erase it.
+  # Why (Hacktoberfest): HACK-018 was rejected for a real SSE bug, approved at the same SHA 15 min later by
+  # someone else, merged, and the bug surfaced 10 h later in the end-to-end test.
+  # Any verdict by someone else: a second reject would take over the record (and its rejecter could then approve).
+  if [ "$standing" = yes ] && [ "$RM_REJECTER" != "$AGENT" ]; then
+    conflict "$RM_REJECTER rejected this code of $ID (SHA ${RM_TIP%"${RM_TIP#???????}"} or one it only merges $BASE into); another verdict does not change it. The owner fixes and pushes (a new commit gets a new review), or $RM_REJECTER changes their verdict. Disagree, or more to add? uak msg $ID --kind reply \"…\"."
+  fi
   rm -f "$TX/reviews/$ID.reviewing"
   # An approval of a SHA that already has one is duplicate work (Reap: HACK-005 got 7 approvals, 3 on one SHA).
   if [ -f "$TX/reviews/$ID.md" ] && [ "$(field "$TX/reviews/$ID.md" SHA)" = "$RM_TIP" ] &&
@@ -183,6 +238,7 @@ review_mutate() {
   printf '%s\n' "ID: $ID" "SHA: $RM_TIP" "Reviewer: $AGENT" "Owner: $(field "$RECORD" Owner)" \
     "Verdict: $REVIEW_VERDICT" "Reviewed: $NOW" "Eligible-Via: $RM_ELIGIBLE_VIA" 'Command: uak review' > "$TX/reviews/$ID.md"
   [ -z "$carried" ] || printf '%s\n' "Carried-From: $carried (later commits are clean merges of $BASE)" >> "$TX/reviews/$ID.md"
+  [ "$REVIEW_VERDICT" != reject ] || printf '%s\n' "Rejected-By: $AGENT" >> "$TX/reviews/$ID.md"
   put "$RECORD" Task-Tip "$RM_TIP"
   WL=$(field "$RECORD" Worklog); STATE=$(field "$RECORD" State)
   event "review; $REVIEW_VERDICT; SHA $RM_TIP; reviewer $AGENT"
@@ -221,6 +277,16 @@ approval_check() {
         [ "$(field "$review" Command)" = 'uak review' ] && [ -n "$(field "$review" Eligible-Via)" ] || {
         RM_REASON='Approval missing, rejected, self-made or stale for the current SHA'; return 1;
       }
+      # The reviewer must be an identity uak has seen work on claims, not retired. Why (audit, Oct 2026): a raw push
+      # of reviews/ID.md signed "ghost", a name that never existed, merged to main.
+      [ -f "$TX/meta/agents/$who.md" ] && [ ! -f "$TX/meta/retired/$who.md" ] || {
+        RM_REASON="The approval names $who, an identity never seen on claims or retired: a reviewer approves with uak review"; return 1;
+      }
+      # Review-Independence: human (PROJECT.md): the reviewer belongs to another human than the owner. Why (Hacktoberfest):
+      # 9 of 31 approvals came from a sibling identity of the owner's human, some in 10 minutes from claim to merge.
+      if [ "$(rm_config Review-Independence agent)" = human ] && [ "$(rm_human_of "$who")" = "$(rm_human_of "$author")" ]; then
+        RM_REASON="$who and $author are agents of the same human ($(rm_human_of "$author")); Review-Independence: human needs another human's agent"; return 1
+      fi
       APPROVED_BY=$who;;
     gh)
       command -v gh >/dev/null 2>&1 || { RM_REASON='Review-Mode gh needs the gh CLI'; return 1; }
@@ -344,7 +410,12 @@ rm_coord_mutate() {
         local rv="$TX/reviews/$ID.md" adopt reviewed
         adopt=$(rm_config Merge-Adopt-Seconds 1200); case "$adopt" in ''|*[!0-9]*) adopt=1200;; esac
         reviewed=$(field "$rv" Reviewed); case "$reviewed" in ''|*[!0-9]*) reviewed=$NOW;; esac
-        [ "$(field "$rv" Verdict)" = approve ] || { RM_REASON="Only the owner ($(field "$RECORD" Owner)) merges a task without an approval"; return 3; }
+        # gh mode: the approval is on GitHub (the precheck verified it); the adopt clock starts at done.
+        if [ "$RM_REVIEW_MODE" = gh ] && [ -n "$APPROVED_BY" ]; then
+          reviewed=$(field "$RECORD" Updated); case "$reviewed" in ''|*[!0-9]*) reviewed=$NOW;; esac
+        else
+          [ "$(field "$rv" Verdict)" = approve ] || { RM_REASON="Only the owner ($(field "$RECORD" Owner)) merges a task without an approval"; return 3; }
+        fi
         [ $((NOW - reviewed)) -ge "$adopt" ] || {
           RM_REASON="The owner $(field "$RECORD" Owner) has $(( (adopt - NOW + reviewed + 59) / 60 )) min left to merge its approved task; after that any agent can"; return 3; }
         review_identity_eligible "$AGENT" || { RM_REASON='Merging another agent'"'"'s task needs an active claim or a registered role'; return 3; }
@@ -356,12 +427,20 @@ rm_coord_mutate() {
       printf '%s\n' "ID: $ID" 'State: WAITING' "Owner: $AGENT" "Queued: $NOW" 'Reason: Waiting for queue' > "$TX/queue/$ID.md";;
     lock)
       merge_tick_lock
-      if [ -f "$lock" ] && ! rm_lock_owned; then RM_REASON='Queue busy'; return 4; fi
+      # Its own earlier lock on the same task (a merge that was interrupted, or retried from a new process) is taken
+      # back. Why (Hacktoberfest): an agent held the lock for the full 30 min and its own retries could not reclaim
+      # it, because the token is the temp dir name; 16 enqueues by 5 identities waited.
+      if [ -f "$lock" ] && ! rm_lock_owned && ! { [ "$(field "$lock" Owner)" = "$AGENT" ] && [ "$(field "$lock" Task)" = "$ID" ]; }; then
+        RM_REASON='Queue busy'; return 4; fi
       printf '%s\n' "Owner: $AGENT" "Task: $ID" "Token: $RM_TOKEN" "Lease-Until: $((NOW + RM_LOCK_LEASE))" "Updated: $NOW" > "$lock"
       put "$TX/queue/$ID.md" State MERGING;;
     human)
       # Merged meanwhile (another agent's merge, or `integrate` after a forge merge): release the lock, nothing else.
       if [ "$(field "$RECORD" State)" = INTEGRATED ]; then rm_lock_owned && rm -f "$lock"; return 0; fi
+      # The same reason already waits for the human: no second message. Why (Hacktoberfest): the human queue got the
+      # same reason twice for two tasks.
+      local again=no
+      [ "$(field "$TX/queue/$ID.md" State)" = HUMAN ] && [ "$(field "$TX/queue/$ID.md" Reason)" = "$(one_line "$RM_QUEUE_REASON")" ] && again=yes
       printf '%s\n' "ID: $ID" 'State: HUMAN' "Owner: $AGENT" "Updated: $NOW" "Reason: $(one_line "$RM_QUEUE_REASON")" > "$TX/queue/$ID.md"
       if [ -f "$RECORD" ]; then
         put "$RECORD" Next "Humano: $(one_line "$RM_QUEUE_REASON")"
@@ -369,10 +448,15 @@ rm_coord_mutate() {
         WL=$(field "$RECORD" Worklog); STATE=$(field "$RECORD" State)
         [ ! -f "$TX/$WL" ] || { update_summary_field Next "Humano: $RM_QUEUE_REASON"; event "merge rechazado; $RM_QUEUE_REASON"; }
       fi
-      msg_append human human "$ID" "Merge of $ID in human queue: $RM_QUEUE_REASON"
+      [ "$again" = yes ] || msg_append human human "$ID" "Merge of $ID in human queue: $RM_QUEUE_REASON"
       rm_lock_owned && rm -f "$lock";;
     unlock)
-      if rm_lock_owned; then rm -f "$lock"; else return 6; fi;;
+      if rm_lock_owned; then rm -f "$lock"; else return 6; fi
+      [ ! -f "$TX/queue/$ID.md" ] || put "$TX/queue/$ID.md" State WAITING;;
+    renew)
+      # A long gate keeps its lock: renewed every third of the lease while smoke and Verify run.
+      rm_lock_owned || { RM_REASON='Lock no longer ours'; return 3; }
+      put "$lock" Lease-Until "$((NOW + RM_LOCK_LEASE))"; put "$lock" Updated "$NOW";;
     finalize)
       rm_authority_check || return 3
       rm_lock_owned || { RM_REASON='Lock perdido; candidato cancelado'; return 3; }
@@ -392,7 +476,7 @@ rm_coord_mutate() {
       put "$RECORD" Lease-Until 0; put "$RECORD" Updated "$NOW"; put "$RECORD" Next "Integrated in $BASE: $RM_CANDIDATE"
       update_summary_field Next "Integrated in $BASE: $RM_CANDIDATE"; event "merge; smoke and Verify PASS; commit $RM_CANDIDATE; reviewer $APPROVED_BY"
       rm -f "$CLAIM" "$lock"; put "$TX/queue/$ID.md" State INTEGRATED; put "$TX/queue/$ID.md" Commit "$RM_CANDIDATE"
-      msg_notify_related "$ID" integrated "$ID integrated in $BASE ($RM_CANDIDATE). If you depend on it: git fetch origin && git merge origin/$BASE";;
+      msg_notify_related "$ID" integrated "$ID integrated in $BASE ($RM_CANDIDATE). If you depend on it: git fetch origin && git merge --no-edit origin/$BASE";;
   esac
   return 0
 }
@@ -400,7 +484,7 @@ rm_coord_update() {
   local rc attempts=0
   RM_ACTION=$1
   while [ "$attempts" -lt 80 ]; do
-    attempts=$((attempts + 1)); RM_COUNTER=$((RM_COUNTER + 1)); ATTEMPT="merge-$RM_COUNTER"
+    attempts=$((attempts + 1)); RM_COUNTER=$((RM_COUNTER + 1)); ATTEMPT="${RM_ATTEMPT_PREFIX:-merge}-$RM_COUNTER"
     fresh_state
     if typeset -f coord_init >/dev/null 2>&1; then coord_init; fi
     rm_coord_mutate; rc=$?
@@ -424,6 +508,7 @@ rm_coord_update() {
 rm_exit_cleanup() {
   local rc=$1
   trap - EXIT INT TERM
+  [ -z "${RM_RENEWER:-}" ] || kill "$RM_RENEWER" 2>/dev/null || true
   if [ "$RM_HELD" = yes ]; then
     if [ "$RM_FINISHED" != yes ]; then
       RM_QUEUE_REASON=${RM_QUEUE_REASON:-'Process interrupted; needs revalidation'}
@@ -448,8 +533,8 @@ rm_path_owner() {
   done
 }
 rm_gate_scope() {
-  local path allowed reserve
-  normalize_paths "$(field "$RECORD" Paths)" > "$TXROOT/merge-allowed" || { RM_REASON='Invalid claim Paths'; return 1; }
+  local path allowed reserve owner_t
+  normalize_paths "$(rm_task_value Paths)" > "$TXROOT/merge-allowed" || { RM_REASON='Invalid claim Paths'; return 1; }
   # Scope = what this merge changes in the CURRENT base (the staged candidate vs RM_BASE_TIP), not Task-Base..tip.
   # Why (Reap buildathon, 6 of 13 merged tasks): a branch that merged origin/main inherited other tasks' files
   # (.env.example, workflows, PROJECT.md) and every one of them was sent to the human queue as "outside Paths".
@@ -461,12 +546,23 @@ rm_gate_scope() {
   if [ -n "$additive" ] && [ "$additive" != - ]; then
     normalize_paths "$additive" > "$TXROOT/merge-additive" 2>/dev/null || : > "$TXROOT/merge-additive"
   fi
-  git -C "$RM_BUILD" diff --cached --no-renames --diff-filter=A --name-only "$RM_BASE_TIP" > "$TXROOT/merge-added" || return 1
+  # Names as they are (no "se\303\261al.txt" quoting), so they match the -z list. Why (audit): a new src/señal.txt was
+  # taken for an edit and its exemptions (empty file, Additive-Paths) never applied.
+  git -C "$RM_BUILD" -c core.quotePath=false diff --cached --no-renames --diff-filter=A --name-only "$RM_BASE_TIP" > "$TXROOT/merge-added" || return 1
   while IFS= read -r -d '' path; do
     case "$path" in *$'\n'*|*$'\r'*) RM_REASON='Path with newline not supported'; return 1;; esac
     # Shared resources first, so the reason says what it really is (MLB: the smoke provenance file, written by
     # init-smoke, was reported as "outside Paths").
-    case "/$(printf '%s' "$path" | tr '[:upper:]' '[:lower:]')/" in
+    # Test data is not a shared resource (Hacktoberfest: a fixture repo's migrations/*.sql went to the human).
+    # Only when the fixture directory holds the shared-looking path, not the other way round: db/migration/fixtures/
+    # V9__x.sql is still a migration (Flyway scans db/migration recursively). Why (audit, Oct 2026).
+    local lp fx pre fixture=no
+    lp="/$(printf '%s' "$path" | tr '[:upper:]' '[:lower:]')/"
+    for fx in /fixtures/ /testdata/ /__fixtures__/ /test-fixtures/; do
+      case "$lp" in *"$fx"*) pre="${lp%%"$fx"*}/"
+        case "$pre" in */contracts/*|*/types/*|*/shared-types/*|*/migrations/*|*/db/migration/*|*/.github/*|*/.uak/*) ;; *) fixture=yes;; esac;; esac
+    done
+    [ "$fixture" = yes ] || case "$lp" in
       */contracts/*|*/types/*|*/shared-types/*|*/migrations/*|*/db/migration/*|*/gradle.lockfile/*|*/.github/workflows/*|*/.gitlab-ci.yml/*|*/azure-pipelines.yml/*|*/package-lock.json/*|*/pnpm-lock.yaml/*|*/*.lock/*|*/*.lockb/*|*/go.sum/*|*/.uak/bin/smoke/*|*/.uak/bin/smoke-project/*|*/.uak/bin/.smoke-project.provenance/*|*/.uak/bin/secret-scan/*|*/.uak/bin/uak/*|*/.uak/bin/lib/*|*/.uak/bin/uak-coordination/*|*/.githooks/*|*/hackathon.md/*|*/.uak/project.md/*)
         RM_REASON="Shared resource/CI needs a human: $path"; return 1;;
     esac
@@ -485,6 +581,13 @@ rm_gate_scope() {
     if [ "$allowed" = no ]; then
       if printf '%s' "$path" | grep -Eq '(^|/)(__pycache__|node_modules|\.pytest_cache|\.next|dist|build|target|\.gradle)/|\.pyc$|\.class$|(^|/)\.DS_Store$'; then
         RM_REASON="Generated file committed: $path. Remove it from the branch (git rm -r --cached $path), add the pattern to .gitignore, push, and ask for review again"
+      elif [ "$added" = yes ] && owner_t=$(rm_path_owner "$path") && [ -n "$owner_t" ] &&
+           case "$(field "$TX/tasks/$(printf '%s' "$owner_t" | sed "s/^ (Paths of //;s/)\$//").md" State)" in INTEGRATED|CANCELLED) false;; *) true;; esac; then
+        # Only while that task is still to merge: "merge it first" for an integrated task loops (audit, Oct 2026).
+        # A stacked branch carries a dependency's new file. Why (Hacktoberfest): HACK-010 and HACK-021 merged their
+        # dependency's branch, and its fixture went to the human queue as this task's file.
+        owner_t=${owner_t#' (Paths of '}; owner_t=${owner_t%')'}
+        RM_REASON="New file outside Paths: $path belongs to $owner_t (its Paths), carried by a branch merge. Merge $owner_t first, then git merge --no-edit origin/$BASE here and uak merge $ID again"
       elif [ "$added" = yes ]; then
         RM_REASON="New file outside Paths: $path. Move it into the task's Paths, or a human adds its dir to Additive-Paths in PROJECT.md (new files there need no reservation)"
       else
@@ -506,7 +609,42 @@ rm_gate_env() {
     if [ -d "$v/Scripts" ]; then RM_GATE_PATH="$v/Scripts:$PATH"; break; fi
     if [ -d "$v/bin" ]; then RM_GATE_PATH="$v/bin:$PATH"; break; fi
   done
+  # A port of its own: Verify that starts the app reads $UAK_PORT; the main checkout has none, and a worktree's may be serving.
+  # Above the worktree range (8100-8990) so the gate never meets a task's server. Why (Hacktoberfest): an
+  # approved e2e task went to the human queue with "no UAK_PORT" from a merge run in the main checkout.
+  # A free pair: a server left by an earlier gate (npm run dev &) would answer this gate's e2e with old code. Above
+  # UAK_PORT_BASE's range when the team moved it. Why (audit, Oct 2026): the port was never probed.
+  local gbase=9100 gtry=0
+  case "${UAK_PORT_BASE:-}" in ''|*[!0-9]*) ;; *) gbase=$((UAK_PORT_BASE + 1000));; esac
+  RM_GATE_PORT=$(( gbase + ($$ % 80) * 10 ))
+  # Not on Windows: there a connect to a closed port retries for ~2 s, and wt stop's netstat clears the port after.
+  case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*) gtry=40;; esac
+  while [ "$gtry" -lt 40 ] && { (exec 3<>"/dev/tcp/127.0.0.1/$RM_GATE_PORT") 2>/dev/null || (exec 3<>"/dev/tcp/127.0.0.1/$((RM_GATE_PORT + 1))") 2>/dev/null; }; do
+    RM_GATE_PORT=$((RM_GATE_PORT + 10)); [ "$RM_GATE_PORT" -lt "$((gbase + 800))" ] || RM_GATE_PORT=$gbase; gtry=$((gtry + 1))
+  done
   [ -z "${RM_BUILD:-}" ] || rm_gate_node
+}
+# Servers a Verify left running on the gate's ports (npm run dev &) are stopped, as wt stop does for a worktree.
+# Why (audit, Oct 2026): they outlived the deleted candidate and a later gate on the same port tested old code.
+rm_gate_stop() {
+  [ -n "${RM_BUILD:-}" ] && [ -d "$RM_BUILD" ] && [ -f "$UAK_BIN/wt" ] || return 0
+  printf 'UAK_PORT=%s\n' "$RM_GATE_PORT" > "$RM_BUILD/.uak-env"
+  (cd "$RM_BUILD" && bash "$UAK_BIN/wt" stop) > /dev/null 2>&1 || true
+  rm -f "$RM_BUILD/.uak-env"
+  # Also anything still running inside the candidate (its working directory is there): a server on another port, a
+  # watcher. Why (macOS CI): the port lookup missed a server Verify had started in the background.
+  local b pid
+  b=$(cd "$RM_BUILD" && pwd -P) || return 0
+  if [ -d /proc/self ]; then
+    for pid in $(ls /proc 2>/dev/null | grep -E '^[0-9]+$'); do
+      [ "$pid" != "$$" ] || continue
+      case "$(readlink "/proc/$pid/cwd" 2>/dev/null)" in "$b"|"$b"/*) kill "$pid" 2>/dev/null;; esac
+    done
+  elif command -v lsof >/dev/null 2>&1; then
+    lsof -a -d cwd -Fpn 2>/dev/null | awk -v b="$b" '/^p/ { p = substr($0, 2) } /^n/ { n = substr($0, 2); if (n == b || index(n, b "/") == 1) print p }' |
+      while IFS= read -r pid; do [ "$pid" = "$$" ] || kill "$pid" 2>/dev/null; done
+  fi
+  return 0
 }
 # Node packages for the candidate: each package.json (up to 2 levels deep) gets the worktree's or the main
 # checkout's node_modules when its lockfile is identical (a link, or a junction on Windows); a changed lockfile
@@ -515,7 +653,8 @@ rm_gate_env() {
 rm_link_dir() { # $1 existing dir, $2 link path
   case "$(uname -s 2>/dev/null)" in
     MINGW*|MSYS*|CYGWIN*) command -v cygpath >/dev/null 2>&1 &&
-      cmd //c mklink /J "$(cygpath -w "$2")" "$(cygpath -w "$1")" >/dev/null 2>&1;;
+      # No path conversion: Git Bash rewrote cmd's arguments and mklink said "Invalid switch".
+      MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' cmd /c mklink /J "$(cygpath -w "$2")" "$(cygpath -w "$1")" >> "$TXROOT/gate-node.log" 2>&1 && [ -e "$2" ];;
     *) ln -s "$1" "$2" 2>/dev/null;;
   esac
 }
@@ -530,11 +669,15 @@ rm_gate_node() {
     [ -n "$lock" ] || continue
     done_=no
     for src in "$ROOT/${d:+$d/}" "$RM_MAIN/${d:+$d/}"; do
-      [ -d "${src}node_modules" ] && cmp -s "${src}$lock" "$RM_BUILD/${d:+$d/}$lock" || continue
+      # Ignoring CR: a Windows checkout (core.autocrlf) has the same lockfile with other line ends.
+      [ -d "${src}node_modules" ] && [ "$(tr -d '\r' < "${src}$lock" | cksum)" = "$(tr -d '\r' < "$RM_BUILD/${d:+$d/}$lock" | cksum)" ] || continue
       if rm_link_dir "${src}node_modules" "$RM_BUILD/${d:+$d/}node_modules"; then
-        printf '%s\n' "$RM_BUILD/${d:+$d/}node_modules" >> "$TXROOT/gate-links"; done_=yes; break
+        printf '%s\n' "$RM_BUILD/${d:+$d/}node_modules" >> "$TXROOT/gate-links"; done_=yes
+        printf 'node: %snode_modules linked from %s\n' "${d:+$d/}" "$src" >> "$TXROOT/gate-node.log"; break
       fi
+      printf 'node: could not link %snode_modules from %s\n' "${d:+$d/}" "$src" >> "$TXROOT/gate-node.log"
     done
+    [ "$done_" = yes ] || printf 'node: no node_modules with the same %s for %s\n' "$lock" "${d:-.}" >> "$TXROOT/gate-node.log"
     if [ "$done_" = no ] && [ "$lock" = package-lock.json ] && command -v npm >/dev/null 2>&1; then
       (cd "$RM_BUILD/${d:-.}" && npm ci --no-audit --no-fund --loglevel=error) >> "$TXROOT/gate-node.log" 2>&1 || true
     fi
@@ -547,7 +690,14 @@ rm_gate_log() {
   local src="$TXROOT/gate-$1.log" dir dst line
   dir="$(git -C "$ROOT" rev-parse --absolute-git-dir 2>/dev/null)/uak-out"; mkdir -p "$dir" 2>/dev/null || return 0
   dst="$dir/gate-$ID-$1-$NOW.log"; cp "$src" "$dst" 2>/dev/null || return 0
-  line=$(grep -Ev '^[[:space:]]*$' "$dst" | grep -Ei 'error|fail|not found|no module|exit' | tail -n 1 | cut -c 1-140)
+  # What the gate did with node_modules explains most "command not found" in a candidate.
+  [ ! -s "$TXROOT/gate-node.log" ] || { printf '\n--- node_modules for the candidate\n'; cat "$TXROOT/gate-node.log"; } >> "$dst" 2>/dev/null
+  # The cause, not the kit's own summary line ("PRODUCT_FAIL: adapter exit=127"): a "not found" first, then the last
+  # error line that is not a kit verdict. Why (Hacktoberfest): 4 gate reasons quoted only "adapter exit=N".
+  line=$(grep -Ev '^[[:space:]]*$' "$dst" | grep -Ei 'command not found|: not found|no such file|cannot find|is not recognized' | tail -n 1 | cut -c 1-140)
+  [ -n "$line" ] || line=$(grep -Ev '^[[:space:]]*$' "$dst" | grep -Ev '^[[:space:]]*[A-Z][A-Z0-9_]*(_FAIL|_PASS|_RESULT|_SKIP)([: ]|$)' |
+    grep -Ei 'error|fail|not found|no module|exit' | tail -n 1 | cut -c 1-140)
+  [ -n "$line" ] || line=$(grep -Ev '^[[:space:]]*$' "$dst" | grep -Ei 'error|fail|not found|no module|exit' | tail -n 1 | cut -c 1-140)
   [ -n "$line" ] || line=$(grep -Ev '^[[:space:]]*$' "$dst" | tail -n 1 | cut -c 1-140)
   printf ': %s (log: %s)' "$(one_line "$line" | tr '|' '/')" "$dst"
 }
@@ -579,12 +729,13 @@ rm_prepare_candidate() {
     RM_REASON='Secret gate red'; return 1;
   }
   rm_gate_env
-  (cd "$RM_BUILD" && PATH="$RM_GATE_PATH" UAK_MAIN_CHECKOUT="$RM_MAIN" bash .uak/bin/smoke) > "$TXROOT/gate-smoke.log" 2>&1 ||
+  (cd "$RM_BUILD" && PATH="$RM_GATE_PATH" UAK_MAIN_CHECKOUT="$RM_MAIN" UAK_PORT="$RM_GATE_PORT" bash .uak/bin/smoke) > "$TXROOT/gate-smoke.log" 2>&1 ||
     { RM_REASON="Smoke red or product unverified$(rm_gate_log smoke)"; return 1; }
-  verify=$(field "$RECORD" Verify); verify=$(printf '%s\n' "$verify" | sed 's/^`//;s/`$//')
+  verify=$(rm_task_value Verify); verify=$(printf '%s\n' "$verify" | sed 's/^`//;s/`$//')
   [ -n "$verify" ] || { RM_REASON='Missing runnable Verify'; return 1; }
-  (cd "$RM_BUILD" && PATH="$RM_GATE_PATH" UAK_MAIN_CHECKOUT="$RM_MAIN" bash -c "$verify") > "$TXROOT/gate-verify.log" 2>&1 ||
-    { RM_REASON="Verify / acceptance red$(rm_gate_log verify)"; return 1; }
+  (cd "$RM_BUILD" && PATH="$RM_GATE_PATH" UAK_MAIN_CHECKOUT="$RM_MAIN" UAK_PORT="$RM_GATE_PORT" bash -c "$verify" < /dev/null) > "$TXROOT/gate-verify.log" 2>&1 ||
+    { RM_REASON="Verify / acceptance red$(rm_gate_log verify)"; rm_gate_stop; return 1; }
+  rm_gate_stop
   git -C "$RM_BUILD" diff --quiet && [ "$(git -C "$RM_BUILD" write-tree)" = "$RM_TREE" ] || {
     RM_REASON='Smoke/Verify modified tracked files of the candidate; needs a new review'; return 1;
   }
@@ -610,9 +761,17 @@ merge_run() {
   # ("Missing verifiable approval") and a human had to read them.
   ATTEMPT=precheck; fresh_state; RECORD=$(task_file)
   [ "$(field "$RECORD" State)" != INTEGRATED ] || { rm_already_integrated; return 0; }
-  if [ -f "$RECORD" ] && [ "$(field "$RECORD" State)" = REVIEW ] && resolve_task_tip &&
-     ! approval_check "$RM_TIP" "$(field "$RECORD" PR)"; then
-    case "$RM_REASON" in 'Missing verifiable approval on claims'|'Approval missing, rejected, self-made or stale for the current SHA'|'GitHub shows no current independent approval on this SHA')
+  # A branch that is not pushed is the owner's to fix, not a human's. Why (audit, Oct 2026): "Local and remote HEAD
+  # differ; push the branch" became a human-queue entry with a message to the human.
+  local tip_ok=no
+  if [ -f "$RECORD" ] && [ "$(field "$RECORD" State)" = REVIEW ]; then
+    if resolve_task_tip; then tip_ok=yes
+    else case "$RM_REASON" in 'Local and remote HEAD differ'*) say "MERGE_WAIT $ID | $RM_REASON. Nothing was queued."; return 3;; esac; fi
+  fi
+  if [ "$tip_ok" = yes ] && ! approval_check "$RM_TIP" "$(field "$RECORD" PR)"; then
+    # The gh reason carries a hint after the sentence: match its start. Why (audit): since v5.2.1 the exact text
+    # never matched, and every early merge in gh mode went to the human queue.
+    case "$RM_REASON" in 'Missing verifiable approval on claims'|'Approval missing, rejected, self-made or stale for the current SHA'|'GitHub shows no current independent approval on this SHA'*)
       local rv="$TX/reviews/$ID.md" last=
       [ ! -f "$rv" ] || last=" Last review: $(field "$rv" Verdict) by $(field "$rv" Reviewer) on ${RM_TIP:+$(field "$rv" SHA | cut -c 1-7)}."
       say "MERGE_WAIT $ID | $RM_REASON (current SHA $(printf '%s' "$RM_TIP" | cut -c 1-7)).$last Wait for an approve message on this SHA (or fix a reject and push); nothing was queued."
@@ -645,15 +804,41 @@ merge_run() {
   done
   trap 'rm_exit_cleanup $?' EXIT
   trap 'exit 130' INT; trap 'exit 143' TERM
+  # Lease renewal in the background while the candidate is built and verified. Why (audit and Hacktoberfest): a gate
+  # longer than Merge-Lease-Seconds always ended "Lock expired" in the human queue, and another merger could take
+  # the lock and run its gate at the same time.
+  # Its own temp dir: coord_init rewrites the backlog and config files there, which the gate is reading. No stdio of
+  # ours (an orphaned sleep holding the caller's pipe made a harness wait 240 s on macOS), and sleeps of 5 s, so a
+  # TERM ends it at once (the trap kills the sleep it waits on) and nothing outlives the merge for long.
+  ( RM_ATTEMPT_PREFIX=renew; TXROOT=$(mktemp -d "$TMP_BASE/hack.XXXXXX") || exit 0; trap 'rm -rf "$TXROOT"' EXIT
+    COORD_INITIALIZED_TX=; COORD_BASE_FROM=; rm_sleep_pid=; rm_slept=0
+    trap '[ -z "$rm_sleep_pid" ] || kill "$rm_sleep_pid" 2>/dev/null; exit 0' TERM INT
+    rm_every=$(( RM_LOCK_LEASE / 3 > 5 ? RM_LOCK_LEASE / 3 : 5 ))
+    while :; do
+      sleep 5 & rm_sleep_pid=$!; wait "$rm_sleep_pid"; rm_sleep_pid=
+      rm_slept=$((rm_slept + 5)); [ "$rm_slept" -ge "$rm_every" ] || continue; rm_slept=0
+      NOW=${UAK_NOW:-$(date +%s)}; RM_ACTION=renew
+      rm_coord_update renew || break
+    done ) </dev/null >/dev/null 2>&1 &
+  RM_RENEWER=$!
   if ! rm_prepare_candidate; then
+    kill "$RM_RENEWER" 2>/dev/null; wait "$RM_RENEWER" 2>/dev/null
     RM_QUEUE_REASON=${RM_REASON:-'Candidate validation failed'}
     if rm_coord_update human; then RM_HELD=no; fi
     [ "$(field "$(task_file)" State)" != INTEGRATED ] || { rm_already_integrated; return 0; }
     say "MERGE_HUMAN $ID | $RM_QUEUE_REASON"; rm_human_hint; return 3
   fi
+  kill "$RM_RENEWER" 2>/dev/null; wait "$RM_RENEWER" 2>/dev/null
   clock_now
   rm_coord_update finalize; rc=$?
   if [ "$rc" -ne 0 ]; then
+    # The base moved or the owner pushed while the gate ran: run it again, it is nobody's fault. Why (Hacktoberfest):
+    # an owner's push during a merge sent the task to the human queue.
+    case "$RM_REASON" in 'Base moved; revalidate the candidate'|'Task SHA changed during validation')
+      if rm_coord_update unlock; then RM_HELD=no; fi
+      say "MERGE_WAIT $ID | $RM_REASON. Nothing was lost: run uak merge $ID again (the gate re-checks the new commits)."
+      return 3;;
+    esac
     RM_QUEUE_REASON=${RM_REASON:-'Atomic publish failed'}
     if rm_coord_update human; then RM_HELD=no; fi
     [ "$rc" -ne 5 ] || { rm_already_integrated; return 0; }
