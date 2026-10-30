@@ -46,9 +46,11 @@ from_manual() {
 from_codex() {
   [ "${UAK_PACE_CODEX:-1}" != 0 ] || return 0
   d=${CODEX_HOME:-$HOME/.codex}/sessions; [ -d "$d" ] || return 0
-  recent=$(find "$d" -type f -name '*.jsonl' -mmin -360 2>/dev/null)
-  [ -n "$recent" ] || return 0
-  latest=$(ls -t $recent 2>/dev/null | head -n 1)
+  # Newest of the recent rollouts, safe with spaces in HOME ("C:/Users/José Pérez"): no word splitting.
+  latest=
+  while IFS= read -r f; do [ -n "$latest" ] && [ ! "$f" -nt "$latest" ] || latest=$f; done <<EOF_PACE
+$(find "$d" -type f -name '*.jsonl' -mmin -360 2>/dev/null)
+EOF_PACE
   [ -n "$latest" ] || return 0
   obs=$(stat -c %Y "$latest" 2>/dev/null || stat -f %m "$latest" 2>/dev/null || date -r "$latest" +%s 2>/dev/null || echo "$NOW")
   # Rollout files can reach hundreds of MB: read only the tail.
@@ -102,7 +104,7 @@ advice() {
     surge) say "spend: budget will expire unused. Add workers (uak up 2), run more scouts in parallel, use the strong model at every checkpoint.";;
     normal) say "on pace: keep the default routing (fast reads, balanced builds, strong at checkpoints).";;
     conserve) say "save: halve parallel subagents, fast model for all reads, strong model only when stuck twice.";;
-    critical) say "stop spending: 1 subagent, no strong model, finish the current criterion, then uak checkpoint and /uak-handoff before the limit hits.";;
+    critical) say "stop spending: 1 subagent, no strong model, finish the current criterion, then uak checkpoint ID --done T --decision T --why T --fails T --commands T --next T and /uak-handoff before the limit hits.";;
     *) say "no usage data yet: Claude Code fills it after the first reply (statusline); Codex from its session logs; others: uak pace set USED --resets +3h";;
   esac
 }
@@ -117,9 +119,9 @@ case "$cmd" in
     resets= window=5h source=manual
     while [ "$#" -gt 0 ]; do
       case "$1" in
-        --resets) resets=$(secs "${2:-}") || die "--resets: +3h, +45m, +2d or epoch seconds"; shift 2;;
-        --window) window=${2:-}; shift 2;;
-        --source) source=$(printf '%s' "${2:-manual}" | tr -c 'A-Za-z0-9_.-' '-'); shift 2;;
+        --resets) resets=$(secs "${2:-}") || die "--resets: +3h, +45m, +2d or epoch seconds"; shift $(($# > 1 ? 2 : 1));;
+        --window) window=${2:-}; shift $(($# > 1 ? 2 : 1));;
+        --source) source=$(printf '%s' "${2:-manual}" | tr -c 'A-Za-z0-9_.-' '-'); shift $(($# > 1 ? 2 : 1));;
         *) die "Unknown option: $1";;
       esac
     done

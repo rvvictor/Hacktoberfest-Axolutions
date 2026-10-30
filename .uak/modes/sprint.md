@@ -22,13 +22,14 @@ Goal: win the rubric with a demo people remember. Speed beats polish, and the fr
 3. Wave 1 is wide: one task with no hard dependency per agent. Consumers use `Uses contract:` plus mocks.
 4. At most 2 agents per human. More agents produce more messages than code.
 5. Wave 2 onward: `UAK_HUMAN=<human> uak plan file.md` publishes tasks instantly, with no PR.
-6. Start the team with `uak up <agents> --tmux`. Humans watch `uak board --watch 10` instead of asking agents for status.
+6. A contract with no task behind it is a hole. When a contract says "each module exposes X" (a stage registry, a plugin hook), the backlog has a task that implements X for every consumer, P0 if the wow runs through it. Why (Hacktoberfest): the pipeline looked up `run_stage` in 8 service modules, no task wrote one, and every run replayed the same recorded project.
+7. Start the team with `uak up <agents> --tmux`. Humans watch `uak board --watch 10` instead of asking agents for status.
 
 ## Speed
 0. Orchestrate by cost (`.uak/docs/ORCHESTRATION.md`): Haiku scouts read, the Sonnet lead builds, and Opus is consulted only at plan lock, a repeated failure and done. The guard caps parallel subagents (4) and Opus subagents (2 per session). `uak pace` scales those with your 5-hour window, and fixed hard limits stop any runaway: 6 parallel, 3 Opus, 40 spawns per session, 8 per machine, 6 per minute, and 6 agents per `uak up`.
 1. Mock first; switch to the real thing after its spike. Every mock shows `demo_data: true` in the UI.
 2. Merge as soon as there is an `approve` and the gates are green (`Auto-Merge: yes`). The human gets a `digest`, not pings.
-3. Stuck for 20 min, or the loop is stuck → `uak decision` with a reversible fallback, and move on.
+3. Stuck for 20 min, or the loop is stuck → `uak decision ID --option "TEXT" --why "TEXT" --reversible yes --authorized yes --class routine` (the reversible fallback), and move on.
 4. Mechanical fixes (lint, types, a failing test with a clear error) go to `uak loop --verify <cmd> --agent <cli> --max 5`.
 5. No free tasks: review PRs → demo-path tests → polish → rehearse.
 
@@ -36,11 +37,10 @@ Goal: win the rubric with a demo people remember. Speed beats polish, and the fr
 1. The wow moment happens within 90 s of the demo and is fully visible at 1280×720 (projector) without scrolling. Legal or "not a diagnosis" notices stay inside the viewport.
 2. There is one visual direction in `web/DESIGN.md`, and every color comes from CSS tokens. A global redesign after the lock needs a human decision.
 3. Every screen on the demo path has empty, loading, error and labeled sample-data states.
-4. Before every UI PR: `bash .uak/bin/design-lint` passes, then the `design-critic` subagent reviews screenshots at 1280×720 and 390×844. Fix its P1s before asking for review.
+4. Before `uak done` on a UI task: `bash .uak/bin/design-lint` passes, screenshots at 1280×720 and 390×844 go in `.uak-shots/<ID>/`, and the `design-critic` subagent writes its verdict there. `done` refuses a task in `UI-Paths` without `VERDICT: SHIP` for its commit.
 5. Skills:
    - `frontend-design` for the design lock (`/uak-design-lock`);
-   - `design-taste-frontend` only for a landing or hero page (it is large, and not for app screens);
-   - `product-ui` for every app screen: dashboards, maps with panels, forms, lists;
+   - `product-ui` for every app screen, with your screen's recipe row in `web/DESIGN.md` and its locked screen in `web/public/design-lock/screens/`;
    - `landing-story` for the landing the jury opens first: it tells the idea in 5 seconds, with real screens of the product;
    - `redesign-existing-projects` during the freeze;
    - `webapp-testing` to verify.
@@ -51,6 +51,8 @@ Goal: win the rubric with a demo people remember. Speed beats polish, and the fr
 ## AI products
 - Pin model IDs in one config file and check with a spike that they exist.
 - Keep a recorded response per model call (`demo_data: true`) so the demo works offline and without keys. Add a `DEMO_MODE` switch.
+- A fallback to the recording is a fallback, not the product. With `DEMO_MODE` off, a new input must produce its own output, or the run must say plainly that it is showing the recording. A judge who types their own idea and gets yours sees a fake.
+- Get the keys in the first hour. A task that only a human with keys can finish (recording real fixtures) is P0 with a named human, not a backlog item.
 - The LLM picks from given options and cites given IDs. Validate every model output against a schema before use.
 - Use `mcp-builder` when the project exposes tools to agents.
 

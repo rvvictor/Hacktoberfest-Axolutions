@@ -2,6 +2,9 @@
 # Bash 3.2+; Git y utilidades POSIX. No requiere jq ni Python.
 # Why: works on Git Bash, macOS and Linux with no services.
 set -u
+# Inherited from git (an alias, a hook): uak's temp clones would act on the caller's repository instead. Why: the MCP
+# server, started through a git alias in a task worktree, made the main repository bare (core.bare=true).
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
 set -o pipefail
 LC_ALL=C
 export LC_ALL
@@ -15,6 +18,7 @@ export MSYS2_ARG_CONV_EXCL
 hack_env_file="$(git rev-parse --show-toplevel 2>/dev/null)/.uak-env"
 if [ -f "$hack_env_file" ]; then
   while IFS='=' read -r hack_key hack_value || [ -n "$hack_key" ]; do
+    hack_value=${hack_value%$'\r'}  # a .uak-env saved with CRLF (Windows editors) kept the identity out
     case "$hack_key" in
       UAK_AGENT|UAK_HUMAN|UAK_AGENT_HUMAN|UAK_SESSION|UAK_TASK)
         case "$hack_value" in ''|*[!A-Za-z0-9_.-]*) continue;; esac
@@ -38,7 +42,7 @@ REMOTE=${UAK_REMOTE:-origin}
 BASE=${UAK_BASE:-main}
 AGENT=${UAK_AGENT:-}
 HUMAN=${UAK_HUMAN:-}
-ROOT= TX= TXROOT= NOW=
+ROOT= TX= TXROOT= NOW= HANDOVER_ENV_WT=
 CMD=${1:-help}
 [ "$#" -eq 0 ] || shift
 # The names agents guessed for existing commands. Why (MLB hackathon): tasks, task, show, backlog and
@@ -76,14 +80,30 @@ gitfail() { say "GIT_ERROR: $*" >&2; bb_auto 1 "GIT_ERROR: $*"; exit 1; }
 valid_id() { printf '%s\n' "$1" | grep -Eq '^[A-Z][A-Z0-9]*-[0-9][0-9][0-9]+$'; }
 # hack-021 means HACK-021. Why (MLB hackathon): 4 "Invalid ID." errors from Cursor with no hint of the value.
 norm_id() { case "$1" in *[a-z]*-[0-9]*) printf '%s' "$1" | tr '[:lower:]' '[:upper:]';; *) printf '%s' "$1";; esac; }
-bad_id() { die "Invalid ID '$1': use the task ID as in TASKS.md, e.g. HACK-012 (uak status lists them)."; }
+bad_id() {
+  # A flag where the ID goes ("checkpoint --summary", "status --task --summary" with an empty $UAK_TASK): say the usage.
+  case "$1" in -*) die "Invalid ID '$1': $CMD takes the task ID first. Usage: $(usage | grep -E "^$CMD( |\$)" | head -n 1)";; esac
+  die "Invalid ID '$1': use the task ID as in TASKS.md, e.g. HACK-012 (uak status lists them)."
+}
 # Why (Chilangatón): `done` failed with a bare "Invalid option." and the agent guessed again.
 bad_opt() { die "Invalid option $opt for $CMD. Usage: $(usage | grep -E "^$CMD( |\$)" | head -n 1)"; }
+# Prints the kind of the first secret-looking token on stdin; fails when there is none. Shared by every claims
+# write. A token must carry a digit and be long: "task-assignment-service" is not an sk- key.
+secret_like() {
+  local inp t
+  inp=$(cat)
+  case "$inp" in *'-----BEGIN '*'PRIVATE KEY'*) printf 'a private key'; return 0;; esac
+  t=$(printf '%s\n' "$inp" | grep -Eo '(^|[^A-Za-z0-9])(sk-[A-Za-z0-9_-]{20,}|[sr]k_(live|test)_[A-Za-z0-9]{16,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|xox[abprs]-[0-9][A-Za-z0-9-]{10,}|npm_[A-Za-z0-9]{36}|hf_[A-Za-z0-9]{30,}|eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|(postgres(ql)?|mysql|mongodb(\+srv)?|redis|amqp)://[^ :/@]+:[^ @/]+@)' | grep -E '[0-9]|://' | head -n 1)
+  [ -n "$t" ] || return 1
+  case "$t" in *sk-*|*sk_*|*rk_*) printf 'an API key';; *gh?_*|*github_pat_*) printf 'a GitHub token';; *AKIA*) printf 'an AWS key';;
+    *AIza*) printf 'a Google key';; *xox*) printf 'a Slack token';; *eyJ*) printf 'a JWT';; *://*) printf 'a database URL with a password';; *) printf 'a token';; esac
+}
 one_line() { local text=$1; text=${text//$'\r'/ }; text=${text//$'\n'/ }; printf '%s' "$text"; }
 field() {
   local line prefix="$2: "
   [ -f "$1" ] || return 0
   while IFS= read -r line || [ -n "$line" ]; do
+    line=${line%$'\r'}
     case "$line" in "$prefix"*) printf '%s\n' "${line#"$prefix"}"; return 0;; esac
   done < "$1"
 }
@@ -108,7 +128,7 @@ cleanup() {
       if [ -f "$TXROOT/gate-links" ]; then
         while IFS= read -r l; do
           case "$(uname -s 2>/dev/null)" in
-            MINGW*|MSYS*|CYGWIN*) cmd //c rmdir "$(cygpath -w "$l")" >/dev/null 2>&1 || rm -f "$l";;
+            MINGW*|MSYS*|CYGWIN*) MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' cmd /c rmdir "$(cygpath -w "$l")" >/dev/null 2>&1 || rm -f "$l";;
             *) rm -f "$l";;
           esac
         done < "$TXROOT/gate-links"
@@ -127,13 +147,13 @@ claim ID --branch RAMA --worktree RUTA [--next TEXTO]
 heartbeat ID
 release ID [--expired --read-summary TOKEN] [--cancel MOTIVO]
 log ID [--state CLAIMED|BLOCKED] TEXTO
-checkpoint ID|--session --done TEXTO --decision TEXTO --why TEXTO --fails TEXTO --commands TEXTO --next TEXTO
+checkpoint ID|--session --done TEXT --decision TEXT --why TEXT --fails TEXT --commands TEXT --next TEXT
 handoff ID
-done ID --pr URL --evidence TEXTO [--to REVIEWER] [--note "what changed since the last review"] [--integrated COMMIT --reviewer OTRO]
+done ID --pr URL --evidence TEXT [--to REVIEWER] [--no-ui "why it changes nothing visible"] [--note "what changed since the last review"] [--integrated COMMIT --reviewer OTRO]
 digest
 tick
 next
-review ID --start | --stop | --sha SHA --verdict approve|reject [--note "file:line · what · how to reproduce"] [--learn]
+review ID --start | --stop | --decline | --sha SHA --verdict approve|reject [--note "file:line · what · how to reproduce"] [--learn]
 followup ID --title TEXT   new task on ID's Paths after ID is INTEGRATED (fixes and polish; no human needed)
 handover ID --to NAME   pass your claim (or an expired one, or as UAK_HUMAN) to another agent without AVAILABLE
 pr-sync [ID]   failed checks and new human review comments on a task's GitHub PR → one message to the task (gh)
@@ -168,7 +188,7 @@ plan FILE [--amend]   publish new tasks to claims without a PR, or amend publish
 msg DESTINO TEXTO [--kind TIPO] [--task HACK-NNN]   DESTINO: NOMBRE|HACK-NNN|related:HACK-NNN|all|human
 inbox [--ack] [--all] [--peek] [--task HACK-NNN] [--human]
 wait [ID] --for approve|integrated|message [--timeout S]   one call that returns when it happens (instead of polling)
-learn "TEXT" [--path P,Q] [--task ID] · learn --forget N   a lesson tied to paths; next shows it to the next agent there
+learn "TEXT" [--path P,Q|all] [--task ID] · learn --forget N   a lesson tied to paths; next shows it to the next agent there
 recall [ID|PATH] [--similar | --search "words"]   lessons for a task or a path; --similar/--search: lessons, rejects, contracts and decisions ranked by words (BM25)
 UAK_AGENT / UAK_HUMAN · UAK_REMOTE=origin · UAK_BASE=main · lease=1800s
 Why: the remote serializes claims; every session keeps an exact next step.
@@ -229,27 +249,47 @@ load_task() {
 }
 # Globs reserve their whole prefix; a root glob reserves the repo.
 # Why: reversible over-reservation avoids conflicts a glob would hide.
+# Paths as a list of reserved prefixes. Braces expand ("src/{api,web}/**" is src/api and src/web, not "src/{api"
+# and "web}"), a trailing note in parentheses is dropped ("`src/a.ts` (new)"), and a whole segment in brackets is a
+# name, not a glob (Next.js app/[slug]/page.tsx reserves that file, not all of app/). Why (audit, Oct 2026): the
+# brace case let two claims share src/api, and [slug] made app/about collide with app/[slug].
 normalize_paths() {
-  printf '%s\n' "$1" | awk '
+  # Accented capitals fold too (awk's tolower leaves UTF-8 bytes alone): Botón and BOTÓN are one file on macOS and
+  # Windows. Byte-sequence replacements, the same under GNU and BSD sed.
+  printf '%s\n' "$1" | sed 's/Á/á/g;s/É/é/g;s/Í/í/g;s/Ó/ó/g;s/Ú/ú/g;s/Ü/ü/g;s/Ñ/ñ/g;s/À/à/g;s/È/è/g;s/Ì/ì/g;s/Ò/ò/g;s/Ù/ù/g;s/Â/â/g;s/Ê/ê/g;s/Î/î/g;s/Ô/ô/g;s/Û/û/g;s/Ç/ç/g;s/Ã/ã/g;s/Õ/õ/g' | awk '
     BEGIN {bad=0}
-    {
-      n=split($0,a,",");
+    function emit(p,   n, seg, i, out, g) {
+      gsub(sprintf("%c",96),"",p);
+      sub(/^[[:space:]]*/,"",p); sub(/[[:space:]]*$/,"",p);
+      sub(/[[:space:]]+\([^)]*\)$/,"",p);
+      gsub(/\\/,"/",p); while(p ~ /^\.\//) sub(/^\.\//,"",p);
+      gsub(/\/+/,"/",p);
+      while(p ~ /\/\.\//) gsub(/\/\.\//,"/",p);
+      sub(/\/\.$/,"",p); sub(/\/$/,"",p); p=tolower(p);
+      if(p=="" || p ~ /^\// || p ~ /^[A-Za-z]:/ || p ~ /(^|\/)\.\.(\/|$)/) {bad=1; return}
+      n=split(p,seg,"/"); out=""; g=0
       for(i=1;i<=n;i++) {
-        p=a[i]; gsub(sprintf("%c",96),"",p);
-        sub(/^[[:space:]]*/,"",p); sub(/[[:space:]]*$/,"",p);
-        gsub(/\\/,"/",p); while(p ~ /^\.\//) sub(/^\.\//,"",p);
-        gsub(/\/+/,"/",p);
-        while(p ~ /\/\.\//) gsub(/\/\.\//,"/",p);
-        sub(/\/\.$/,"",p); p=tolower(p);
-        if(p=="" || p ~ /^\// || p ~ /^[A-Za-z]:/ || p ~ /(^|\/)\.\.(\/|$)/) {bad=1; continue}
-        at=match(p,/[*?\[]/);
-        if(at) {
-          p=substr(p,1,at-1); sub(/[^\/]*$/,"",p);   # escaped \/: BSD awk (macOS) ends the regex at an unescaped /
-          if(p=="") p=".";
-        }
-        sub(/\/$/,"",p); if(p=="") p=".";
-        print p;
+        if(seg[i] ~ /^\[.*\]$/) { out=out (out==""?"":"/") seg[i]; continue }
+        if(seg[i] ~ /[*?[]/) { g=1; break }
+        out=out (out==""?"":"/") seg[i]
       }
+      if(out=="") out=".";
+      print out;
+    }
+    function expand(p,   o, c, pre, body, post, n, alt, i) {
+      o=index(p,"{"); if(!o) { emit(p); return }
+      c=index(substr(p,o),"}"); if(!c) { emit(p); return }
+      pre=substr(p,1,o-1); body=substr(p,o+1,c-2); post=substr(p,o+c)
+      n=split(body,alt,"\001"); for(i=1;i<=n;i++) expand(pre alt[i] post)
+    }
+    {
+      line=$0; out=""; depth=0
+      for(i=1;i<=length(line);i++) { ch=substr(line,i,1)
+        if(ch=="{") depth++; else if(ch=="}" && depth>0) depth--
+        if(ch=="," && depth>0) ch="\001"
+        out=out ch }
+      n=split(out,a,",");
+      for(i=1;i<=n;i++) expand(a[i]);
     }
     END {exit bad}' | sort -u
 }
@@ -322,6 +362,12 @@ check_owners() {
     [ -n "$pat" ] || continue
     normalize_paths "$pat" > "$TXROOT/owner-paths" || die "Invalid OWNERS pattern: $pat"
     if overlaps "$TXROOT/paths-request" "$TXROOT/owner-paths" && ! owner_is_self "$owner" && ! owner_waits_on_me "$owner"; then
+      # An owner task already INTEGRATED no longer works there: its row is advice, not a lock. Why (Hacktoberfest): a
+      # bug in lib/sse.ts, owned by an integrated task, stayed on main while 5 views copied a workaround around it.
+      if [ "$(field "$TX/tasks/$owner.md" State)" = INTEGRATED ]; then
+        DONE_HINT="NOTE: $pat belongs to $owner, already INTEGRATED: you may edit it; tell its users first: uak msg impact:$ID --kind contract \"what changed · what to do\""
+        continue
+      fi
       conflict "$pat belongs to $owner; split the work or request its contract. If the plan gave $ID that path on purpose: drop it (uak plan FILE --amend), give the OWNERS row to $ID, or make $owner depend on $ID."
     fi
   done < "$TXROOT/owners"
@@ -332,7 +378,8 @@ check_owners() {
         printf '%s\n' "$path" > "$TXROOT/one-path"
         while IFS='|' read -r pat owner; do
           normalize_paths "$pat" > "$TXROOT/owner-paths" || die "Invalid OWNERS."
-          if overlaps "$TXROOT/one-path" "$TXROOT/owner-paths" && { owner_is_self "$owner" || owner_waits_on_me "$owner"; }; then assigned=yes; fi
+          if overlaps "$TXROOT/one-path" "$TXROOT/owner-paths" && { owner_is_self "$owner" || owner_waits_on_me "$owner" ||
+             [ "$(field "$TX/tasks/$owner.md" State)" = INTEGRATED ]; }; then assigned=yes; fi
         done < "$TXROOT/owners"
         [ "$assigned" = yes ] || conflict "Shared resource without an owner in OWNERS.md: $path"
         ;;
@@ -365,7 +412,7 @@ fresh_state() {
     init_try=$((init_try + 1))
     # A sandbox that forbids git in the system temp dir (Codex on macOS: "Operation not permitted" in /var/folders)
     # gets a temp dir inside the repo's own .git. Why (MLB hackathon): 12 tick/next/status/inbox calls failed this way.
-    if [ "$init_try" -ge 2 ] && [ -z "${UAK_TMP_FALLBACK:-}" ] && grep -qi 'not permitted\|permission denied\|read-only' "$TXROOT/init-error"; then
+    if [ "$init_try" -ge 2 ] && [ -z "${UAK_TMP_FALLBACK:-}" ] && grep -Eqi 'not permitted|permission denied|read-only' "$TXROOT/init-error"; then
       UAK_TMP_FALLBACK="$(git -C "$ROOT" rev-parse --absolute-git-dir 2>/dev/null)/uak-tmp"
       if mkdir -p "$UAK_TMP_FALLBACK" 2>/dev/null && fb_root=$(mktemp -d "$UAK_TMP_FALLBACK/hack.XXXXXX" 2>/dev/null); then
         case "$TXROOT" in "$TMP_BASE"/hack.??????) rm -rf "$TXROOT";; esac
@@ -378,6 +425,9 @@ fresh_state() {
   done
   git -C "$TX" config user.name "$USER_NAME"
   git -C "$TX" config user.email "$USER_EMAIL"
+  # Claims files are data read line by line: never CRLF. Git for Windows defaults to core.autocrlf=true, and every
+  # field then ended in \r ("Presence-Seconds must be an integer" on the second command).
+  git -C "$TX" config core.autocrlf false; git -C "$TX" config core.eol lf
   git -C "$TX" remote add origin "$REMOTE_URL" 2> "$TXROOT/remote-error" || gitfail "Invalid remote $REMOTE ($REMOTE_URL): $(head -n 1 "$TXROOT/remote-error")"
   # One fetch brings claims and the base's config (PROJECT.md, TASKS.md) together: one network round trip instead
   # of three (ls-remote, fetch claims, fetch config). done/integrate/merge prove ancestry on the base, so they
@@ -462,8 +512,10 @@ check_dependencies() {
   for dep in $deps; do
     dep_state=$(field "$TX/tasks/$dep.md" State)
     [ "$dep_state" = INTEGRATED ] && continue
-    [ "$dep_state" != REVIEW ] || conflict "$ID depends on $dep (REVIEW). If its PR is already merged, any agent can run: uak integrate $dep"
-    conflict "$ID depends on $dep; claim it after INTEGRATED."
+    # A cancelled dependency never integrates: waiting on it is forever (audit, Oct 2026).
+    [ "$dep_state" != CANCELLED ] || conflict "$ID depends on $dep, which is CANCELLED: it never integrates. A human drops it from Depends on: UAK_HUMAN=NAME bash .uak/bin/uak plan --amend FILE (or cancels $ID too)."
+    [ "$dep_state" != REVIEW ] || conflict "$ID depends on $dep (REVIEW). If its PR is already merged, any agent can run: uak integrate $dep. Otherwise do not retry the claim: take other work, or wait once: uak wait $dep --for integrated"
+    conflict "$ID depends on $dep; claim it after INTEGRATED (do not retry: uak wait $dep --for integrated, once)."
   done
 }
 check_collisions() {
@@ -495,7 +547,8 @@ check_collisions() {
       if [ "$other_until" -gt 0 ] && [ "$NOW" -ge "$other_until" ] && [ "$(field "$other" State)" != REVIEW ]; then
         conflict "$ID overlaps $(field "$other" ID) ($(field "$other" Owner)), whose lease expired $(( (NOW - other_until) / 60 )) min ago. Take that one over: uak status --task $(field "$other" ID) --summary, then uak release $(field "$other" ID) --expired --read-summary TOKEN."
       fi
-      conflict "$ID overlaps $(field "$other" ID) ($(field "$other" Owner)); pick another task."
+      # Why (Hacktoberfest): one agent retried "overlaps HACK-028" and "depends on HACK-028" 14 times in 40 min.
+      conflict "$ID overlaps $(field "$other" ID) ($(field "$other" Owner)); pick another task, or wait once: uak wait $(field "$other" ID) --for integrated (retrying the claim changes nothing)."
     fi
   done
 }
@@ -526,7 +579,10 @@ snapshot() {
     printf '\nClaims (first 24; status --task ID shows detail):\n'
     for c in "$TX"/claims/*.md; do
       [ -f "$c" ] || continue
-      printf '%s | %s | %s | until %s\n' "$(field "$c" ID)" "$(field "$c" State)" "$(field "$c" Owner)" "$(field "$c" Lease-Until)"
+      # An expired lease says so (Hacktoberfest: STATE.md showed a stale Lease-Until as if the claim were live).
+      lu=$(field "$c" Lease-Until); case "$lu" in ''|*[!0-9]*) lu=0;; esac
+      printf '%s | %s | %s | until %s%s\n' "$(field "$c" ID)" "$(field "$c" State)" "$(field "$c" Owner)" "$lu" \
+        "$( [ "$(field "$c" State)" = REVIEW ] || [ "$lu" -eq 0 ] || [ "$NOW" -lt "$lu" ] || printf ' (EXPIRED: release --expired --read-summary TOKEN)')"
     done | head -n 24
     printf '\nBlockers: BLOCKED tasks; use status --task ID --summary.\nCurrent decisions (last 5):\n'
     grep '^-' "$TX/DECISIONS.md" | tail -n 5 | cut -c 1-180
@@ -570,6 +626,14 @@ wait_run() {
   fi
   [ "$WAIT_FOR" = message ] || [ -n "$ID" ] || die "wait --for $WAIT_FOR needs an ID."
   say "WAITING ${ID:+$ID }for $WAIT_FOR (up to $WAIT_TIMEOUT s; checks every $WAIT_EVERY s)"
+  local wait_base=
+  # Unread messages from before the wait are answered now, not by waiting.
+  if [ "$WAIT_FOR" = message ]; then
+    ATTEMPT=wait-0; fresh_state
+    wait_base=$(awk '/^- [0-9]/ { n = $2 + 0; if (n > m) m = n } END { print m + 0 }' "$TX/$MSG_LOG" 2>/dev/null || echo 0)
+    c=$(msg_select unread | grep -c '^#' || true)
+    [ "${c:-0}" -eq 0 ] || say "($c unread from before this wait: uak inbox shows them; the wait returns only for new ones.)"
+  fi
   while :; do
     tip=$(git -C "$ROOT" ls-remote "$REMOTE" refs/heads/claims 2>/dev/null | awk '{print $1; exit}')
     if [ -n "$tip" ] && [ "$tip" != "$last" ]; then
@@ -587,9 +651,12 @@ wait_run() {
           fi;;
         integrated)
           st=$(field "$TX/tasks/$ID.md" State)
-          if [ "$st" = INTEGRATED ]; then say "INTEGRATED $ID ($(field "$TX/tasks/$ID.md" Merge-Commit | cut -c 1-7)). git fetch origin && git merge origin/$BASE"; return 0; fi;;
+          if [ "$st" = INTEGRATED ]; then say "INTEGRATED $ID ($(field "$TX/tasks/$ID.md" Merge-Commit | cut -c 1-7)). git fetch origin && git merge --no-edit origin/$BASE"; return 0; fi;;
         message)
-          c=$(msg_select unread)
+          # Only what arrives after the wait started. Why (audit, Oct 2026): 15 unread messages already shown made
+          # every wait return in a second, and the agent polled.
+          [ -n "$wait_base" ] || wait_base=$(awk '/^- [0-9]/ { n = $2 + 0; if (n > m) m = n } END { print m + 0 }' "$TX/$MSG_LOG" 2>/dev/null || echo 0)
+          c=$(msg_select unread | awk -v b="${wait_base:-0}" '/^#[0-9]/ { n = substr($1, 2) + 0; keep = n > b } keep')
           if [ -n "$c" ]; then say "NEW for $AGENT:"; say "$c"; say "Handle them, then uak inbox --ack."; return 0; fi;;
       esac
     fi
@@ -605,7 +672,7 @@ wait_run() {
 # checkpoints for 130 claims, 43 lease recoveries, and a summary that said what the task was, not where it stood.
 task_progress() {
   local wt base n last dirty
-  wt=$(field "$RECORD" Worktree); [ -d "$wt" ] || wt=$ROOT
+  wt=$(field "$RECORD" Worktree); [ -d "$wt" ] && same_repo_worktree "$wt" || wt=$ROOT
   [ "$(git -C "$wt" symbolic-ref --short HEAD 2>/dev/null)" = "$(field "$RECORD" Branch)" ] || return 0
   base=$(field "$RECORD" Task-Base)
   n=$(git -C "$wt" rev-list --count "${base:-HEAD}..HEAD" 2>/dev/null || echo 0)
@@ -658,6 +725,14 @@ handover_mutate() {
   [ "$owner" = "$AGENT" ] || [ -n "$HUMAN" ] || [ "$NOW" -ge "$until" ] ||
     { [ "${owner%-*}" = "${AGENT%-*}" ] && { [ $((NOW - seen_o)) -ge 3600 ] || msg_away "$owner"; }; } ||
     conflict "$ID belongs to $owner with a live lease: only $owner, a human (UAK_HUMAN) or another identity of the same human after 1 h offline can hand it over."
+  # An expired lease is taken over the way release --expired takes it: after reading its summary (the token proves
+  # it). Why (audit, Oct 2026): handover --to SELF took any expired claim with no token and no summary read.
+  if [ "$owner" != "$AGENT" ] && [ -z "$HUMAN" ] && [ "$NOW" -ge "$until" ] &&
+     ! { [ "${owner%-*}" = "${AGENT%-*}" ] && { [ $((NOW - seen_o)) -ge 3600 ] || msg_away "$owner"; }; }; then
+    WL=$(field "$RECORD" Worklog)
+    [ -n "$TOKEN" ] && [ "$TOKEN" = "$(read_token)" ] ||
+      conflict "$ID's lease expired: read it first (uak status --task $ID --summary), then handover $ID --to $DONE_TO --read-summary TOKEN."
+  fi
   [ ! -f "$TX/meta/retired/$DONE_TO.md" ] || conflict "$DONE_TO is retired; a claim by $DONE_TO brings it back, a handover does not."
   if [ "${UAK_MULTI_CLAIM:-}" != 1 ]; then
     for c in "$TX"/claims/*.md; do
@@ -665,7 +740,7 @@ handover_mutate() {
       case "$(field "$c" State)" in CLAIMED|BLOCKED) conflict "$DONE_TO already holds $(field "$c" ID): one identity = one live task.";; esac
     done
   fi
-  put "$RECORD" Owner "$DONE_TO"; put "$CLAIM" Owner "$DONE_TO"
+  put "$RECORD" Owner "$DONE_TO"; put "$CLAIM" Owner "$DONE_TO"; put "$CLAIM" Thread-Read 0
   WL=$(field "$RECORD" Worklog); STATE=$(field "$RECORD" State)
   local saved=$AGENT; refresh_lease
   event "handover; $owner → $DONE_TO by ${HUMAN:-$saved}"
@@ -673,14 +748,37 @@ handover_mutate() {
   wt=$(field "$RECORD" Worktree)
   # Claude Code's env (.claude/settings.local.json) too: the hooks read UAK_AGENT from it. Why: after a handover the
   # new owner's session started as the old identity ("agent=cy-1") and every uak call printed the mismatch.
-  local f
+  # Rewritten only once the push is confirmed (handover_env_apply, from transaction). Why (audit, Oct 2026): a
+  # refused push left .uak-env naming the new owner while claims still said the old one, and the real owner's
+  # heartbeats then failed with "belongs to".
+  HANDOVER_ENV_WT=$wt
+  msg_append "agent:$DONE_TO" request "$ID" "$ID is yours now (from $owner): branch $(field "$RECORD" Branch), worktree $wt. Read uak status --task $ID --summary and continue its Next. Another machine: git fetch origin && git worktree add <dir> $(field "$RECORD" Branch), then write UAK_AGENT=$DONE_TO and UAK_TASK=$ID in <dir>/.uak-env."
+}
+# A path from claims (Worktree:) is used only when it is a checkout of this same repository on this machine.
+same_repo_worktree() {
+  local a b
+  a=$(cd "$1" 2>/dev/null && cd "$(git rev-parse --git-common-dir 2>/dev/null)" 2>/dev/null && pwd -P) || return 1
+  b=$(cd "$ROOT" && cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P) || return 1
+  [ -n "$a" ] && [ "$a" = "$b" ]
+}
+handover_env_apply() {
+  local f wt=$HANDOVER_ENV_WT
+  [ -n "$wt" ] && [ -d "$wt" ] || return 0
+  # Only a worktree of this repository: the path comes from claims.
+  same_repo_worktree "$wt" || return 0
   for f in "$wt/.uak-env" "$wt/.claude/settings.local.json"; do
     [ -f "$f" ] || continue
     sed -e "s/^UAK_AGENT=.*/UAK_AGENT=$DONE_TO/" -e "s/^UAK_SESSION=.*/UAK_SESSION=$DONE_TO-$NOW/" \
         -e "s/\"UAK_AGENT\": \"[^\"]*\"/\"UAK_AGENT\": \"$DONE_TO\"/" -e "s/\"UAK_SESSION\": \"[^\"]*\"/\"UAK_SESSION\": \"$DONE_TO-$NOW\"/" \
         "$f" > "$f.tmp" && mv "$f.tmp" "$f"
   done
-  msg_append "agent:$DONE_TO" request "$ID" "$ID is yours now (from $owner): branch $(field "$RECORD" Branch), worktree $wt. Read uak status --task $ID --summary and continue its Next. Another machine: git fetch origin && git worktree add <dir> $(field "$RECORD" Branch), then write UAK_AGENT=$DONE_TO and UAK_TASK=$ID in <dir>/.uak-env."
+}
+released_from_me() {
+  local by
+  [ ! -f "$CLAIM" ] && [ -f "$RECORD" ] && [ "$(field "$RECORD" Owner)" = "$AGENT" ] || return 0
+  by=$(field "$RECORD" Released-By)
+  [ -z "$by" ] || [ "$by" = "$AGENT" ] ||
+    conflict "$ID has no active claim: $by released it after your lease expired (your summary is kept for its next owner). Stop editing it; run uak next."
 }
 # A follow-up of an INTEGRATED task (fix, polish, a reviewer's non-blocking notes) is a new task on the same
 # Paths, so it gets a claim, a review and a merge. Why (MLB hackathon): 3 follow-up PRs of integrated tasks
@@ -707,8 +805,19 @@ followup_mutate() {
   [ -f "$TX/DECISIONS.md" ] || printf "# DECISIONS\n" > "$TX/DECISIONS.md"
   printf '%s\n' "- $NOW | $NEW_ID | follow-up of $parent by $AGENT: $(one_line "$FOLLOWUP_TITLE") | Why: same Paths, no scope change" >> "$TX/DECISIONS.md"
 }
+# Identities that differ only in case collide on macOS and Windows disks (meta/agents/Ana-1.md opens ana-1.md), and
+# git add then commits one over the other. The name already on claims wins. Why (portability audit, Oct 2026).
+identity_case_check() {
+  local other
+  # A human's name is matched case-blind already (v5.5: the Mac folded Victor.md into victor.md).
+  [ -n "$AGENT" ] && [ "$AGENT" != "$HUMAN" ] || return 0
+  other=$(git -C "$TX" ls-tree --name-only HEAD meta/agents/ 2>/dev/null | sed 's#^meta/agents/##; s#\.md$##' |
+    awk -v me="$AGENT" 'tolower($0) == tolower(me) && $0 != me { print; exit }')
+  [ -z "$other" ] || conflict "Identity $AGENT differs from $other only in case; on macOS and Windows they are one file. Use $other (UAK_AGENT=$other)."
+}
 mutate() {
   coord_init
+  identity_case_check
   coord_mark_human
   RECORD=$(task_file); CLAIM=$(claim_file)
   case "$CMD" in
@@ -734,7 +843,7 @@ mutate() {
           "Depends: $(one_line "$DEPENDS")" "Verify: $(one_line "$VERIFY")" \
           "Lease-Until: $UNTIL" "Updated: $NOW" "Task-Base: $task_base" "Next: $(one_line "$NEXT_TEXT")" "PR: -" "Evidence: -"
       } > "$RECORD"
-      cp "$RECORD" "$CLAIM"; rm -f "$TX/meta/retired/$AGENT.md"
+      cp "$RECORD" "$CLAIM"; put "$CLAIM" Thread-Read 0; rm -f "$TX/meta/retired/$AGENT.md"
       DONE_TEXT="Claim created; implementation pending"
       DECISION_TEXT="Own branch and worktree"
       WHY_TEXT="Parallel work without touching the main checkout"
@@ -748,6 +857,9 @@ mutate() {
       coord_tick_mutate
       # Your own task that already left CLAIMED/REVIEW: nothing to renew, not an error.
       # Why (MLB hackathon): Cursor agents heartbeated integrated tasks and logged "no active claim" conflicts.
+      # Unless another agent released it after the lease expired: the old owner must stop. Why (audit, Oct 2026): its
+      # heartbeat said OK and its checkpoint rewrote the summary the next owner inherits.
+      released_from_me
       if [ ! -f "$CLAIM" ] && [ -f "$RECORD" ] && [ "$(field "$RECORD" Owner)" = "$AGENT" ]; then
         say "OK heartbeat $ID | $(field "$RECORD" State): nothing to renew. Next: uak next"; return 0
       fi
@@ -776,6 +888,7 @@ mutate() {
         update_summary_field Next "Cancelled: $CANCEL_REASON"
       fi
       put "$RECORD" State "$STATE"; put "$RECORD" Updated "$NOW"; put "$RECORD" Lease-Until 0
+      [ "$(field "$CLAIM" Owner)" = "$AGENT" ] || put "$RECORD" Released-By "$AGENT"
       rm "$CLAIM"; event "release; claim released by $AGENT; reason: ${CANCEL_REASON:--}; summary kept"
       ;;
     log)
@@ -792,6 +905,7 @@ mutate() {
       else
         if [ -f "$CLAIM" ]; then require_owner
         else
+          released_from_me
           [ -f "$RECORD" ] && [ "$(field "$RECORD" Owner)" = "$AGENT" ] || conflict "Checkpoint needs your own task record or --session."
           WL=$(field "$RECORD" Worklog); valid_worklog "$WL" && [ -f "$TX/$WL" ] || die "Missing valid worklog."
         fi
@@ -849,6 +963,15 @@ mutate() {
         [ -n "$HUMAN" ] && [ "$AGENT" = "$HUMAN" ] ||
           conflict "$RM_REASON. Approve the merged SHA first: uak review $ID --sha ${tip:-SHA} --verdict approve. A human merged it? That human records it: UAK_HUMAN=NAME UAK_AGENT= bash .uak/bin/uak integrate $ID"
         APPROVED_BY="human:$HUMAN"
+        # A human merge over a reject that still covers this code is a decision: it says why, it is logged, and the
+        # rejecter hears it. Why (Hacktoberfest): a task rejected for files outside its Paths was merged on GitHub a
+        # minute later and recorded as human-approved; the reject stayed on record and nobody was told.
+        if rm_standing_reject; then
+          [ -n "$WHY_TEXT" ] || conflict "$RM_REJECTER rejected this code of $ID. A human who merged it anyway records why: UAK_HUMAN=NAME UAK_AGENT= bash .uak/bin/uak integrate $ID --reason \"why the reject does not apply\""
+          [ -f "$TX/DECISIONS.md" ] || printf "# DECISIONS\n" > "$TX/DECISIONS.md"
+          printf '%s\n' "- $NOW | $ID | merged by $HUMAN over the reject of $RM_REJECTER | Why: $(one_line "$WHY_TEXT")" >> "$TX/DECISIONS.md"
+          msg_append "agent:$RM_REJECTER,task:$ID" info "$ID" "$ID was merged by $HUMAN over your reject at ${tip%"${tip#???????}"}: $(one_line "$WHY_TEXT")"
+        fi
       fi
       if [ -n "$MERGE_COMMIT" ]; then
         merged=$(git -C "$TX" rev-parse --verify "$MERGE_COMMIT^{commit}" 2>/dev/null) || conflict "COMMIT not in the remote history of $BASE."
@@ -863,12 +986,15 @@ mutate() {
       update_summary_field Next "Integrated in $BASE: $merged (recorded by $AGENT)"
       rm -f "$CLAIM"
       event "integrate; recorded by $AGENT; PR $PR_URL; merged $merged; proof $RM_PROOF"
-      msg_notify_related "$ID" integrated "$ID integrated in $BASE ($merged), recorded by $AGENT. If you depend on it: git fetch origin && git merge origin/$BASE"
+      msg_notify_related "$ID" integrated "$ID integrated in $BASE ($merged), recorded by $AGENT. If you depend on it: git fetch origin && git merge --no-edit origin/$BASE"
       ;;
     done)
       require_owner; STATE=REVIEW
       task_branch=$(field "$RECORD" Branch)
       task_worktree=$(field "$RECORD" Worktree)
+      # The path comes from claims: only a checkout of this repository counts. Why (audit, Oct 2026): a record
+      # pointing at another checkout made done run that checkout's map.
+      [ ! -d "$task_worktree" ] || same_repo_worktree "$task_worktree" || task_worktree="$TXROOT/not-a-worktree"
       tip=$(field "$RECORD" Task-Tip)
       # Handed over from another machine: the recorded Worktree is theirs. This checkout on the task's branch is the
       # new one. Why (Chilangatón): after a Windows → macOS handover, PB-027's done died with "Missing worktree";
@@ -901,6 +1027,7 @@ mutate() {
         STATE=INTEGRATED
         put "$RECORD" Merge-Commit "$merged"; put "$RECORD" Reviewer "$REVIEWER"
       fi
+      [ "$STATE" != REVIEW ] || ui_gate "$tip" "$task_worktree"
       put "$RECORD" Task-Tip "$tip"
       put "$RECORD" State "$STATE"; put "$CLAIM" State "$STATE"
       put "$RECORD" PR "$PR_URL"; put "$CLAIM" PR "$PR_URL"; put "$RECORD" Evidence "$EVIDENCE"
@@ -911,20 +1038,44 @@ mutate() {
       # Contract check at the moment of shipping: does this diff touch files that other live tasks import, with no
       # contract message from you on this task? Why (adoption eval): with the rule in context (AGENTS.md §5.1) a
       # Sonnet agent changed a function another claimed task imported, pushed and shipped without telling it.
-      if [ "$STATE" = REVIEW ] && [ -d "$task_worktree" ] && [ -f "$task_worktree/.uak/bin/map" ]; then
+      if [ "$STATE" = REVIEW ] && [ -d "$task_worktree" ]; then
+        # Files outside Paths, said now rather than after a review round. Why (Hacktoberfest): two tasks with web
+        # files outside their Paths each cost a review round and two red gate runs.
+        # What the branch changes against the base it last merged (three dots), as the gate sees it, with the gate's
+        # exemptions for new files (Additive-Paths, empty files).
+        local outside= f add=-
+        normalize_paths "$(rm_task_value Paths)" > "$TXROOT/done-paths" 2>/dev/null || : > "$TXROOT/done-paths"
+        : > "$TXROOT/done-additive"; [ ! -f "$TXROOT/coord-source" ] || add=$(coord_source_field Additive-Paths -)
+        [ "$add" = - ] || normalize_paths "$add" > "$TXROOT/done-additive" 2>/dev/null || : > "$TXROOT/done-additive"
+        git -C "$task_worktree" -c core.quotePath=false diff --no-renames --name-only "origin/$BASE...$tip" 2>/dev/null | head -n 200 > "$TXROOT/done-files"
+        git -C "$task_worktree" -c core.quotePath=false diff --no-renames --diff-filter=A --name-only "origin/$BASE...$tip" 2>/dev/null > "$TXROOT/done-added"
+        while IFS= read -r f; do
+          [ -n "$f" ] || continue
+          normalize_paths "$f" > "$TXROOT/done-one" 2>/dev/null || continue
+          ! overlaps "$TXROOT/done-one" "$TXROOT/done-paths" || continue
+          if grep -qxF -- "$f" "$TXROOT/done-added"; then
+            { [ -s "$TXROOT/done-additive" ] && overlaps "$TXROOT/done-one" "$TXROOT/done-additive"; } && continue
+            [ "$(git -C "$task_worktree" cat-file -s "$tip:$f" 2>/dev/null)" != 0 ] || continue
+          fi
+          outside="$outside $f"
+        done < "$TXROOT/done-files"
+        [ -z "$outside" ] || DONE_HINT="SCOPE? Files outside the Paths of $ID:$(printf '%s\n' $outside | head -n 8 | tr '\n' ' ')· the merge gate sends them to the human: revert them (git checkout origin/$BASE -- FILE), or a human amends the Paths (uak plan FILE --amend)."
+      fi
+      if [ "$STATE" = REVIEW ] && [ -d "$task_worktree" ] && [ -f "$UAK_BIN/map" ]; then
         local cfiles ctasks
         cfiles=$(git -C "$task_worktree" diff --name-only "$(field "$RECORD" Task-Base)" "$tip" 2>/dev/null | head -n 30)
-        ctasks=$( [ -z "$cfiles" ] || (cd "$task_worktree" && bash .uak/bin/map impact --tasks --backlog "$BACKLOG" $cfiles 2>/dev/null) | grep -v "^$ID\$" |
+        ctasks=$( [ -z "$cfiles" ] || (cd "$task_worktree" && bash "$UAK_BIN/map" impact --tasks --backlog "$BACKLOG" $cfiles 2>/dev/null) | grep -v "^$ID\$" |
           while IFS= read -r t; do [ -f "$TX/claims/$t.md" ] && printf '%s ' "$t"; done)
         if [ -n "$ctasks" ] && ! awk -F' [|] ' -v me="$AGENT" -v id="$ID" '$3 == me && $5 == "contract" && ($6 == id || index($4, "impact:" id)) {f = 1} END {exit !f}' "$TX/$MSG_LOG" 2>/dev/null; then
-          DONE_HINT="CONTRACT? Your diff changes files that live tasks import (${ctasks% }) and you sent them no contract. If the shape changed: bash .uak/bin/uak msg impact:$ID --kind contract --task $ID \"what changed · what to do\""
+          DONE_HINT="${DONE_HINT}${DONE_HINT:+
+}CONTRACT? Your diff changes files that live tasks import (${ctasks% }) and you sent them no contract. If the shape changed: bash .uak/bin/uak msg impact:$ID --kind contract --task $ID \"what changed · what to do\""
         fi
       fi
       # Upstream drift at the moment of shipping: the base changed what this branch edits or imports since it last
       # synced (the merge gate would find it later, after a review). Why: STORM, arXiv 2605.20563.
-      if [ "$STATE" = REVIEW ] && [ -d "$task_worktree" ] && [ -f "$task_worktree/.uak/bin/map" ]; then
+      if [ "$STATE" = REVIEW ] && [ -d "$task_worktree" ] && [ -f "$UAK_BIN/map" ]; then
         local drift
-        drift=$(cd "$task_worktree" && git fetch -q origin "$BASE" 2>/dev/null && bash .uak/bin/map drift --ref "origin/$BASE" 2>/dev/null | head -n 4)
+        drift=$(cd "$task_worktree" && git fetch -q origin "$BASE" 2>/dev/null && bash "$UAK_BIN/map" drift --ref "origin/$BASE" 2>/dev/null | head -n 4)
         [ -z "$drift" ] || DONE_HINT="${DONE_HINT}${DONE_HINT:+
 }$drift"
       fi
@@ -936,13 +1087,20 @@ mutate() {
       else refresh_lease; fi
       event "done; PR $PR_URL; evidence: $EVIDENCE; reviewer: ${REVIEWER:--}"
       if [ "$STATE" = INTEGRATED ]; then
-        msg_notify_related "$ID" integrated "$ID integrated in $BASE ($merged). If you depend on it: git fetch origin && git merge origin/$BASE"
+        msg_notify_related "$ID" integrated "$ID integrated in $BASE ($merged). If you depend on it: git fetch origin && git merge --no-edit origin/$BASE"
       else
         # One review message: --to picks the reviewer, --note says what changed. Why (MLB hackathon): a re-review
         # was 3 messages (rotation + "re-review X" to the task + "ready" to the rejecter) 9 times.
         local why_r="your turn by rotation" note_r=; [ -z "$REVIEW_NOTE" ] || note_r=" · $REVIEW_NOTE"
         if [ -n "$DONE_TO" ]; then
           [ "$DONE_TO" != "$AGENT" ] || conflict "--to: the reviewer is never the author."
+          # Someone who can review: not retired, not a human, seen on claims. Why (audit, Oct 2026): --to took any
+          # name, and the offer waited 15 min for the re-offer.
+          [ ! -f "$TX/meta/retired/$DONE_TO.md" ] || conflict "--to: $DONE_TO is retired. Leave out --to (rotation), or name an active agent."
+          if msg_seen_all | awk -v n="$DONE_TO" '$1 == "H" && tolower($2) == tolower(n) { f = 1 } END { exit !f }'; then
+            conflict "--to: $DONE_TO is a human; reviews go to agents. Leave out --to, or name an agent."
+          fi
+          [ "$(msg_seen "$DONE_TO")" -gt 0 ] || registered_reviewer "$DONE_TO" || conflict "--to: $DONE_TO has never been seen on claims (a typo?). Leave out --to for the rotation."
           reviewer=$DONE_TO; why_r="asked by $AGENT"
         else
           reviewer=$(msg_pick_reviewer "$AGENT" "$ID")
@@ -965,6 +1123,9 @@ mutate() {
 # Why (MLB hackathon, v5 week): a fix had to touch fixtures and tests the plan missed, `uak plan` refused to
 # republish the task, and the only way out was a new task or edits outside Paths.
 plan_amend_mutate() {
+  # A plan written on Windows is CRLF: "## PB-030\r" was an invalid ID and a list-form Verify kept a \r that broke
+  # the gate's bash -c (portability audit, Oct 2026). Read an LF copy.
+  [ "$PLAN_FILE" = "$TXROOT/plan-lf.md" ] || { tr -d '\r' < "$PLAN_FILE" > "$TXROOT/plan-lf.md" && coord_fold_backlog "$TXROOT/plan-lf.md" && PLAN_FILE="$TXROOT/plan-lf.md"; }
   local id st c old_p new_p old_v new_v changes=
   for id in $plan_ids; do
     valid_id "$id" || die "Invalid ID in plan: $id"
@@ -976,7 +1137,13 @@ plan_amend_mutate() {
     st=$(field "$TX/tasks/$id.md" State); st=${st:-AVAILABLE}
     case "$st" in
       AVAILABLE|CLAIMED|BLOCKED) ;;
-      REVIEW) conflict "$id is in REVIEW: its review covers the old criteria. A reviewer rejects it first (or it merges), then amend; more work after INTEGRATED is uak followup $id.";;
+      # A REVIEW task whose current SHA was rejected may be amended: it goes back to CLAIMED and its owner runs done
+      # again. Why (Hacktoberfest): "a reviewer rejects it first" never made amend possible (a reject kept REVIEW),
+      # so the human merged on GitHub over the reject instead.
+      REVIEW) [ "$(field "$TX/reviews/$id.md" Verdict)" = reject ] && [ -n "$(field "$TX/tasks/$id.md" Task-Tip)" ] &&
+                [ "$(field "$TX/reviews/$id.md" SHA)" = "$(field "$TX/tasks/$id.md" Task-Tip)" ] ||
+                conflict "$id is in REVIEW: its review covers the old criteria. Once a reviewer rejects its current SHA, amend moves it back to CLAIMED; more work after INTEGRATED is uak followup $id."
+              put "$TX/tasks/$id.md" State CLAIMED; [ ! -f "$TX/claims/$id.md" ] || put "$TX/claims/$id.md" State CLAIMED;;
       *) conflict "$id is $st: more work on it is uak followup $id --title TEXT.";;
     esac
     new_p=$(ID=$id BACKLOG=$PLAN_FILE task_field Paths); new_v=$(ID=$id BACKLOG=$PLAN_FILE task_field Verify)
@@ -1010,6 +1177,9 @@ plan_amend_mutate() {
   printf '%s\n' "- $NOW | plan --amend | $HUMAN/$AGENT | amended:$(one_line "$changes" | tr '|' '/') | Why: scope or criteria fixed before review" >> "$TX/DECISIONS.md"
 }
 plan_mutate() {
+  # A plan written on Windows is CRLF: "## PB-030\r" was an invalid ID and a list-form Verify kept a \r that broke
+  # the gate's bash -c (portability audit, Oct 2026). Read an LF copy.
+  [ "$PLAN_FILE" = "$TXROOT/plan-lf.md" ] || { tr -d '\r' < "$PLAN_FILE" > "$TXROOT/plan-lf.md" && coord_fold_backlog "$TXROOT/plan-lf.md" && PLAN_FILE="$TXROOT/plan-lf.md"; }
   [ "$(coord_source_field Plan-Channel main)" = claims ] ||
     conflict "Plan-Channel is not claims in .uak/PROJECT.md: publish the backlog by PR to $BASE."
   plan_ids=$(awk '/^## [A-Z][A-Z0-9]*-[0-9]/ {print $2}' "$PLAN_FILE")
@@ -1045,8 +1215,16 @@ plan_mutate() {
 transaction() {
   ATTEMPT=0
   while :; do
-    ATTEMPT=$((ATTEMPT + 1)); fresh_state; mutate
+    ATTEMPT=$((ATTEMPT + 1)); HANDOVER_ENV_WT=
+    # A retry runs on a fresh clock too. Why (Hacktoberfest, slow Wi-Fi): a lock committed after 36 min of retries
+    # carried the first attempt's time, already expired, and a second reviewer took the same SHA.
+    [ "$ATTEMPT" -eq 1 ] || clock_now
+    fresh_state; mutate
     git -C "$TX" add -A || gitfail "git add failed."
+    # Nothing that looks like a key reaches claims: every clone of the repository reads it (public repo = public).
+    # Why (audit, Oct 2026): a key pasted into uak msg, a checkpoint or a review note was committed to claims.
+    secret_kind=$(git -C "$TX" diff --cached -U0 --no-color 2>/dev/null | sed -n 's/^+//p' | grep -v '^++ ' | secret_like) &&
+      conflict "Refused: this would write something that looks like a secret ($secret_kind) to the claims branch, which every clone of the repository can read. Keep it in .env and name the variable instead (rotate it if it was real)."
     if git -C "$TX" diff --cached --quiet; then
       [ "$CMD" != allow ] || say "OK allow (already allowed) | nothing to record"
       [ "$CMD" != learn ] || say "OK learn $MEM_DONE | nothing to record"
@@ -1054,6 +1232,7 @@ transaction() {
     fi
     git -C "$TX" commit -q -m "uak: $CMD $ID ($AGENT)" || gitfail "git commit failed."
     if git -C "$TX" push --porcelain origin HEAD:refs/heads/claims > "$TXROOT/push" 2>&1; then
+      [ -z "$HANDOVER_ENV_WT" ] || handover_env_apply
       if [ "${QUIET:-no}" != yes ]; then
         if [ "$SESSION_ONLY" = yes ]; then say "OK checkpoint --session | budget reset | attempt $ATTEMPT"
         elif [ "$CMD" = tick ]; then say "OK tick | deadlines reconciled | attempt $ATTEMPT"
@@ -1066,6 +1245,7 @@ transaction() {
         elif [ "$CMD" = away ]; then say "OK away $AGENT | out of the reviewer rotation; messages to you reach your tasks; ${AWAY_TASKS:-0} claim(s) keep their leases. Any uak command brings you back."
         elif [ "$CMD" = retire ]; then say "OK retire$RETIRE_NAMES | out of the reviewer rotation; a new claim brings an identity back"
         elif [ "$CMD" = followup ]; then say "OK followup $NEW_ID (after $ID, same Paths) | take it: bash .uak/bin/wt new $NEW_ID --agent ${AGENT}"
+        elif [ "$REVIEW_DECLINE" = yes ]; then say "OK review --decline $ID | offered to another agent now"
         elif [ "$REVIEW_STARTED" = yes ]; then say "OK review --start $ID | yours for $(( ${UAK_REVIEW_LOCK_SECONDS:-1200} / 60 )) min; finish with --verdict"
         else say "OK $CMD $ID | $(field "$RECORD" State) | attempt $ATTEMPT"
           # The next step in the output itself: it reaches every harness, Cursor included (no post-tool hook there).
@@ -1076,7 +1256,8 @@ transaction() {
             claim) brief=$(bash "$UAK_BIN/map" brief "$ID" --paths "$PATHS" --backlog "$BACKLOG" 2>/dev/null | head -n 10)
                    [ -z "$brief" ] || say "$brief"
                    say "Query, do not open whole files: uak map find NAME · callers NAME · users FILE · recall $ID (lessons)."
-                   mem_for_task "$ID";;
+                   mem_for_task "$ID"
+                   ui_brief;;
           esac
         fi
       fi
@@ -1114,6 +1295,14 @@ print_task() {
     say "$ID | $(field "$RECORD" State) | $(field "$RECORD" Owner)"
     say "Branch: $(field "$RECORD" Branch)"
     say "Worktree: $(field "$RECORD" Worktree)"
+    # What a reviewer needs, tasks published with uak plan included (they are not in main's TASKS.md). Why (audit,
+    # Oct 2026): uak-reviewer is told to read PR, SHA, Verify and Paths here, and none of them was printed.
+    [ -z "$(field "$RECORD" PR)" ] || say "PR: $(field "$RECORD" PR)"
+    [ -z "$(field "$RECORD" Task-Tip)" ] || say "Task-Tip: $(field "$RECORD" Task-Tip)"
+    if [ -f "$BACKLOG" ] && awk -v id="$ID" '/^## / && $2==id {f=1} END {exit !f}' "$BACKLOG"; then
+      say "Paths: $(task_field Paths)"; say "Verify: $(task_field Verify)"
+      task_criteria
+    fi
     say "Next: $(field "$RECORD" Next)"
     [ -z "$(field "$RECORD" Progress)" ] || say "Progress: $(field "$RECORD" Progress)"
     [ -z "$(field "$RECORD" Away)" ] || [ "$(field "$RECORD" Away)" -lt "$(field "$RECORD" Updated)" ] 2>/dev/null ||
@@ -1124,9 +1313,102 @@ print_task() {
       [ ! -f "$(claim_file)" ] || say "Read-token: $(read_token)"
     fi
     [ "$CMD" != handoff ] || coord_handoff
+  elif [ -f "$(claim_file)" ]; then
+    # A claim without its task record yet (a claim in flight): never AVAILABLE. Why (Hacktoberfest): status said
+    # AVAILABLE, wt new then failed with CONFLICT on the other agent's claim.
+    say "$ID | $(field "$(claim_file)" State) | $(field "$(claim_file)" Owner)"; say "Next: pick another task (uak next)"
   else
-    load_task; say "$ID | AVAILABLE | $PRIORITY"; say "Next: $DEFAULT_NEXT"; say "Verify: $VERIFY"
+    load_task; say "$ID | AVAILABLE | $PRIORITY"; say "Next: $DEFAULT_NEXT"; say "Paths: $PATHS"; say "Verify: $VERIFY"
+    task_criteria
   fi
+}
+# DESIGN.md filled from its template, and every UI task names its recipe and hero. Why (Hacktoberfest): the lock had a
+# 15 px body and no screen table, and ten screens copied the one locked screen.
+lint_design() {
+  local d ui id tp
+  for d in "$ROOT/web/DESIGN.md" "$ROOT/DESIGN.md"; do
+    [ -f "$d" ] || continue
+    if grep -q '`<[^`]*>`' "$d"; then
+      say "LINT: ${d#"$ROOT"/} still has template fields: $(grep -n '`<[^`]*>`' "$d" | head -n 3 | cut -d: -f1 | tr '\n' ' ')(line numbers). The design lock fills every one." >&2
+      LINT_ERRORS=$((LINT_ERRORS + 1))
+    fi
+    grep -q '^## Screens' "$d" || say "LINT WARNING: ${d#"$ROOT"/} has no '## Screens' table (screen → recipe → hero): .uak/templates/DESIGN.template.md" >&2
+  done
+  [ -s "$BACKLOG" ] || return 0
+  if [ -f "$TXROOT/coord-source" ]; then ui=$(coord_source_field UI-Paths -)
+  else ui=$(sed -n 's/^[-* ]*UI-Paths:[* ]*//p' "$ROOT/.uak/PROJECT.md" 2>/dev/null | head -n 1 | tr -d '\r`'); fi
+  [ -n "$ui" ] && [ "$ui" != - ] || return 0
+  normalize_paths "$ui" > "$TXROOT/lint-ui" 2>/dev/null || return 0
+  for id in $(awk '/^## [A-Z][A-Z0-9]*-[0-9]/ {print $2}' "$BACKLOG"); do
+    tp=$(ID=$id task_field Paths)
+    case "$tp" in *DESIGN.md*|*design-lock*) continue;; esac
+    normalize_paths "$tp" > "$TXROOT/lint-tp" 2>/dev/null || continue
+    overlaps "$TXROOT/lint-tp" "$TXROOT/lint-ui" || continue
+    awk -v id="$id" '/^## / { on = ($2 == id) } on && /Recipe:/ { f = 1 } END { exit !f }' "$BACKLOG" ||
+      say "LINT WARNING: $id writes UI but names no recipe: add to its Acceptance \"Recipe: <map + panel | dashboard | detail | flow | list> · Hero: <element>\" (web/DESIGN.md, ## Screens)." >&2
+  done
+}
+lint_verify_scaffold() {
+  [ -s "$BACKLOG" ] || return 0
+  local id v dir need f t tp dep
+  for id in $(awk '/^## [A-Z][A-Z0-9]*-[0-9]/ {print $2}' "$BACKLOG"); do
+    v=$(ID=$id task_field Verify | tr -d '`'); dir=
+    case "$v" in "cd "*" && "*) dir=${v#cd }; dir=${dir%% &&*}; dir=${dir%/}/; v=${v#*&& };; esac
+    case "$v" in "uv run"*|pytest*|"python -m pytest"*|"python3 -m pytest"*|"poetry run"*) need=pyproject.toml;;
+      npm\ *|pnpm\ *|yarn\ *|npx\ *|bun\ *) need=package.json;; "go test"*|"go run"*|"go build"*) need=go.mod;;
+      mvn*|./mvnw*) need=pom.xml;; cargo\ *) need=Cargo.toml;; *) continue;; esac
+    f="$dir$need"
+    git -C "$ROOT" cat-file -e "refs/remotes/$REMOTE/$BASE:$f" 2>/dev/null || [ -f "$ROOT/$f" ] && continue
+    dep=" $(ID=$id task_field 'Depends on' | tr ',()' '   ') "
+    for t in $(awk '/^## [A-Z][A-Z0-9]*-[0-9]/ {print $2}' "$BACKLOG"); do
+      [ "$t" != "$id" ] || continue
+      tp=$(ID=$t task_field Paths | tr -d '`' | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s#^\./##')
+      printf '%s\n' "$tp" | grep -qxF -- "$f" || continue
+      case "$dep" in *" $t "*) ;; *) say "LINT WARNING: $id's Verify needs $f, which $t creates; add Depends on: $t (or its Verify runs on someone's local merge of $t)." >&2;; esac
+      break
+    done
+  done
+}
+# At claim: a task in UI-Paths is told what to open before the first line of UI. Why (frontend audit, Oct 2026):
+# product-ui reached agents only when its description happened to match, and DESIGN.md was read by a few.
+ui_brief() {
+  local ui r
+  ui=$(coord_source_field UI-Paths -); [ -n "$ui" ] && [ "$ui" != - ] || return 0
+  normalize_paths "$ui" > "$TXROOT/ui-paths" 2>/dev/null && normalize_paths "$PATHS" > "$TXROOT/ui-task" 2>/dev/null || return 0
+  overlaps "$TXROOT/ui-task" "$TXROOT/ui-paths" || return 0
+  r=$(awk -v id="$ID" '/^## / { on = ($2 == id) } on && /Recipe:/ { s = $0; sub(/.*Recipe:[* ]*/, "", s); print s; exit }' "$BACKLOG" 2>/dev/null)
+  say "UI TASK: before the first line, read web/DESIGN.md (your row of ## Screens${r:+: $r}), open the locked screen with that recipe in web/public/design-lock/screens/ (Read the PNG), and load the skill product-ui. Build only from web/src/lib/ui."
+  say "Before done: capture 1280 and 390 into .uak-shots/$ID/ and run the design-critic subagent; done checks its SHIP verdict."
+}
+# A task that writes where screens live (UI-Paths in PROJECT.md) ships with what someone saw: screenshots at 1280 and
+# 390 wide and the design critic's verdict on this commit, in <worktree>/.uak-shots/ID/ (git-ignored). Why
+# (Hacktoberfest): approvals said "UI not walked in browser" and "no 390x844 screenshot", the critic ran on a few PRs,
+# and ten screens shipped as copies of one template.
+ui_gate() {
+  local ui d f missing= short
+  ui=$(coord_source_field UI-Paths -); [ -n "$ui" ] && [ "$ui" != - ] || return 0
+  normalize_paths "$ui" > "$TXROOT/ui-paths" 2>/dev/null || return 0
+  normalize_paths "$(rm_task_value Paths)" > "$TXROOT/ui-task" 2>/dev/null || return 0
+  overlaps "$TXROOT/ui-task" "$TXROOT/ui-paths" || return 0
+  if [ -n "$NO_UI_TEXT" ]; then EVIDENCE="$EVIDENCE · no visible change: $NO_UI_TEXT"; return 0; fi
+  d="$2/.uak-shots/$ID"; short=$(printf '%s' "$1" | cut -c 1-7)
+  for f in 1280.png 390.png critic.txt; do [ -s "$d/$f" ] || missing="$missing $f"; done
+  [ -z "$missing" ] || conflict "$ID writes UI ($ui): it ships with what was seen. Missing in .uak-shots/$ID/:$missing. Capture the screens it changed at 1280x720 and 390x844 there (skill webapp-testing), then run the design-critic subagent on them: it writes critic.txt. No visible change? done $ID ... --no-ui \"why\"."
+  grep -q '^VERDICT: SHIP' "$d/critic.txt" ||
+    conflict "The design critic said FIX for $ID ($(grep -m 1 '^VERDICT' "$d/critic.txt" 2>/dev/null)). Fix its P1s (.uak-shots/$ID/critic.txt), capture again and rerun it."
+  grep -q "$short" "$d/critic.txt" ||
+    conflict "critic.txt in .uak-shots/$ID/ is about another commit; this one is $short. Capture again and rerun design-critic on it."
+}
+# The task's acceptance criteria as the backlog has them (amended, plan tasks included): every line of its section
+# that is not one of the keys above. Why (Hacktoberfest): reviewers of 11 tasks published with uak plan judged
+# "from the summary", since main's TASKS.md did not have them and nothing printed them.
+task_criteria() {
+  local c
+  c=$(awk -v id="$ID" '/^## / { on = ($2 == id); next } /^# / { on = 0 } on && NF {
+      s = $0; gsub(/\*\*/, "", s); sub(/^[[:space:]]*[-*][[:space:]]*/, "", s)
+      if (s ~ /^(Priority|Paths|Depends on|Verify|Next step|Estimate|Uses contract|Related|Contracts|Freeze-Allowed|Follow-up of)[[:space:]]*:/) next
+      print }' "$BACKLOG" 2>/dev/null | head -n 30)
+  [ -z "$c" ] || { say "Criteria:"; say "$c"; }
 }
 print_status() {
   [ -z "$ID" ] || { print_task; coord_status_budget; say "$CLOCK_NOTE"; return; }
@@ -1218,7 +1500,7 @@ session_key() {
     case "$pid" in ''|*[!0-9]*|0|1) break;; esac
     line=$(ps -o ppid= -o comm= -p "$pid" 2>/dev/null) || break
     ppid=$(printf '%s\n' "$line" | awk '{print $1}'); comm=$(printf '%s\n' "$line" | awk '{print $2}' | tr '[:upper:]' '[:lower:]')
-    case "$comm" in *claude*|*codex*|*cursor*|*gemini*|*aider*|node*) printf '%s' "$pid"; return 0;; esac
+    case "$comm" in *claude*|*codex*|*cursor*|*gemini*|*aider*|node*|*/node) printf '%s' "$pid"; return 0;; esac
     pid=$ppid; i=$((i + 1))
   done
   # Git Bash has no `ps -o` and the harness is a native Windows process: use the session id that the
@@ -1350,6 +1632,11 @@ lint_all() {
   done <<EOF_OC
 $( [ ! -s "$BACKLOG" ] || owner_conflicts )
 EOF_OC
+  # A Verify that needs a project file (pyproject.toml, package.json…) another task creates: that task belongs in
+  # Depends on. Why (Hacktoberfest): 12 backend tasks said "Depends on: None" while their `uv run pytest` needed the
+  # scaffold's pyproject; agents verified on local merges of it, stacked branches and clashed with its ruff config.
+  lint_verify_scaffold
+  lint_design
   # sprint without a freeze = features until the last minute (Hack-Nation: 8 PRs, incl. a product rename, in the last 6 h).
   if [ -f "$ROOT/.uak/PROJECT.md" ] && grep -Eq '^[-* ]*Mode:[* ]*sprint' "$ROOT/.uak/PROJECT.md" &&
      ! grep -Eq '^[-* ]*Freeze-Epoch:[* ]*[1-9][0-9]*' "$ROOT/.uak/PROJECT.md"; then
@@ -1368,7 +1655,7 @@ PLAN_FILE= PLAN_AMEND=no ID= BRANCH= WORKTREE= NEXT_TEXT= REQUEST_NEXT= TOKEN= N
 MERGE_COMMIT= REVIEWER= CANCEL_REASON=
 REVIEW_LEARN=no WAIT_FOR=message WAIT_TIMEOUT=${UAK_WAIT_TIMEOUT:-540} WAIT_EVERY=${UAK_WAIT_EVERY:-15}
 EXPIRED=no SHOW_SUMMARY=no LINT_SECRETS=no QUIET=no SESSION_ONLY=no ALLOW_INFLIGHT=no ALLOW_IDS= ALLOW_DONE= REVIEW_NOTE= FULL=no REVIEW_START=no REVIEW_STARTED=no
-RETIRE_NAMES= DONE_TO= FOLLOWUP_TITLE= REVIEW_STOP=no NEW_ID= REVIEW_HINT= DONE_HINT=
+NO_UI_TEXT= RETIRE_NAMES= DONE_TO= FOLLOWUP_TITLE= REVIEW_STOP=no REVIEW_DECLINE=no NEW_ID= REVIEW_HINT= DONE_HINT=
 REVIEW_SHA= REVIEW_VERDICT= REGISTER_REVIEWER= SMOKE_COMMAND= SECRET_PATH= SECRET_RULE= SECRET_REASON=
 DECISION_OPTION= DECISION_REVERSIBLE=no DECISION_AUTHORIZED=no DECISION_CLASS=routine
 DONE_TEXT= DECISION_TEXT= WHY_TEXT= FAILS_TEXT= COMMANDS_TEXT=
@@ -1397,6 +1684,8 @@ case "$CMD" in
     [ "$#" -gt 0 ] || die "Missing NAME."; REGISTER_REVIEWER=$1; ID=$1; shift; identity;;
   msg)
     [ "$#" -gt 1 ] || die "Usage: msg TO TEXT [--kind KIND] [--task ID]."
+    # A flag is not a recipient: `uak msg --kind request …` sent to "agent:--kind" (audit, Oct 2026).
+    case "$1" in -*) die "Usage: msg TO TEXT [--kind KIND] [--task ID]: TO comes first (a task ID, NAME, related:ID, impact:ID, all or human).";; esac
     MSG_TO=$1; shift; MSG_TASK=${UAK_TASK:-}; identity;;
   inbox) identity;;
   wait)
@@ -1431,6 +1720,7 @@ while [ "$#" -gt 0 ]; do
     --full) case "$CMD" in status|next|digest|inbox) FULL=yes;; *) bad_opt;; esac;;
     --start) [ "$CMD" = review ] || bad_opt; REVIEW_START=yes;;
     --stop) [ "$CMD" = review ] || bad_opt; REVIEW_STOP=yes;;
+    --decline) [ "$CMD" = review ] || bad_opt; REVIEW_DECLINE=yes;;
     --learn) [ "$CMD" = review ] || bad_opt; REVIEW_LEARN=yes;;
     --amend) [ "$CMD" = plan ] || bad_opt; PLAN_AMEND=yes;;
     --similar) [ "$CMD" = recall ] || bad_opt; MEM_SIMILAR=yes;;
@@ -1440,7 +1730,7 @@ while [ "$#" -gt 0 ]; do
     --kind)
       [ "$CMD" = msg ] && [ "$#" -gt 0 ] || bad_opt
       MSG_KIND=$1; shift; msg_valid_kind "$MSG_KIND" || die "--kind: info|request|contract|blocker|reply|review|approve|reject|integrated|human";;
-    --task|--branch|--worktree|--next|--read-summary|--state|--done|--decision|--why|--fails|--commands|--pr|--evidence|--integrated|--reviewer|--cancel|--sha|--verdict|--note|--command|--option|--reversible|--authorized|--class|--path|--rule|--reason|--to|--title|--for|--timeout|--forget|--search)
+    --task|--branch|--worktree|--next|--read-summary|--state|--done|--decision|--why|--fails|--commands|--pr|--evidence|--integrated|--reviewer|--cancel|--sha|--verdict|--note|--command|--option|--reversible|--authorized|--class|--path|--rule|--reason|--to|--title|--for|--timeout|--forget|--search|--no-ui)
       [ "$#" -gt 0 ] || die "Missing value for $opt."
       value=$1; shift
       case "$opt" in
@@ -1450,7 +1740,7 @@ while [ "$#" -gt 0 ]; do
         --branch) [ "$CMD" = claim ] || bad_opt; BRANCH=$value;;
         --worktree) [ "$CMD" = claim ] || bad_opt; WORKTREE=$value;;
         --next) case "$CMD" in claim|checkpoint) NEXT_TEXT=$value;; *) bad_opt;; esac;;
-        --read-summary) [ "$CMD" = release ] || bad_opt; TOKEN=$value;;
+        --read-summary) case "$CMD" in release|handover) ;; *) bad_opt;; esac; TOKEN=$value;;
         --state) [ "$CMD" = log ] || bad_opt; NEW_STATE=$value; case "$value" in CLAIMED|BLOCKED) ;; *) die "Invalid state.";; esac;;
         --done) [ "$CMD" = checkpoint ] || bad_opt; DONE_TEXT=$value;;
         --decision) [ "$CMD" = checkpoint ] || bad_opt; DECISION_TEXT=$value;;
@@ -1459,6 +1749,7 @@ while [ "$#" -gt 0 ]; do
         --commands) [ "$CMD" = checkpoint ] || bad_opt; COMMANDS_TEXT=$value;;
         --pr) [ "$CMD" = done ] || bad_opt; PR_URL=$value;;
         --evidence) [ "$CMD" = done ] || bad_opt; EVIDENCE=$value;;
+        --no-ui) [ "$CMD" = done ] || bad_opt; NO_UI_TEXT=$value;;
         --integrated) case "$CMD" in done|integrate) MERGE_COMMIT=$value;; *) bad_opt;; esac;;
         --reviewer) [ "$CMD" = done ] || bad_opt; REVIEWER=$value;;
         --sha) [ "$CMD" = review ] || bad_opt; REVIEW_SHA=$value;;
@@ -1473,11 +1764,12 @@ while [ "$#" -gt 0 ]; do
         --reversible) [ "$CMD" = decision ] || bad_opt; DECISION_REVERSIBLE=$value;;
         --authorized) [ "$CMD" = decision ] || bad_opt; DECISION_AUTHORIZED=$value;;
         --class) [ "$CMD" = decision ] || bad_opt; DECISION_CLASS=$value;;
-        --path) case "$CMD" in secret-exception) SECRET_PATH=$value;; learn|recall) MEM_PATHS=$value;; *) bad_opt;; esac;;
+        # all = * (everyone): typed in PowerShell, a bare * reaches Git Bash as the folder's file names.
+        --path) case "$CMD" in secret-exception) SECRET_PATH=$value;; learn|recall) MEM_PATHS=$value; [ "$MEM_PATHS" != all ] || MEM_PATHS='*';; *) bad_opt;; esac;;
         --search) [ "$CMD" = recall ] || bad_opt; MEM_SEARCH=$value;;
         --forget) [ "$CMD" = learn ] || bad_opt; case "$value" in ''|*[!0-9]*) die "--forget takes a lesson number";; esac; MEM_FORGET=$value;;
         --rule) [ "$CMD" = secret-exception ] || bad_opt; SECRET_RULE=$value;;
-        --reason) case "$CMD" in secret-exception) SECRET_REASON=$value;; allow) WHY_TEXT=$value;; *) bad_opt;; esac;;
+        --reason) case "$CMD" in secret-exception) SECRET_REASON=$value;; allow|integrate) WHY_TEXT=$value;; *) bad_opt;; esac;;
         --cancel) [ "$CMD" = release ] || bad_opt; CANCEL_REASON=$value;;
       esac
       ;;
@@ -1529,7 +1821,11 @@ if [ "$CMD" = checkpoint ]; then
     die "checkpoint needs all six fields; missing:$([ -n "$DONE_TEXT" ] || printf ' --done')$([ -n "$DECISION_TEXT" ] || printf ' --decision')$([ -n "$WHY_TEXT" ] || printf ' --why')$([ -n "$FAILS_TEXT" ] || printf ' --fails')$([ -n "$COMMANDS_TEXT" ] || printf ' --commands')$([ -n "$NEXT_TEXT" ] || printf ' --next') (use - for none)."
 fi
 if [ "$CMD" = done ]; then
-  case "$PR_URL" in https://*/*) ;; *) die "done needs --pr HTTPS URL.";; esac
+  # Both flags in one error, with the whole command. Why (Hacktoberfest): `done` failed 3 times in a row, first
+  # on --pr, then on --evidence; neither wt pr nor the hint named them.
+  done_usage="Usage: bash .uak/bin/uak done ${ID:-ID} --pr URL --evidence \"<Verify command> exit 0; <criteria checked>\" (the PR URL: bash .uak/bin/wt pr)"
+  case "$PR_URL" in https://*/*) [ -n "$EVIDENCE" ] || die "done needs --evidence. $done_usage";;
+    *) die "done needs --pr HTTPS URL$([ -n "$EVIDENCE" ] || printf ' and --evidence'). $done_usage";; esac
   # A GitHub PR URL must name this repository. Why (MLB hackathon): two tasks shipped with a PR link to another of
   # the human's repositories; reviewers opened the wrong compare page.
   pr_remote=$(git -C "$ROOT" config --get "remote.$REMOTE.url" 2>/dev/null || true)
@@ -1539,7 +1835,6 @@ if [ "$CMD" = done ]; then
       pr_url_repo=$(printf '%s' "${PR_URL#https://github.com/}" | cut -d/ -f1-2 | tr 'A-Z' 'a-z')
       [ "$pr_repo" = "$pr_url_repo" ] || die "--pr names github.com/$pr_url_repo, but this repository is github.com/$pr_repo. The right link: bash .uak/bin/wt pr";;
   esac
-  [ -n "$EVIDENCE" ] || die "done needs --evidence."
   if [ -n "$REVIEWER" ]; then
     case "$REVIEWER" in *[!A-Za-z0-9_.-]*) die "Reviewer must be a valid identity.";; esac
   fi

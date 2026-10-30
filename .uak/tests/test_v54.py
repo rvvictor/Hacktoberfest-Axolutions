@@ -67,6 +67,8 @@ def merge_that_loses_the_queue_race_is_done(r):
 
 def base_fetch_retries_and_says_why(r):
     """10 `done` failed as "Could not read PROJECT.md on remote main" on venue Wi-Fi: one try, git's error hidden."""
+    if os.name == "nt":
+        return {"skipped": "Git Bash's launcher puts its own git before a PATH shim"}
     f = rm.fixture(r, "v54-flaky", count=1)
     f.claim(0, "HACK-001")
     rm.publish(f, 0, "HACK-001")
@@ -108,7 +110,10 @@ def done_after_a_cross_machine_handover(r):
     expect(done.returncode == 0 and "REVIEW" in done.stdout, "done from the new checkout: " + done.stdout + done.stderr)
     record = f.show("tasks/HACK-001.md")
     expect("Task-Tip: " + tip in record, "the tip of this checkout: " + record)
-    expect("Worktree: " + moved.resolve().as_posix() in record, "the new path is recorded: " + record)
+    where = moved.resolve().as_posix()
+    if os.name == "nt":  # Git Bash records /c/Users/..., its own form, everywhere
+        where = "/" + where[0].lower() + where[2:]
+    expect("Worktree: " + where in record, "the new path is recorded: " + record)
     g = rm.fixture(r, "v54-handover-main", count=1)
     g.claim(0, "HACK-001")
     rm.publish(g, 0, "HACK-001")
@@ -305,10 +310,10 @@ def frontend_uses_the_design_system(r):
         expect((d / ".claude/skills/landing-story/SKILL.md").exists() == want, "landing-story installed for %s/%s: %s" % (mode, stack, want))
     text = lambda rel: (r.package / rel).read_text(encoding="utf-8")
     expect("**Design lock P0**" in text(".claude/commands/uak-plan.md") and "never merged into another task" in text(".claude/commands/uak-plan.md")
-           and "ls web/public/design-lock/*.png" in text(".claude/commands/uak-plan.md"), "the plan makes the design lock its own task, verified by screenshots")
+           and "ls web/public/design-lock/screens/*-1280.png" in text(".claude/commands/uak-plan.md"), "the plan makes the design lock its own task, verified by screenshots")
     expect("Never skip the screenshots" in text(".claude/commands/uak-design-lock.md") and "a floor every direction meets" in text(".claude/commands/uak-design-lock.md"),
            "the lock is picked by looking; accessibility is a floor, not a style")
-    expect("design-lint" in text(".claude/agents/design-critic.md") and "3-second test" in text(".claude/agents/design-critic.md"), "the critic runs the gate and the judge test")
+    expect("design-lint" in text(".claude/agents/design-critic.md") and "VERDICT: SHIP" in text(".claude/agents/design-critic.md") and "did not open" in text(".claude/agents/design-critic.md"), "the critic runs the gate, looks at the screenshots and writes the verdict done checks")
     expect("`product-ui`" in text(".uak/stacks/fastapi-react/skills/stack-frontend/SKILL.md"), "app screens route to product-ui")
     expect("**Landing P0**" in text(".claude/commands/uak-plan.md") and "landing-story" in text(".claude/agents/design-critic.md")
            and "`landing-story`" in text(".uak/stacks/fastapi-react/skills/stack-frontend/SKILL.md"), "the landing is planned, built and judged as a story")
@@ -410,7 +415,7 @@ def ui_edits_get_the_gate_at_once(r):
     full = r.run([r.bash, ".uak/bin/design-lint"], cwd=w, allowed=None)
     expect("bounce easing" in full.stdout and "emoji in the UI" in full.stdout and "default typeface" in full.stdout, full.stdout)
     payload = {"session_id": "s1", "hook_event_name": "PostToolUse", "tool_name": "Write", "tool_input": {"file_path": str(view)}}
-    (w / ".git-payload.json").write_text(json.dumps(payload), encoding="utf-8")
+    (w / ".git-payload.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     tick = r.run([r.bash, "-c", "bash .uak/bin/hook tick < .git-payload.json"], cwd=w, env={"UAK_NOW": "1000100"}, allowed=None)
     expect("UAK design-lint on index.tsx" in tick.stdout and "bounce easing" in tick.stdout, "the agent hears it after the edit: " + tick.stdout)
     view.write_text('<div className="bg-[var(--pb-acento)]">Lanzar</div>\n', encoding="utf-8")
@@ -442,7 +447,9 @@ def the_human_sees_the_directions(r):
     import urllib.request
     served = r.run([r.bash, str(r.package / ".uak/bin/design-gallery"), "--serve", "18790"], cwd=t, allowed=None)
     try:
-        port = next(l.split("http://localhost:", 1)[1].split("/", 1)[0] for l in served.stdout.splitlines() if "http://localhost:" in l)
+        urls = [l.split("http://localhost:", 1)[1].split("/", 1)[0] for l in served.stdout.splitlines() if "http://localhost:" in l]
+        expect(urls, "the server printed its URL: " + served.stdout + served.stderr)
+        port = urls[0]
         expect(served.returncode == 0 and "ssh -L %s:127.0.0.1:%s" % (port, port) in served.stdout, "the tunnel to use over SSH: " + served.stdout + served.stderr)
         body = urllib.request.urlopen("http://127.0.0.1:%s/" % port, timeout=10).read().decode("utf-8")
         expect("Design lock" in body and 'src="1-1280.png"' in body, "served on localhost, in the background: " + body[:200])
@@ -453,11 +460,70 @@ def the_human_sees_the_directions(r):
     return {"gallery": True}
 
 
+def doctor_never_waits_on_the_terminal(r):
+    """On macOS doctor hung at minute 0: BSD awk ignores -W, runs "version" as the program and reads the terminal."""
+    import shutil, subprocess
+    t = r.scratch / "v54-doctor-tty"; t.mkdir(); r.g(t, "init", "-q", "-b", "main")
+    shim = r.scratch / "v54-bsd-awk"; shim.mkdir()
+    (shim / "awk").write_text('#!/bin/sh\nif [ "$1" = -W ]; then shift 2; cat >/dev/null; exit 0; fi\nexec "%s" "$@"\n' % shutil.which("awk"), encoding="utf-8")
+    (shim / "awk").chmod(0o755)
+    env = r.env.copy(); env["PATH"] = "%s%s%s" % (shim, os.pathsep, env["PATH"])
+    read_end, write_end = os.pipe()
+    try:
+        doc = subprocess.run([r.bash, str(r.package / ".uak/bin/doctor")], cwd=t, env=env, stdin=read_end, text=True,
+                             capture_output=True, timeout=60)
+    except subprocess.TimeoutExpired:
+        doc = None
+    finally:
+        os.close(read_end); os.close(write_end)
+    expect(doc is not None and "bash" in doc.stdout and "git" in doc.stdout, "doctor finishes with an open terminal: " + (doc.stdout[-500:] if doc else "it hung"))
+    return {"doctor": True}
+
+
+def verify_never_reads_the_terminal(r):
+    """A human ran Verify in a terminal: vitest saw a TTY, entered watch mode and wrote to a log nobody saw end."""
+    if os.name == "nt":
+        return {"skipped": "no pty module on Windows"}
+    import base64, pty, subprocess
+    t = r.scratch / "v54-verify-tty"; t.mkdir(); r.g(t, "init", "-q", "-b", "main")
+    probe = ["bash", "-c", "[ ! -t 0 ]"]
+    leader, follower = pty.openpty()
+    try:
+        run = lambda cmd: subprocess.run(cmd, cwd=t, env=r.env, stdin=follower, text=True, capture_output=True, timeout=60)
+        q = run([r.bash, str(r.package / ".uak/bin/q"), *probe])
+        cap = run([r.bash, str(r.package / ".uak/bin/cap"), "--b64", base64.b64encode(b"[ ! -t 0 ]").decode()])
+    finally:
+        os.close(leader); os.close(follower)
+    expect(q.returncode == 0, "q gives Verify no terminal: " + q.stdout + q.stderr)
+    expect(cap.returncode == 0, "cap gives the command no terminal: " + cap.stdout + cap.stderr)
+    for path, needle in ((".uak/bin/loop", 'bash -c "$verify" > "$out" 2>&1 < /dev/null'), (".uak/bin/lib/review-merge.sh", 'bash -c "$verify" < /dev/null')):
+        expect(needle in (r.package / path).read_text(encoding="utf-8"), path + " runs Verify without the terminal")
+    hints = "".join((r.package / p).read_text(encoding="utf-8") for p in (".uak/bin/uak", ".uak/bin/map", ".uak/bin/uak-coordination", ".uak/bin/lib/review-merge.sh"))
+    expect("git merge origin/" not in hints and "git merge %s" not in hints, "every merge hint says --no-edit: git opens an editor in a terminal")
+    for mode in ("sprint", "marathon"):
+        allowed = (r.package / (".uak/settings/settings.%s.json" % mode)).read_text(encoding="utf-8")
+        expect('"Bash(git merge --no-edit origin/main)"' in allowed, mode + " allows the hint it gives, without a permission prompt")
+    return {"tty": True}
+
+
+def transcripts_of_a_home_with_an_accent(r):
+    """C:\\Users\\José: Claude Code names the transcript folder per UTF-16 unit; the kit counted bytes and found none."""
+    import subprocess
+    src = (r.package / ".uak/bin/tokens").read_text(encoding="utf-8")
+    enc = src[src.index("enc() {"):src.index("\n}\n", src.index("enc() {")) + 3]
+    for path in ("/Users/José/app", "C:/Users/Peña Núñez/app", "/home/ana/😀/app"):
+        out = subprocess.run([r.bash, "-c", enc + 'enc "$1"', "_", path], capture_output=True, timeout=30).stdout.decode("utf-8")
+        want = "".join("-" * (len(ch.encode("utf-16-le")) // 2) if not (ch.isascii() and ch.isalnum()) else ch for ch in path)
+        expect(out == want, "%s -> %s, Claude Code: %s" % (path, out, want))
+    return {"accent": True}
+
+
 TESTS = [merge_of_a_merged_task_is_done, merge_that_loses_the_queue_race_is_done, base_fetch_retries_and_says_why, done_after_a_cross_machine_handover,
          review_checkout_is_removed_safely, reviews_go_to_agents_only, pr_sync_tells_a_forge_merge, hook_stops_beating_a_task_that_moved,
          errors_say_the_fix, a_retry_reuses_the_base, frontend_uses_the_design_system,
          done_checks_the_design_and_humans_record_forge_merges, deploy_reads_the_project, ui_edits_get_the_gate_at_once,
-         the_human_sees_the_directions]
+         the_human_sees_the_directions, doctor_never_waits_on_the_terminal,
+         verify_never_reads_the_terminal, transcripts_of_a_home_with_an_accent]
 
 
 def main():
