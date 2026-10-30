@@ -3,7 +3,8 @@
 SpeedHack turns an idea into a research-backed specification, an architecture
 board, a backlog, a prototype quality report, and a pitch with project-grounded
 Q&A. A versioned spec carries context between stages, with three human approvals.
-The product UI is in Spanish; this repository is the hackathon prototype.
+The product UI is in Spanish. SpeedHack started as a hackathon prototype and is now
+Dylan's own product.
 
 ![Actual recorded architecture and backlog UI](docs/demo/screenshots/live-board.png)
 
@@ -41,14 +42,14 @@ provider connection; the first setup still needs package downloads.
 
 Standalone screen fixtures are independent examples, not one continuous live
 run. See the [three-minute script](docs/demo/script.md) for route conventions,
-three explicit approvals, and a fallback at each step. The board wow starts at
-00:55 and is scheduled to finish by 01:20.
+three explicit approvals, and a fallback at each step.
 
 - [Plan-B video and playback instructions](docs/demo/plan-b.md)
 - [Clean-clone rehearsal evidence](docs/demo/rehearsal.md)
-- [Open the public demo](https://speedhack.onrender.com). Judges should wait
-  about **1 minute on first load**: Render's free tier sleeps after 15 minutes
-  of inactivity. The deployment uses `DEMO_MODE=true` and updates from `main`.
+- [Open the public demo](https://speedhack.onrender.com). The public deployment
+  is a demo: `DEMO_MODE=true`, recorded data, no accounts. It runs on Render's
+  free plan, which sleeps after 15 minutes of inactivity, so the first load takes
+  about **1 minute**. It updates from `main`.
   Health, the recorded board, and written pitch Q&A were verified on 2026-10-28;
   see [public demo evidence](docs/demo/public-check.json). Sample results are
   labeled `demo_data: true` / “Datos de demostración”.

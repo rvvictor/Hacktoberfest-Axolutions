@@ -21,7 +21,15 @@ const EVENT_TYPES: EventType[] = [
 // The runs router (HACK-013) sends named SSE events (`event: <type>`), which `onmessage` in lib/sse.ts never sees.
 function listen(url: string, onEvent: (e: StageEvent) => void): () => void {
   const source = new EventSource(url);
-  const handle = (m: MessageEvent<string>) => onEvent(JSON.parse(m.data) as StageEvent);
+  // The browser's own `error` event (stream closed or reconnecting) has no data: skip it and anything not JSON.
+  const handle = (m: MessageEvent<string>) => {
+    if (typeof m.data !== "string") return;
+    try {
+      onEvent(JSON.parse(m.data) as StageEvent);
+    } catch {
+      // not a StageEvent; the stream's own reconnect keeps working
+    }
+  };
   EVENT_TYPES.forEach((t) => source.addEventListener(t, handle));
   source.onmessage = handle;
   return () => source.close();
