@@ -39,8 +39,8 @@
 .pj-error { color: var(--sh-error); font-weight: 700; }
 .pj-working { color: var(--sh-muted); }
 .pj-failed, .pj-warning { display: flex; flex-direction: column; gap: 10px; overflow-wrap: anywhere; }
-.pj-failed { box-shadow: inset 0 0 0 1.5px var(--sh-error); }
-.pj-warning { box-shadow: inset 0 0 0 1.5px var(--sh-line); }
+.pj-failed { border-color: var(--sh-error); }
+.pj-failed .pj-error { font-weight: 400; }
 .pj-failed .sh-btn { white-space: nowrap; }
 .pj-failed .pj-hint { flex-basis: 100%; }
 .pj-skipped { margin: 0; padding-left: 18px; list-style: disc; }

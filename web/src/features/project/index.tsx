@@ -317,23 +317,38 @@ export default function Project() {
 
         {working && <Message><span className="pj-working">{working}</span></Message>}
         {c.warning && (
-          <Panel className="pj-card pj-warning" role="status">
-            <h2 className="pj-h">Aviso: quedó algo sin crear</h2>
-            <p>{c.warning.message}</p>
-            {c.warning.skipped.length > 0 && (
-              <ul className="pj-skipped">{c.warning.skipped.map((t) => <li key={t}>{t}</li>)}</ul>
-            )}
-          </Panel>
+          <>
+            <Message>Casi todo quedó listo, pero me faltó algo.</Message>
+            <Panel className="pj-card pj-warning" role="status">
+              <h2 className="pj-h">Aviso: quedó algo sin crear</h2>
+              <p>
+                {c.warning.skipped.length > 0
+                  ? `Miro no me dejó crear ${c.warning.skipped.length} ${c.warning.skipped.length === 1 ? "nota" : "notas"}; el resto del tablero se conservó.`
+                  : c.warning.message}
+              </p>
+              {c.warning.skipped.length > 0 && (
+                <>
+                  <ul className="pj-skipped">{c.warning.skipped.map((t) => <li key={t}>{t}</li>)}</ul>
+                  <p className="pj-hint">Puedes agregarlas a mano en Miro cuando quieras.</p>
+                </>
+              )}
+            </Panel>
+          </>
         )}
         {c.error && c.retryable && (
-          <Panel className="pj-card pj-failed" role="alert">
-            <h2 className="pj-h">Esta etapa no terminó</h2>
-            <p className="pj-error">{c.error}</p>
-            <div className="pj-actions">
-              <Button variant="primary" disabled={busy} onClick={() => void retry()}>Reintentar</Button>
-              <span className="pj-hint">Lo que ya se creó no se duplica.</span>
-            </div>
-          </Panel>
+          <>
+            <Message>Tuve un problema con esta etapa. Pulsa Reintentar y lo intento otra vez.</Message>
+            <Panel className="pj-card pj-failed" role="alert">
+              <h2 className="pj-h">Esta etapa no terminó</h2>
+              <p className="pj-error">{c.error}</p>
+              <div className="pj-actions">
+                <Button variant="primary" disabled={busy} onClick={() => void retry()}>
+                  {busy ? "Reintentando…" : "Reintentar"}
+                </Button>
+                <span className="pj-hint">Lo que ya se creó no se duplica.</span>
+              </div>
+            </Panel>
+          </>
         )}
         {c.error && !c.retryable && (
           <Message>

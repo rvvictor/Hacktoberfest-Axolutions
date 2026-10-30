@@ -189,8 +189,8 @@ export function useConversation(runId: string | null) {
     try {
       await api(`/runs/${encodeURIComponent(runId)}/retry`, { method: "POST" });
       dispatch({ type: "state", s: { awaiting: null, status: "running", error: null, retryable: false } });
-    } catch (e) {
-      dispatch({ type: "state", s: { error: `No se pudo reintentar: ${(e as Error).message}`, retryable: true } });
+    } catch {
+      dispatch({ type: "state", s: { error: "No pude reintentar. Revisa tu conexión y pulsa Reintentar otra vez.", retryable: true } });
     } finally {
       setBusy(false);
     }
