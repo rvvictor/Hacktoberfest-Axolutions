@@ -132,3 +132,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793340223 | HACK-065 | POST /api/pitch/{run}/narration takes the slide in the body (deck is not deterministic), audio cached on disk per run | Why: deck() rebuilds via LLM so an index-only endpoint could narrate a different slide
 - 1793342086 | HACK-064 | stop and ask: 3 existing tests + runs.py are outside Paths | Why: the task reverses the behaviour those tests assert; editing them without a Paths amendment breaks the never-edit-a-test rule
 - 1793342603 | HACK-064 | recovered:true error for a skipped Miro note; getattr(board,'skipped') in stages so test doubles keep working | Why: no miro_item kind (would pollute the mirror board); plain error would mark the stage failed in /ops
+- 1793342719 | HACK-065 | server speaks only the deck it served | Why: security review: client-supplied slide = forged speech + spend
