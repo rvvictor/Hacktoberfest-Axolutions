@@ -413,3 +413,41 @@ Append-only; added to .uak/TASKS.md from main. Why: adding tasks never waits for
 - **Acceptance:**
   - Demo replays build the Linear issues (and Miro items) from the recorded backlog.json and architecture.json, not Issue demo N
 - **Verify:** `uv run pytest -q && uv run ruff check app scripts && ! grep -q 'example.invalid\|Placeholder' app/fixtures/demo/run.jsonl web/src/features/project/demo.ts web/src/features/spec/demo.ts && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+## HACK-057 · design-lint 5.8 clean: the 8 findings the new kit's stricter lint reports on existing screens
+
+- **Type:** chore
+- **Priority:** P0
+- **Estimate:** 30 min
+- **Rubric / Spec:** C1 · `web/DESIGN.md`
+- **Depends on:** None
+- **Paths:** web/src/App.tsx, web/src/features/hunter/index.tsx, web/src/index.css, web/src/styles/tokens.css, web/public/design-lock/3.html
+- **Freeze-Allowed:** yes
+- **Acceptance:** The kit 5.8 `design-lint` (PR #57) passes on main: the four `rounded-[10|12|16px]` in `App.tsx` and `hunter/index.tsx` use the radius steps of `tokens.css`; the unused Geist import and `--font-sans` in `index.css` go (tokens already set `--font-sans: var(--sh-font)`, so nothing visible changes); `--sh-naranja-ink` reads on `--sh-naranja` at 4.5:1 or more; the hex in the rejected design-lock direction 3 is a `:root` token., The two global-token touches (`index.css`, `tokens.css`) are recorded with `uak decision` before the edit; screens using `--sh-naranja-ink` (delivery, run, Panel, live-board) are captured before and after at 1280×720 and the only change is the ink contrast., Ships with `.uak-shots/HACK-057/1280.png`, `390.png` and the design critic's `VERDICT: SHIP`.
+- **Verify:** `bash .uak/bin/design-lint && npm --prefix web run build && bash .uak/bin/q bash .uak/bin/smoke`
+- **Next step:** after PR #57 (kit 5.8) is on main, `wt new HACK-057`; run the new `design-lint` and fix finding by finding.
+
+## HACK-055 · The wow screen: the Miro board draws frames and notes without overlapping labels
+
+- **Type:** bug
+- **Priority:** P0
+- **Estimate:** 45 min
+- **Rubric / Spec:** C1 · `IDEA.md` §4 step 3 (the wow)
+- **Depends on:** HACK-054, HACK-057
+- **Paths:** web/src/features/live-board/, e2e/judge_path.py
+- **Freeze-Allowed:** yes
+- **Acceptance:** Found in the clean-clone walk at 1280×720: since HACK-054 the demo board is what `miro.BoardRun` emits (3 `frame`, 10 notes, 2 `connector`, with `w`/`h`), and `MirrorCanvas.tsx` draws every item as a fixed-size box at its (x, y) without telling frames from notes: 4 pairs of labels overlap ("Modelo de datos" under "Usuario y Roles", "Integraciones" under "Sistema de alertas…", "Pantallas" under the first note) and text spills out of its box. Live Miro runs emit the same shape, so they are probably affected too., `MirrorCanvas` draws each `frame` as a column background with its title, places each note inside its frame in a readable stack using the event's `w`/`h` (and `contract.ts` declares them), and draws connectors between the first notes of the columns. Items from the old grid shape (no `w`/`h`, no frames) still render as today., At 1280×720 with reduced motion the board and the Linear feed fit without page scroll and no two labels overlap, with the demo board and with the local replay (no `?run=`). Tokens only (`var(--sh-*)`), no hex., Ships with `.uak-shots/HACK-055/1280.png`, `390.png` and the design critic's `VERDICT: SHIP` (kit 5.8)., `e2e/judge_path.py` asserts it at the wow: after step 4, no two text labels inside `.lb-board` overlap (bounding boxes), and the wow capture is taken at 1280×720.
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** read `web/src/features/live-board/MirrorCanvas.tsx` and `contract.ts`; run the overlap measurement from this task against the clean demo run first.
+
+## HACK-056 · Demo kit refreshed for the conversation flow: script, rehearsal record and screenshots
+
+- **Type:** docs
+- **Priority:** P0
+- **Estimate:** 40 min
+- **Rubric / Spec:** C1 · `IDEA.md` §4, §8
+- **Depends on:** HACK-055, HACK-057
+- **Paths:** docs/demo/, README.md
+- **Freeze-Allowed:** yes
+- **Acceptance:** `docs/demo/script.md` is the 3-minute script for the current flow (landing → "Nuevo proyecto" → idea → three questions → plan with sources → "Ver el tablero en vivo" → tasks → prototype inline → checks → pitch Q&A) with the timing split problem 20 s → demo to the wow ≤ 90 s → how it works 40 s → impact 30 s, each part mapped to the `IDEA.md` §4 step it shows and to C1 (the official rubric is not published: no invented criteria; remap when it is). It no longer mentions the old tabs (`/#/intake`, `/#/spec`, `/#/delivery`) as the path., `docs/demo/rehearsal.md` gets a dated section for the clean clone of `main` at the merged SHA: clone, README setup, `bash .uak/bin/smoke` result, judge-path E2E result, and the measured machine time to the wow (stages 1–6 of `run.jsonl` at `DEMO_SPEED=2`), each with its real output., README screenshots and `docs/demo/screenshots/` are regenerated from the current build (`docs/demo/capture.py`) at 1280×720 with reduced motion, after HACK-055., `docs/demo/plan-b.md` says the recorded video predates the conversation flow and must be re-recorded by a human; no agent claims a video exists that it did not see.
+- **Verify:** `bash .uak/bin/q bash -c 'test -s README.md && test -s docs/demo/script.md && bash .uak/bin/smoke'`
+- **Next step:** copy the draft script, then run the clean-clone commands and paste their output.
