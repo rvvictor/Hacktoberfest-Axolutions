@@ -127,3 +127,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793333270 | HACK-056 | capture.py --screenshots-only so the human re-records the video | Why: the video predates the flow; an automatic silent capture of old routes is not a plan B
 - 1793339736 | HACK-069 | no browser in the Render runtime image; Dockerfile and render.yaml untouched | Why: peak ~450 MiB for the browser tree + ~110 MiB server vs 512 MB on free/starter; no Docker here so image size is unmeasured and the node-only option is left as an alternative
 - 1793340086 | HACK-060 | reuse BOARD/BACKLOG recorded data via WEB table | Why: same story as HACK-053/054
+- 1793340134 | HACK-063 | deterministic junk filter instead of LLM judge | Why: stays in Paths, testable offline
