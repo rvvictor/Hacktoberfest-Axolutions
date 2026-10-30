@@ -1,64 +1,66 @@
-# PROJECT · Hacktoberfest (sprint mode)
+# PROJECT · SpeedHack (marathon mode)
 
-> Filled in by `/uak-setup` with the human at minute 0. uak reads the flat fields of the last block from
-> the remote `main`, so a stale worktree can never change permissions.
+> The project constitution. Humans change it by reviewed PR. uak reads the last block from the remote `main`.
+> Switched from sprint (Hacktoberfest Hack Day CDMX, 2026-10-27/28) to marathon on 2026-10-29: SpeedHack is now
+> Dylan's own product, maintained by one human. The event's dates, rubric, team roster and plan B are in git history.
 
-## Event
-| Field | Value |
-|---|---|
-| Event / challenge | Hacktoberfest: Hack Day in Mexico City, Build Day + Demos (MLH) · https://events.mlh.com/events/14760-hacktoberfest-hack-day-in-mexico-city-build-day-demos · challenge: TBD · product: SpeedHack (IDEA.md) |
-| Start | 2026-10-27 15:30 America/Mexico_City |
-| Official deadline | 2026-10-28 19:00 America/Mexico_City · platforms: probably the MLH event page (to be confirmed) |
-| Freeze | 2026-10-28 14:52 (Freeze-Epoch 1793220750) · design lock Tue 16:30 · first claim by Tue 17:30 · walking skeleton Tue 17:30 · plan-B video Wed 05:15 |
-| Clean rehearsal / plan B | 2026-10-28 17:00 |
-| Internal submission | 2026-10-28 18:00 |
-| Humans | Victor, Sebas, Dylan, Fer, Jabi (Jabi uses Codex; the rest Claude Code) · submission owner: Victor (starts at T−8 h) |
-| Agents | victor-1, victor-2, sebas-1, sebas-2, dylan-1, dylan-2, fer-1, fer-2, jabi-1, jabi-2 · all are reviewers |
-| Machines | `<laptop, Jetson…>` · ports already taken: `<8000…>` |
+## Purpose
+For technical founders and small businesses without a digital presence who split the path from an idea to a
+defensible pitch across tools that share no context: SpeedHack turns one idea into cited research, a plan, a Miro
+architecture, a Linear backlog, a working prototype it builds itself, and a pitch with Q&A, on one thread of context
+(`IDEA.md` §1–§2). Measurable outcome: `<to define by Dylan>`.
 
-## Official rubric (weights sum to 100)
-| ID | Criterion | Weight | Evidence in the demo |
-|---|---|---:|---|
-| C1 | TBD: official rubric not published yet | - | - |
+## Non-negotiable principles
+1. Secure and private by default: least privilege, personal data encrypted and minimized.
+2. Nothing reaches `main` without green CI and Dylan's merge (one human: agents review on claims, Dylan merges).
+3. Every decision that is costly to reverse has an ADR in `docs/adr/`.
+4. The LLM never produces figures: prices and features come from research with their URL, LLM output is
+   validated against a schema before it is used, and anything simulated or recorded carries `demo_data: true`.
 
-## Event rules
-| Topic | Confirmed rule | Source |
+## Non-functional requirements (measurable)
+Targets are not set yet; Dylan defines them before the first public launch. No agent fills these in.
+| Attribute | Target | Measured by |
 |---|---|---|
-| AI use / prior code | AI allowed · prior code allowed | organizers (verbal) |
-| Data and licenses | TBD | - |
-| Format and video limits | TBD (video limit not announced yet) | - |
+| Latency | `<to define>` (today: the prototype stage takes ~2.5 min with gemma-4-26b) | `<to define>` |
+| Availability | `<to define>` | `<to define>` |
+| Data | RPO `<to define>` · RTO `<to define>` (today: one local SQLite file under `DATA_DIR`) | `<to define>` |
+| Frontend | `<to define>` | `<to define>` |
+| Coverage | `<to define>` | `<to define>` |
+| Cost | `<to define>` per run (Gemini, Tavily, Firecrawl, Miro, Linear) | provider billing |
 
-## Plan B
-- A video of the whole flow at `<path>` (v1 at T−50%, final at T−2 h). Use it if `<network, mic, external API>` fails.
+## Environments and ownership
+| Env | URL | Deploys | Secrets in |
+|---|---|---|---|
+| dev | local (`DEMO_MODE=1` without keys) | `uv run uvicorn app.main:app` | `.env` (git-ignored) |
+| prod | none yet | `<to define>` | `<to define>` |
+
+CODEOWNERS: Dylan (all paths) · On-call: Dylan · Runbook: `docs/runbook.md` (not written yet).
 
 ## Executable config
-A human sets `yes`. A missing field means `no`.
-
 ```text
-Mode: sprint
+Mode: marathon
 Backlog-Proposed-Epoch: 0
-Backlog-Approved: yes
+Backlog-Approved: no
 Autonomy: yes
-Auto-Merge: yes
+Auto-Merge: no
 Review-Mode: claims
-Plan-Channel: claims
-Freeze-Epoch: 1793220750
-Lease-Seconds: 2700
-Review-Lease-Seconds: 14400
-Events-Per-Session: 100
+Plan-Channel: main
+Freeze-Epoch: 0
+Lease-Seconds: 14400
+Review-Lease-Seconds: 86400
+Events-Per-Session: 150
 Checkpoint-Percent: 60
 Merge-Lease-Seconds: 1800
 Merge-Wait-Seconds: 180
-Merge-Adopt-Seconds: 300
-Max-Parallel-Subagents: 4
-Opus-Subagents-Per-Session: 2
+Max-Parallel-Subagents: 3
+Opus-Subagents-Per-Session: 4
 Pace: auto
-Subagent-Hard-Cap: 6
-Strong-Hard-Cap: 3
-Subagents-Per-Session: 40
-Subagents-Per-Machine: 8
+Subagent-Hard-Cap: 4
+Strong-Hard-Cap: 4
+Subagents-Per-Session: 30
+Subagents-Per-Machine: 6
 Subagent-Burst-Per-Minute: 6
-Max-Worktree-Agents: 6
+Max-Worktree-Agents: 4
 Blackbox: on
 Additive-Paths: -
 ```
