@@ -13,11 +13,22 @@
 .pitch-room :focus-visible { outline: 3px solid var(--sh-ink); outline-offset: 3px; }
 .pitch-layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; }
 .pitch-deck, .pitch-qa { min-width: 0; }
-.pitch-slide { padding: 24px 0; min-height: 240px; }
+/* A slide is a 16:9 card that scales its type with its own width; long text grows it instead of clipping. */
+.pitch-stage { container-type: inline-size; margin: 12px 0 16px; }
+.pitch-slide { aspect-ratio: 16 / 9; display: flex; flex-direction: column; justify-content: space-between; gap: 3cqi; padding: 5cqi 6cqi 3.5cqi; background: var(--sh-raised); border: 1px solid var(--sh-line); border-radius: var(--sh-radius-lg); overflow-wrap: anywhere; }
 .pitch-slide[data-active="false"] { display: none; }
-.pitch-slide-label { color: var(--sh-rosa); font-weight: 600; }
-.pitch-slide h2 { font-size: 34px; font-weight: 800; line-height: 1.15; margin: 20px 0; }
-.pitch-slide > ul { font-size: 18px; line-height: 1.65; padding-left: 24px; }
+.pitch-slide h2 { font-size: clamp(22px, 5.2cqi, 64px); font-weight: 800; line-height: 1.1; margin: 0 0 3cqi; }
+.pitch-slide ul { font-size: clamp(15px, 2.5cqi, 30px); line-height: 1.45; padding-left: 1.2em; margin: 0; display: grid; gap: 1.2cqi; list-style: disc; }
+.pitch-cover { background: var(--sh-surface); justify-content: center; }
+.pitch-cover h2 { font-size: clamp(28px, 7cqi, 88px); }
+.pitch-cover-line { font-size: clamp(16px, 2.8cqi, 34px); color: var(--sh-muted); line-height: 1.4; margin: 0; max-width: 40ch; }
+.pitch-slide-foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; font-size: clamp(12px, 1.4cqi, 18px); color: var(--sh-muted); }
+.pitch-foot-sources { margin: 0; }
+.pitch-foot-sources a { text-decoration: underline; color: inherit; }
+.pitch-slide-number { white-space: nowrap; margin-left: auto; }
+.pitch-stage[data-presenting="true"] { position: fixed; inset: 0; z-index: 50; margin: 0; background: var(--sh-ink); display: grid; place-content: center; container-type: normal; }
+.pitch-stage[data-presenting="true"] .pitch-slide { width: min(100vw, 177.78vh); container-type: inline-size; border-radius: 0; border: 0; }
+.pitch-presenter-hint { position: fixed; bottom: 12px; left: 0; right: 0; text-align: center; color: var(--sh-muted); font-size: 13.5px; margin: 0; }
 .pitch-sources { font-size: 13.5px; color: var(--sh-muted); overflow-wrap: anywhere; padding-left: 18px; margin: 12px 0 0; }
 .pitch-sources a { text-decoration: underline; }
 .pitch-controls .sh-btn { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; }
@@ -29,15 +40,21 @@
 .pitch-answers h3 { font-size: 18px; font-weight: 600; }
 .pitch-answers article p { line-height: 1.5; margin: 8px 0; }
 .pitch-error { color: var(--sh-error); margin: 16px 0; }
-@media (max-width: 820px) { .pitch-layout { grid-template-columns: 1fr; } .pitch-header h1, .pitch-slide h2 { font-size: 26px; } .pitch-slide { min-height: 180px; } .pitch-run input { flex: 1; min-width: 120px; } }
+@media (max-width: 820px) { .pitch-layout { grid-template-columns: 1fr; } .pitch-header h1 { font-size: 26px; } .pitch-run input { flex: 1; min-width: 120px; } }
 @media print {
   body nav, .pitch-header, .pitch-settings, .pitch-error, .pitch-qa, .pitch-controls, .pitch-deck > header { display: none !important; }
   main { padding: 0 !important; }
+  header { display: none !important; } /* the app's top bar and the panel header; slides use <footer> */
+  .pitch-room { margin: 0; }
   .pitch-layout { display: block; }
-  .pitch-deck { background: var(--sh-bg); padding: 0; }
-  .pitch-slide { display: block !important; min-height: 80vh; break-after: page; }
-  .pitch-slide:last-child { break-after: auto; }
+  .pitch-deck { background: var(--sh-bg); padding: 0; border: 0; }
+  .pitch-stage { margin: 0; container-type: normal; }
+  /* "Exportar PDF": one 16:9 page per slide. */
+  .pitch-slide { display: flex !important; width: 100vw; height: 100vh; aspect-ratio: auto; border: 0; border-radius: 0; container-type: inline-size; break-after: page; break-inside: avoid; }
+  .pitch-slide:last-of-type { break-after: auto; }
+  .pitch-presenter-hint { display: none; }
 }
+@page { size: 13.333in 7.5in; margin: 0; }
 .pitch-ai-badge { font-size: 13.5px; font-weight: 600; color: var(--sh-ink); border: 1px solid var(--sh-line); border-radius: 999px; padding: 6px 12px; }
 .pitch-narration { margin-bottom: 4px; }
 @media print { .pitch-narration { display: none !important; } }

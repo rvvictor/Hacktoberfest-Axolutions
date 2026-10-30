@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Microphone, Pause, Play, Printer, SpeakerHigh, Stop } from "@phosphor-icons/react";
+import { CornersOut, FilePdf, Microphone, Pause, Play, SpeakerHigh, Stop } from "@phosphor-icons/react";
 import { api } from "../../lib/api";
 import { Button, DemoBadge, MetroLine, Panel } from "../../lib/ui";
 import { currentRunId } from "../run/runId";
@@ -16,6 +16,19 @@ function Sources({ sources }: { sources: string[] }) {
   return <ul className="pitch-sources" aria-label="Fuentes">{sources.map(source => <li key={source}>
     {/^https?:\/\//.test(source) ? <a href={source} target="_blank" rel="noreferrer">{source}</a> : source}
   </li>)}</ul>;
+}
+
+// A slide cites its sources as footnotes: the site's name for a web page, "Tu plan" for the project's own plan.
+function sourceName(source: string) {
+  if (!/^https?:\/\//.test(source)) return "Tu plan";
+  try { return new URL(source).hostname.replace(/^www\./, ""); } catch { return source; }
+}
+
+function SlideSources({ sources }: { sources: string[] }) {
+  if (!sources.length) return null;
+  return <p className="pitch-foot-sources">Fuentes: {sources.map((source, i) => <span key={source}>
+    {i > 0 && " · "}{/^https?:\/\//.test(source) ? <a href={source} target="_blank" rel="noreferrer" title={source}>{sourceName(source)}</a> : sourceName(source)}
+  </span>)}</p>;
 }
 
 type Narration = "idle" | "loading" | "playing" | "paused";
@@ -44,6 +57,8 @@ export default function PitchRoom() {
   const [narrationDemo, setNarrationDemo] = useState(false);
   const [narrationError, setNarrationError] = useState("");
   const narrating = useRef(0);
+  const stage = useRef<HTMLDivElement>(null);
+  const [presenting, setPresenting] = useState(false);
   function stopNarration() { ++narrating.current; setNarration("idle"); stopAudio(); }
   function stopAudio() {
     audio.current?.pause(); audio.current = null;
@@ -112,6 +127,29 @@ export default function PitchRoom() {
   function pauseNarration() { audio.current?.pause(); setNarration("paused"); }
   function resumeNarration() { audio.current?.play().then(() => setNarration("playing")).catch(() => { stopNarration(); setNarrationError(NARRATION_FAILED); }); }
   function goTo(index: number) { stopNarration(); setSlide(index); }
+
+  // Presenter mode: the slide fills the screen; arrows move, Esc leaves (the browser's full screen when it allows it).
+  function present16x9() {
+    setPresenting(true);
+    stage.current?.requestFullscreen?.().catch(() => undefined);
+  }
+  function leavePresenter() {
+    setPresenting(false);
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+  }
+  useEffect(() => {
+    if (!presenting) return;
+    const total = deck?.slides.length ?? 0;
+    const onKey = (event: KeyboardEvent) => {
+      if (["ArrowRight", "PageDown", " "].includes(event.key)) { event.preventDefault(); setSlide(i => Math.min(i + 1, total - 1)); }
+      else if (["ArrowLeft", "PageUp"].includes(event.key)) { event.preventDefault(); setSlide(i => Math.max(i - 1, 0)); }
+      else if (event.key === "Escape") leavePresenter();
+    };
+    const onFullscreen = () => { if (!document.fullscreenElement) setPresenting(false); };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("fullscreenchange", onFullscreen);
+    return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("fullscreenchange", onFullscreen); };
+  }, [presenting, deck]);
 
   async function ask(text: string, spoken = false, current = generation.current) {
     if (!text.trim() || locked.current || current !== generation.current) return;
@@ -195,10 +233,16 @@ export default function PitchRoom() {
             {narration !== "idle" && <span className="pitch-ai-badge" role="status">Narrado por IA{narrationDemo ? " · voz grabada de demostración" : ""}{narration === "loading" ? " · preparando la voz…" : narration === "paused" ? " · en pausa" : ""}</span>}
           </div>
           {narrationError && <p role="alert" className="pitch-error">{narrationError}</p>}
-          <div className="pitch-slides">{deck.slides.map((item, i) => <article className="pitch-slide" key={i} data-active={i === slide}>
-            <span className="pitch-slide-label">SpeedHack · Pitch</span><h2>{item.title}</h2><ul>{item.bullets.map((text, n) => <li key={n}>{text}</li>)}</ul><Sources sources={item.sources} />
-          </article>)}</div>
-          <div className="pitch-controls"><Button disabled={slide === 0} onClick={() => goTo(slide - 1)}>Anterior</Button><Button disabled={slide === deck.slides.length - 1} onClick={() => goTo(slide + 1)}>Siguiente</Button><Button onClick={() => window.print()}><Printer size={18} /> Imprimir / PDF</Button></div>
+          <div className="pitch-stage" ref={stage} data-presenting={presenting}>{deck.slides.map((item, i) => <article className={i === 0 ? "pitch-slide pitch-cover" : "pitch-slide"} key={i} data-active={i === slide} aria-label={`Diapositiva ${i + 1} de ${deck.slides.length}`}>
+            <div className="pitch-slide-body">
+              <h2>{item.title}</h2>
+              {i === 0 ? <p className="pitch-cover-line">{item.bullets[0]}</p> : <ul>{item.bullets.map((text, n) => <li key={n}>{text}</li>)}</ul>}
+            </div>
+            <footer className="pitch-slide-foot"><SlideSources sources={item.sources} /><span className="pitch-slide-number">{i + 1} / {deck.slides.length}</span></footer>
+          </article>)}
+            {presenting && <p className="pitch-presenter-hint">Flechas para avanzar · Esc para salir</p>}
+          </div>
+          <div className="pitch-controls"><Button disabled={slide === 0} onClick={() => goTo(slide - 1)}>Anterior</Button><Button disabled={slide === deck.slides.length - 1} onClick={() => goTo(slide + 1)}>Siguiente</Button><Button onClick={present16x9}><CornersOut size={18} /> Pantalla completa</Button><Button onClick={() => window.print()}><FilePdf size={18} /> Exportar PDF</Button></div>
         </>}
       </Panel>
       <Panel title="Pregúntale al proyecto" className="pitch-qa">
