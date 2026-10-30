@@ -15,7 +15,7 @@ Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
 Next: read the MCP server docs; Dylan authorizes the OAuth login and the credit spend before the first call.
 PR: -
 Evidence: -
-Events: 1
+Events: 2
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
