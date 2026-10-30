@@ -34,6 +34,7 @@ FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures" / "llm"
 
 NO_DATA = "no tengo ese dato"
 MIN_QUESTIONS, MAX_QUESTIONS = 3, 5
+MAX_QUERIES, MAX_QUERY_CHARS = 3, 120
 MIRO_KINDS = {"screen", "data_model", "integration", "connector"}
 CLIENT_JARGON = re.compile(
     r"\b(api|backend|frontend|stack|endpoint|sql|json|microservicios?|framework|base de datos)\b",
@@ -246,6 +247,25 @@ def clarify(idea: str, mode: Mode) -> list[str]:
         return questions
 
     return _run(f"clarify_{mode.value}", _data("idea", idea), parse)
+
+
+def research_queries(idea: str, mode: Mode, answers: dict[str, str]) -> list[str] | None:
+    """1–3 short web-search queries for the idea's competitors; None without a model (demo)."""
+    if _demo():
+        return None
+
+    def parse(data: dict) -> list[str]:
+        queries = [q.strip() for q in data["queries"] if isinstance(q, str) and q.strip()]
+        if not 1 <= len(queries) <= MAX_QUERIES:
+            raise ValueError(f"need 1-{MAX_QUERIES} queries, got {len(queries)}")
+        # A query names a market; it never carries a result, a figure or a URL.
+        bad = [q for q in queries if len(q) > MAX_QUERY_CHARS or re.search(r"https?:|www\.|[$€]", q)]
+        if bad:
+            raise ValueError(f"queries must be short and carry no URL or price: {bad}")
+        return queries
+
+    user = _data("idea", idea) + "\n" + _data("modo", Mode(mode).value) + "\n" + _data("respuestas", answers)
+    return _run("research_query", user, parse)
 
 
 def build_spec(
