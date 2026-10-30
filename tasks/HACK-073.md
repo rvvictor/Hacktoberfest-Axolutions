@@ -1,6 +1,6 @@
 # HACK-073
 ID: HACK-073
-State: CLAIMED
+State: REVIEW
 Owner: dylan-2
 Branch: feat/hack-073
 Worktree: /Users/dylanmartinezcastillo/Documents/Repositorios/Hackathon/Hacktoberfest-Axolutions-wt/hack-073
@@ -9,13 +9,14 @@ Priority: P1
 Paths: app/services/research.py, app/tests/test_research_filter.py
 Depends: HACK-071
 Verify: `uv run pytest -q && uv run ruff check app`
-Lease-Until: 1793403108
-Updated: 1793388708
+Lease-Until: 1793475341
+Updated: 1793388941
 Task-Base: 8fa84c04cb955ada3e18cef13bb9e6fcb43ae31b
-Next: tests with the 5 real URLs from PR #79, then the filter.
-PR: -
-Evidence: -
-Events: 1
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/83; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/83
+Evidence: pytest+ruff exit 0; 5 real URLs rejected, keep-cases pass; real run: 1 item left (dirind.com), fewer than 3
+Events: 2
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
+Task-Tip: 7103181ab76a918d7e79f8e65aac1c570c8d4a2f
