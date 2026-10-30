@@ -140,8 +140,9 @@ def _research_queries(idea: str, mode: Mode, answers: dict[str, str]) -> list[st
     """The idea's own searches; the bare idea if the model cannot write them; None in demo."""
     try:
         return llm.research_queries(idea, mode, answers)
-    except Exception:  # best effort: any model or SDK failure still leaves the idea to search
-        log.exception("research queries failed; searching the idea itself")
+    except Exception as exc:  # noqa: BLE001  (best effort: any model or SDK failure still leaves the idea to search)
+        # By type only: the message and traceback can carry the idea, the answers or the model's output.
+        log.warning("research queries failed (%s); searching the idea itself", type(exc).__name__)
         return [idea.strip()[:200]]
 
 
