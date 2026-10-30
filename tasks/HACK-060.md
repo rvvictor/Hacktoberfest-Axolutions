@@ -1,6 +1,6 @@
 # HACK-060
 ID: HACK-060
-State: REVIEW
+State: INTEGRATED
 Owner: victor-3
 Branch: feat/hack-060
 Worktree: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions-wt/hack-060
@@ -9,13 +9,13 @@ Priority: P1
 Paths: web/src/features/live-board/demo.ts, scripts/demo_from_recordings.py, app/tests/test_demo_fixture.py
 Depends: None
 Verify: `uv run pytest -q && uv run ruff check app scripts && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
-Lease-Until: 1793427485
-Updated: 1793341085
+Lease-Until: 0
+Updated: 1793341533
 Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/70; run .uak/bin/smoke
+Next: Integrated in main: ac64c99742b25e6c731594cc5cbd2a8d0b9b1a6f
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/70
 Evidence: Verify exit 0; new test_live_board_example_is_the_recorded_board_and_backlog
-Events: 8
+Events: 9
 Checkpoints: 1
 Sessions: 4
 Last-Checkpoint: 1793340086
@@ -23,3 +23,6 @@ Progress: 5 commit(s) since the claim · last: e57efdf HACK-060: test the live-b
 Progress-Head: e57efdf/4294967295
 Progress-Changed: 1793341085
 Task-Tip: e57efdfbb9a377c7e453421814fff5c8b5600b8c
+Merge-Commit: ac64c99742b25e6c731594cc5cbd2a8d0b9b1a6f
+Reviewer: sebas-2
+Integration-Proof: ancestry
