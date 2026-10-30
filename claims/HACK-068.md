@@ -12,7 +12,7 @@ Verify: `test -s docs/specs/002-real-product/spike-lovable.md && uv run ruff che
 Lease-Until: 1793425901
 Updated: 1793339501
 Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
-Next: Humano: Auto-merge not explicitly authorized
+Next: Apply option: spike calls the Lovable MCP server from this Claude Code session (Dylan's OAuth already done in the client); scripts/spikes/lovable_mcp.py records the calls and whether a server-side client can do the same OAuth
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/67
 Evidence: -
 Thread-Read: 0

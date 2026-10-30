@@ -1,7 +1,7 @@
 # STATE
 
 Phase: execution
-Updated: 1793340139
+Updated: 1793340151
 AVAILABLE: HACK-061 HACK-064 HACK-066 HACK-067 
 CLAIMED: HACK-065 
 BLOCKED: -
@@ -20,11 +20,11 @@ HACK-069 | REVIEW | sebas-1 | until 1793426147
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
-- 1793333250 | deadline lease/HACK-056/1793326124 | REQUIRES_RECOVERY | Claim kept; read the summary and use release --expired --read-summary. No work is deleted.
 - 1793333270 | HACK-056 | capture.py --screenshots-only so the human re-records the video | Why: the video predates the flow; an automatic silent capture of old routes is not a pla
 - 1793339736 | HACK-069 | no browser in the Render runtime image; Dockerfile and render.yaml untouched | Why: peak ~450 MiB for the browser tree + ~110 MiB server vs 512 MB on free
 - 1793340086 | HACK-060 | reuse BOARD/BACKLOG recorded data via WEB table | Why: same story as HACK-053/054
 - 1793340134 | HACK-063 | deterministic junk filter instead of LLM judge | Why: stays in Paths, testable offline
+- 1793340151 | deadline decision/HACK-068-1793339244/1793340144 | REVERSIBLE_AND_LOG | Option: spike calls the Lovable MCP server from this Claude Code session (Dylan's OAuth alrea
 
 Global next step: available P0; else review PRs, tests, demo, rehearsal.
 Why: bounded snapshot to resume without rereading history.
