@@ -21,7 +21,7 @@ export default function LiveBoard() {
   const { state, replay, approve } = useBoardEvents(runId);
   const [view, setView] = useState<"mirror" | "miro">("mirror");
   const [error, setError] = useState<string | null>(null);
-  const boxes = state.miro.filter((i) => i.kind !== "connector").length;
+  const boxes = state.miro.filter((i) => i.kind !== "connector" && i.kind !== "frame").length; // notes only: frames are columns
   const showMiro = view === "miro" && state.boardId !== null;
 
   async function approveDesign() {
