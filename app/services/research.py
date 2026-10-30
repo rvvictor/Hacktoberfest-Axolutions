@@ -12,6 +12,7 @@ import sys
 from collections.abc import Callable, Iterable
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 import httpx
 
@@ -32,6 +33,24 @@ PRICE_RE = re.compile(
     r"(?:\s?(?:/|por|per)\s?(?:mo(?:nth)?|mes|user|usuario|year|año)\b)?",
     re.IGNORECASE,
 )
+# Pages that are never a competitor: job boards, quote and news sites, how-to articles.
+JUNK_HOSTS = (
+    "indeed.com", "glassdoor.com", "linkedin.com", "kraken.com", "investing.com", "marketwatch.com",
+    "finance.yahoo.com", "tradingview.com", "coinmarketcap.com", "bloomberg.com", "reuters.com",
+    "cnbc.com", "quora.com", "reddit.com", "wikipedia.org",
+)
+JUNK_TITLE = re.compile(
+    r"\b(how to|cómo|como (?:empezar|iniciar|abrir|crear|montar)|guía|guide|tutorial|paso a paso|"
+    r"step[- ]by[- ]step|stock|acciones|cotización|noticias|news|empleos?|vacantes|jobs?|salary|salario)\b",
+    re.IGNORECASE,
+)
+JUNK_PATH = re.compile(r"/(blog|news|noticias|articles?|career-advice|careers?|jobs?)(/|$)", re.IGNORECASE)
+# A word before a price that names no plan ("Pricing: $1", "Desde $50").
+NOT_A_PLAN = {
+    "from", "only", "save", "starting", "up", "as", "just", "desde", "solo", "sólo", "hasta", "ahorra",
+    "pricing", "price", "prices", "precio", "precios", "cost", "costo", "total", "get", "obtén",
+}
+MAX_ITEMS = 5
 DEMO_QUERY = "corporate expense management software pricing Mexico"
 TAVILY_URL = "https://api.tavily.com/search"
 MAX_CREDITS = 5  # per-run cap on live search calls; cache hits are free
@@ -110,6 +129,39 @@ def extract_pricing(text: str) -> str | None:
     return m.group(0).strip() if m else None
 
 
+def extract_plan_pricing(text: str) -> str | None:
+    """First price found verbatim that sits next to a plan or product name, else None.
+
+    "Starter: $99/mo", a table row "| Pro | $29 |" or a "## Business" heading above the price count;
+    a bare "$1" or "Desde $50" does not.
+    """
+    lines = (text or "").splitlines()
+    for n, line in enumerate(lines):
+        m = PRICE_RE.search(line)
+        if not m:
+            continue
+        label = re.sub(r"[|*#_>:\-\s]+$", "", re.sub(r"^[|*#_>\-\s]+", "", line[: m.start()])).strip(" |*#_>:-")
+        label = label.split("|")[-1].strip() if "|" in label else label
+        if not label:  # price alone on its line: a short heading above it names the plan
+            above = next((ln for ln in reversed(lines[:n]) if ln.strip()), "")
+            label = re.sub(r"[|*#_>\s]+", " ", above).strip()
+            if re.search(r"\d", label) or len(label.split()) > 4:
+                label = ""
+        words = label.split()
+        if 1 <= len(words) <= 4 and words[0][0].isupper() and words[0].lower() not in NOT_A_PLAN:
+            return m.group(0).strip()
+    return None
+
+
+def is_competitor_page(item: ResearchItem) -> bool:
+    """False for job guides, news, stock quotes and how-to articles: not a product in a market."""
+    url = urlparse(item.url)
+    host = (url.hostname or "").lower()
+    if any(host == h or host.endswith("." + h) for h in JUNK_HOSTS):
+        return False
+    return not (JUNK_TITLE.search(item.competitor) or JUNK_PATH.search(url.path))
+
+
 def _url_cache_path(data_dir: Path, url: str) -> Path:
     return data_dir / "research_cache" / ("url_" + hashlib.sha256(url.encode()).hexdigest()[:16] + ".json")
 
@@ -176,11 +228,14 @@ def research(
     stack: Iterable[str] = (),
     budget: CreditBudget | None = None,
     scrape_budget: CreditBudget | None = None,
+    queries: Iterable[str] | None = None,
 ) -> list[ResearchItem]:
     """Competitor research for a spec draft; `dev` mode adds docs for each stack item.
 
     Top competitor URLs are scraped (Firecrawl) and `pricing` is filled only from
-    a price string found verbatim in that page; otherwise it stays None.
+    a price string found verbatim in that page next to a plan name; otherwise it stays None.
+    `queries` are the idea's own searches; live results that are not a product, company or service
+    (job guides, news, quotes) are dropped, so an idea without competitors returns [].
     """
     data_dir = Path(data_dir)
     budget = budget or CreditBudget()
@@ -189,18 +244,21 @@ def research(
         search = _tavily(api_key)
     if scrape is None and firecrawl_key:
         scrape = _firecrawl(firecrawl_key)
-    q = DEMO_QUERY if not spec_draft.strip() else f"{spec_draft.strip()[:200]} competitors pricing Mexico"
+    if queries is None:
+        queries = [DEMO_QUERY if not spec_draft.strip() else spec_draft.strip()[:200]]
     seen: set[str] = set()
     out: list[ResearchItem] = []
-    for n, item in enumerate(_items(_search(q, data_dir, search, budget))):
-        if item.url in seen:
-            continue
-        seen.add(item.url)
-        if n < MAX_SCRAPES:  # top competitor URLs only
-            page = _scrape(item.url, data_dir, scrape, scrape_budget)
-            if page and page.get("markdown"):
-                item.pricing = extract_pricing(page["markdown"])
-        out.append(item)
+    for q in queries:
+        for item in _items(_search(q, data_dir, search, budget)):
+            if item.url in seen or (not item.demo_data and not is_competitor_page(item)):
+                continue
+            seen.add(item.url)
+            if len(out) < MAX_SCRAPES:  # top competitor URLs only
+                page = _scrape(item.url, data_dir, scrape, scrape_budget)
+                if page and page.get("markdown"):
+                    item.pricing = extract_plan_pricing(page["markdown"])
+            out.append(item)
+    out = out[:MAX_ITEMS]
     if mode == "dev":
         for st in stack:
             sq = f"{st} current documentation"
