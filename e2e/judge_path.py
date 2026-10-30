@@ -279,6 +279,10 @@ def judge(page: Page, base: str, p: int, shots: list[str]) -> str:
         go(page, base, run_id, "run")
         expect(page.get_by_text("Ejecución terminada.", exact=True)).to_be_visible(timeout=T)
         expect(page.get_by_text("9/9", exact=True)).to_be_visible(timeout=T)
+        # The finished run's board: the server closes its event stream, and the view must not choke on that.
+        go(page, base, run_id, "live-board")
+        expect(page.get_by_text(re.compile(r"^[1-9]\d* elementos$"))).to_be_visible(timeout=T)
+        page.wait_for_timeout(3000)
 
     # 7. Pitch room: the deck and one question answered with its sources.
     with step(page, "7 pitch: deck and Q&A", shots):
