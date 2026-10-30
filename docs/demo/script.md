@@ -5,9 +5,10 @@ Rehearse at 1280×720 with reduced motion, with the no-key setup from the README
 (`DEMO_MODE=1`). One run, one browser tab: the conversation at `#/project` links to
 every other view and keeps the run in `?run=`.
 
-Machine time to the wow is about 16 s: stages 1–6 of `app/fixtures/demo/run.jsonl`
-end at 33.3 s of recorded time, replayed at `DEMO_SPEED=2` (the default). The rest
-of the 90 seconds is the presenter: typing, three answers and one approval.
+Machine time to the wow, measured in the clean-clone rehearsal (`rehearsal.md`,
+2026-10-29, `DEMO_SPEED=2` default): 9.2 s (1.8 s to the questions, 2.6 s to the plan,
+4.8 s to the board and tasks). The rest of the 90 seconds is the presenter: typing,
+three answers and one approval.
 
 Rubric: the official rubric is not published (`IDEA.md` §8). Each part names the
 `IDEA.md` §4 step it shows and C1; remap the column when the rubric is published.
