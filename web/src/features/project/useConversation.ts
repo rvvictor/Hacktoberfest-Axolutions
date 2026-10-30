@@ -30,11 +30,13 @@ export interface Conversation {
   decided: Record<number, "approved" | "rejected">;
   demo: boolean;
   error: string | null;
+  retryable: boolean; // the failed stage can be run again with the endpoint (a provider error, not a local one)
+  warning: { stage: number; message: string; skipped: string[] } | null; // a stage that finished with something missing
 }
 
 const empty: Conversation = {
   stage: 1, status: "pending", awaiting: null, questions: [], research: [], spec: null, miro: [], issues: [],
-  prototype: null, checks: [], pitch: null, decided: {}, demo: false, error: null,
+  prototype: null, checks: [], pitch: null, decided: {}, demo: false, error: null, retryable: false, warning: null,
 };
 
 const EVENT_TYPES: EventType[] = [
@@ -51,13 +53,15 @@ function reduce(c: Conversation, a: Action): Conversation {
   const p = e.payload as Record<string, unknown>;
   const next = { ...c, stage: Math.max(c.stage, e.stage), demo: c.demo || e.demo_data };
   switch (e.type) {
-    case "stage_started":
-      // A rerun after "Cambiar algo" starts the stage over: drop what that stage showed before.
-      if (e.stage === 3) return { ...next, research: [] };
-      if (e.stage === 5) return { ...next, miro: [] };
-      if (e.stage === 6) return { ...next, issues: [] };
-      if (e.stage === 8) return { ...next, checks: [] };
-      return next;
+    case "stage_started": {
+      // A rerun (after "Cambiar algo" or "Reintentar") starts the stage over: drop what that stage showed before.
+      const fresh = { ...next, error: null, retryable: false, warning: c.warning?.stage === e.stage ? null : c.warning };
+      if (e.stage === 3) return { ...fresh, research: [] };
+      if (e.stage === 5) return { ...fresh, miro: [] };
+      if (e.stage === 6) return { ...fresh, issues: [] };
+      if (e.stage === 8) return { ...fresh, checks: [] };
+      return fresh;
+    }
     case "question":
       return { ...next, questions: [...c.questions, String(p.text ?? "")] };
     case "research_item":
@@ -81,7 +85,12 @@ function reduce(c: Conversation, a: Action): Conversation {
     case "approval_rejected":
       return { ...next, decided: { ...c.decided, [Number(p.approval)]: "rejected" }, awaiting: null };
     case "error":
-      return { ...next, error: String(p.message ?? "Algo falló en el camino."), status: "failed" };
+      // A recovered error: the stage finished without some pieces. It warns; the run keeps going.
+      if (p.recovered) {
+        const skipped = Array.isArray(p.skipped) ? p.skipped.map(String) : [];
+        return { ...next, warning: { stage: e.stage, message: String(p.message ?? ""), skipped } };
+      }
+      return { ...next, error: String(p.message ?? "Algo falló en el camino."), status: "failed", retryable: p.retry === true };
     default:
       return next;
   }
@@ -174,5 +183,18 @@ export function useConversation(runId: string | null) {
     [runId, advanceDemo, state.decided],
   );
 
-  return { state, busy, answer, decide };
+  const retry = useCallback(async () => {
+    if (!runId) return;
+    setBusy(true);
+    try {
+      await api(`/runs/${encodeURIComponent(runId)}/retry`, { method: "POST" });
+      dispatch({ type: "state", s: { awaiting: null, status: "running", error: null, retryable: false } });
+    } catch (e) {
+      dispatch({ type: "state", s: { error: `No se pudo reintentar: ${(e as Error).message}`, retryable: true } });
+    } finally {
+      setBusy(false);
+    }
+  }, [runId]);
+
+  return { state, busy, answer, decide, retry };
 }

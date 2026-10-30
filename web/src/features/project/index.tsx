@@ -85,14 +85,14 @@ function Source({ item }: { item: ResearchItem }) {
 
 export default function Project() {
   const [runId] = useState(runFromUrl);
-  const { state: c, busy, answer, decide } = useConversation(runId);
+  const { state: c, busy, answer, decide, retry } = useConversation(runId);
   const own = c.prototype?.generator === "speedhack"; // built here: previewed inline, Lovable only to keep building
   const [answers, setAnswers] = useState<string[]>([]);
   const [turn, setTurn] = useState(0); // the question being answered now
   const end = useRef<HTMLDivElement>(null);
   const progress = [
     turn, c.questions.length, c.research.length, c.spec?.version, c.miro.length, c.issues.length,
-    c.prototype?.url, c.checks.length, c.pitch?.slides.length, c.awaiting, c.error,
+    c.prototype?.url, c.checks.length, c.pitch?.slides.length, c.awaiting, c.error, c.warning?.stage,
   ].join("|");
 
   // Keep the newest turn and its action in view (usability: visibility of system status).
@@ -316,7 +316,26 @@ export default function Project() {
         )}
 
         {working && <Message><span className="pj-working">{working}</span></Message>}
-        {c.error && (
+        {c.warning && (
+          <Panel className="pj-card pj-warning" role="status">
+            <h2 className="pj-h">Aviso: quedó algo sin crear</h2>
+            <p>{c.warning.message}</p>
+            {c.warning.skipped.length > 0 && (
+              <ul className="pj-skipped">{c.warning.skipped.map((t) => <li key={t}>{t}</li>)}</ul>
+            )}
+          </Panel>
+        )}
+        {c.error && c.retryable && (
+          <Panel className="pj-card pj-failed" role="alert">
+            <h2 className="pj-h">Esta etapa no terminó</h2>
+            <p className="pj-error">{c.error}</p>
+            <div className="pj-actions">
+              <Button variant="primary" disabled={busy} onClick={() => void retry()}>Reintentar</Button>
+              <span className="pj-hint">Lo que ya se creó no se duplica.</span>
+            </div>
+          </Panel>
+        )}
+        {c.error && !c.retryable && (
           <Message>
             <span className="pj-error">{c.error}</span> Puedes volver a intentarlo desde el <a href={`${runQuery}#/run`}>detalle</a>.
           </Message>

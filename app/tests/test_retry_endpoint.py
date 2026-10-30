@@ -9,13 +9,12 @@ from app.config import settings
 from app.main import app
 from app.schemas import EventType
 from app.services import pipeline, store
-from app.tests.test_stages import (  # noqa: F401  (fixtures and helpers shared with the stage tests)
+from app.tests.test_stages import (
     _approve,
     _real_board_with_mocked_miro,
     _start,
-    live_services,
+    live_services,  # noqa: F401  (fixture shared with the stage tests)
 )
-from app.tests.test_stages import client as live_client  # noqa: F401
 
 
 @pytest.fixture
@@ -79,17 +78,18 @@ def test_retry_an_unknown_run_is_not_found(client):
     assert client.post("/api/runs/does-not-exist/retry").status_code == 404
 
 
-def test_retry_through_the_endpoint_does_not_create_a_second_miro_board(live_client, live_services, monkeypatch):
+@pytest.mark.usefixtures("live_services")
+def test_retry_through_the_endpoint_does_not_create_a_second_miro_board(client, monkeypatch):
     ids = itertools.count(1)
     with respx.mock() as router:
         _real_board_with_mocked_miro(monkeypatch, router, ids, first_note_status=[None, None, None, None, "boom"])
-        run_id = _start(live_client)
-        _approve(live_client, run_id, 1)
+        run_id = _start(client)
+        _approve(client, run_id, 1)
         boards = router.routes[0]
         assert boards.call_count == 1
-        assert live_client.get(f"/api/runs/{run_id}").json()["awaiting"] == "retry:5"
+        assert client.get(f"/api/runs/{run_id}").json()["awaiting"] == "retry:5"
 
-        assert live_client.post(f"/api/runs/{run_id}/retry").status_code == 200
+        assert client.post(f"/api/runs/{run_id}/retry").status_code == 200
 
         assert boards.call_count == 1  # the retry reused the board of the failed attempt
-    assert live_client.get(f"/api/runs/{run_id}").json()["awaiting"] == "approval:2"
+    assert client.get(f"/api/runs/{run_id}").json()["awaiting"] == "approval:2"
