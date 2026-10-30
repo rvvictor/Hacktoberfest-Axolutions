@@ -112,6 +112,42 @@ def _relevant(question, text):
     asked = _terms(question)
     return bool(asked) and 2 * len(asked & _terms(text)) > len(asked)
 
+
+def _stems(text):
+    return {t[:5] for t in _terms(text) if len(t) >= 4}
+
+
+def _grounded(answer, texts):
+    """The answer names no figure, name or domain its cited passages lack, and shares their subject (a word stem)."""
+    material = "\n".join(texts)
+    if llm._numbers(answer) - llm._numbers(material):
+        return False
+    known = set(re.findall(r"\w+", _fold(material)))
+    for sentence in (s for s in SENTENCE_END.split(answer) if s.strip()):
+        # A capitalized word that opens a sentence may just be grammar; anywhere else it is a name.
+        names = CAPITALIZED.findall(sentence)[(1 if CAPITALIZED.match(sentence) else 0) :]
+        if any(_fold(word) not in known for word in names):
+            return False
+    if any(_fold(d) not in _fold(material) for d in DOMAIN.findall(answer)):
+        return False
+    stated = _stems(answer)
+    return not stated or bool(stated & _stems(material))
+
+
+def _provenance(run_id):
+    """Demo flag of each source as the run recorded it; memory alone cannot tell a real passage from a demo one."""
+    try:
+        events = store.list_events(run_id)
+    except Exception:  # noqa: BLE001  (no store for this run: keep memory's own flag)
+        return {}
+    flags = {}
+    for _, e in events:
+        if e.type.value == "research_item" and isinstance(e.payload.get("url"), str):
+            flags[e.payload["url"]] = e.demo_data or bool(e.payload.get("demo_data"))
+        elif e.type.value == "spec_ready":
+            flags[f"spec:v{e.payload.get('version')}"] = e.demo_data or bool(e.payload.get("demo_data"))
+    return flags
+
 def recall(run_id, query, k=5):
     """Use the memory contract; only the named demo run has local sample data."""
     if run_id == DEMO_RUN and settings.DEMO_MODE:
@@ -238,7 +274,7 @@ def ask(run_id, question):
     quotable = bool(notes) and settings.DEMO_MODE
     if quotable:
         records = notes
-    demo = llm._demo() or any(p.get("demo_data") for p in records)
+    flags = _provenance(run_id)
     passages = [llm.Passage(text=p["text"], source=p["source"]) for p in records]
     entry = (
         llm.answer(question, passages)
@@ -247,6 +283,9 @@ def ask(run_id, question):
     )
     allowed = {p.source for p in passages}
     valid = bool(entry.sources) and set(entry.sources) <= allowed
+    if valid and not settings.DEMO_MODE:
+        # A model answer must say what its cited passages say, not only cite them.
+        valid = _grounded(entry.answer, [p.text for p in passages if p.source in entry.sources])
     explicit_no_data = entry.answer.strip().lower().rstrip(".") == NO_DATA
     if (
         settings.DEMO_MODE
@@ -267,6 +306,9 @@ def ask(run_id, question):
         valid = True
     if not valid or explicit_no_data:
         entry = QAEntry(question=question, answer=NO_DATA)
+    # Demo when the model is the recorded one, or any passage the answer relies on is recorded or demo.
+    used = [p for p in records if p["source"] in entry.sources] or records
+    demo = llm._demo() or any(flags.get(p["source"], p.get("demo_data")) for p in used)
     return Answer(
         question=question,
         answer=DISCLOSURE + entry.answer,
