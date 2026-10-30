@@ -1,5 +1,5 @@
 ID: HACK-068
-State: MERGING
+State: HUMAN
 Owner: sebas-1
-Queued: 1793339963
-Reason: Waiting for queue
+Updated: 1793339970
+Reason: Auto-merge not explicitly authorized

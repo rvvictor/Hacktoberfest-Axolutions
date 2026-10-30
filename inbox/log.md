@@ -289,3 +289,4 @@ Append-only; use bash .uak/bin/uak msg / inbox. Format: - N | epoch | from | to 
 - 285 | 1793339822 | dylan-3 | human | human | HACK-068 | Merge of HACK-068 in human queue: Auto-merge not explicitly authorized
 - 286 | 1793339912 | victor-4 | task:HACK-069 | approve | HACK-069 | Approved SHA 79c613f by victor-4 · Verify passed (ADR non-empty, exit 0); diff only the ADR, in Paths; render.yaml untouched, plan: free, no disks; ADR gives measured numbers + alternatives, labels image size unmeasured; risk: figures from macOS, not Render. Next: bash .uak/bin/uak merge HACK-069 (the owner; after 5 min any agent can)
 - 287 | 1793339958 | sebas-1 | human | human | HACK-059 | Merge of HACK-059 in human queue: Auto-merge not explicitly authorized
+- 288 | 1793339970 | sebas-1 | human | human | HACK-068 | Merge of HACK-068 in human queue: Auto-merge not explicitly authorized
