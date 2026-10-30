@@ -74,9 +74,18 @@ def test_nothing_relevant_returns_empty_not_padding(tmp_path):
     assert R.research(PUMPS, data_dir=tmp_path, search=_live(JUNK["results"][:3])) == []
 
 
+@pytest.mark.parametrize("title", [
+    "Software de control de stock para ferreterías", "Jobs management software | Acme", "Guía de productos Acme",
+    "Noticias y acciones: Acme ERP",
+])
+def test_products_named_stock_jobs_or_guide_are_kept(tmp_path, title):
+    res = [{"title": title, "url": "https://acme.mx/producto", "content": "c"}]
+    assert [i.url for i in R.research("x", data_dir=tmp_path, search=_live(res))] == ["https://acme.mx/producto"]
+
+
 def test_expense_saas_idea_keeps_competitors(tmp_path):
     res = [{"title": "Clara | Tarjetas y control de gastos", "url": "https://www.clara.com/mx", "content": "Gastos."},
-           {"title": "Cómo controlar los gastos de tu empresa - Guía", "url": "https://blog.example.test/gastos",
+           {"title": "Cómo controlar los gastos de tu empresa - Guía", "url": "https://example.test/blog/gastos",
             "content": "guía"}]
     items = R.research("dashboard de gastos", data_dir=tmp_path, search=_live(res))
     assert [i.url for i in items] == ["https://www.clara.com/mx"]

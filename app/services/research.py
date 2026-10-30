@@ -39,9 +39,12 @@ JUNK_HOSTS = (
     "finance.yahoo.com", "tradingview.com", "coinmarketcap.com", "bloomberg.com", "reuters.com",
     "cnbc.com", "quora.com", "reddit.com", "wikipedia.org",
 )
+# Bare "stock", "jobs" or "guide" name real products (inventory, job-management software): only
+# how-to / quote / career phrasings are junk.
 JUNK_TITLE = re.compile(
-    r"\b(how to|cómo|como (?:empezar|iniciar|abrir|crear|montar)|guía|guide|tutorial|paso a paso|"
-    r"step[- ]by[- ]step|stock|acciones|cotización|noticias|news|empleos?|vacantes|jobs?|salary|salario)\b",
+    r"\b(how to|cómo (?:empezar|iniciar|abrir|crear|montar)|beginner'?s guide|guía para (?:empezar|iniciar|abrir)|"
+    r"tutorial|paso a paso|step[- ]by[- ]step|stock (?:price|quote|market)|share price|precio de las acciones|"
+    r"cotización|price today|empleos? en|vacantes|job openings|salary|salario)\b",
     re.IGNORECASE,
 )
 JUNK_PATH = re.compile(r"/(blog|news|noticias|articles?|career-advice|careers?|jobs?)(/|$)", re.IGNORECASE)
