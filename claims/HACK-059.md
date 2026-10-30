@@ -12,7 +12,7 @@ Verify: `npm --prefix web run build && bash .uak/bin/design-lint && uv run pytho
 Lease-Until: 1793425529
 Updated: 1793339129
 Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/66; run .uak/bin/smoke
+Next: Humano: Auto-merge not explicitly authorized
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/66
 Evidence: -
 Thread-Read: 0
