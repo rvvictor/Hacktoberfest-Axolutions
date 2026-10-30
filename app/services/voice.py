@@ -22,6 +22,11 @@ def _headers() -> dict[str, str]:
     return {"xi-api-key": settings.ELEVENLABS_API_KEY}
 
 
+def recorded() -> bool:
+    """Without a key, or in DEMO_MODE, the spoken audio is the recorded sample."""
+    return bool(settings.DEMO_MODE) or not settings.ELEVENLABS_API_KEY
+
+
 def with_disclosure(text: str) -> str:
     """Every spoken session opens by saying the voice is an AI."""
     return text if text.startswith(AI_DISCLOSURE) else f"{AI_DISCLOSURE} {text}"
