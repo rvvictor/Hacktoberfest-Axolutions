@@ -83,6 +83,8 @@ function Source({ item }: { item: ResearchItem }) {
   );
 }
 
+const ANSWER_MAX = 1000; // the API's cap per answer (app/routers/runs.py)
+
 export default function Project() {
   const [runId] = useState(runFromUrl);
   const { state: c, busy, answer, decide, retry } = useConversation(runId);
@@ -159,6 +161,7 @@ export default function Project() {
                         rows={2}
                         autoFocus
                         placeholder="Responde lo que sepas; puede ser breve."
+                        maxLength={ANSWER_MAX}
                         value={answers[i] ?? ""}
                         onChange={(e) => setAnswers((a) => Object.assign([...a], { [i]: e.target.value }))}
                       />
@@ -188,9 +191,17 @@ export default function Project() {
           </>
         )}
 
+        {c.spec && c.research.length === 0 && (
+          // Research ran (the plan exists) and kept nothing: say it here, not only inside the plan.
+          <Message>
+            No encontré competidores confiables para tu idea, así que no inventé ninguno. El plan lo anota como
+            supuesto.
+          </Message>
+        )}
+
         {c.spec && (
           <>
-            <Message>Con tus respuestas y esas fuentes armé tu plan. ¿Lo dejamos así?</Message>
+            <Message>Con tus respuestas{c.research.length > 0 ? " y esas fuentes" : ""} armé tu plan. ¿Lo dejamos así?</Message>
             <Panel className="pj-card">
               <h2 className="pj-h">Qué vamos a construir</h2>
               <dl className="pj-plan">
