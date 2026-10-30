@@ -12,7 +12,7 @@ Verify: `test -s docs/adr/0001-render-quality-checks.md || docker build -t speed
 Lease-Until: 1793426147
 Updated: 1793339747
 Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/68; run .uak/bin/smoke
+Next: Humano: Auto-merge not explicitly authorized
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/68
 Evidence: -
 Thread-Read: 0
