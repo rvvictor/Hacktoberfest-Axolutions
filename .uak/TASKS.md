@@ -489,18 +489,17 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
 
 - **Type:** bug
 - **Priority:** P0
-- **Estimate:** 1 day
+- **Estimate:** 0.5 day
 - **Rubric / Spec:** `.uak/PROJECT.md` principle 4
 - **Depends on:** None
-- **Paths:** app/services/pipeline.py, app/services/miro.py, app/services/stages.py, app/tests/test_live_failures.py, web/src/features/project/
+- **Paths:** app/services/pipeline.py, app/services/miro.py, app/services/stages.py, app/services/costs.py, app/tests/test_live_failures.py, app/tests/test_pipeline.py, app/tests/test_stages.py, app/tests/test_ops.py
 - **Acceptance:**
   - Found in `run_242dc4bf`: Miro answered `500 Internal error occurred` on a sticky note after its retries, stage 5 raised, and `pipeline._produce` replayed `app/fixtures/demo/run.jsonl` stage 5 — the expense-SaaS board ("Dashboard de gastos"…) in a pump-catalog project. Half a real board was left in Miro.
-  - Outside `DEMO_MODE`, a stage that raises emits an `error` event with a Spanish message naming the provider and what to do, keeps the run waiting on that stage, and offers "Reintentar"; it never replays the recorded run. `DEMO_MODE` keeps today's replay.
-  - Miro: a note that still fails after its retries is skipped and reported; the notes and frames already created are kept, and the stage finishes with what exists (`demo_data: false`).
-  - `#/project` shows the error card with "Reintentar"; retrying reuses the ids already created (no duplicate board or issues).
-  - Tests: a stub provider that raises in a live run produces the error event and no fixture events; a Miro stub that fails one note keeps the others.
-- **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
-- **Next step:** failing test for the replay in `_produce` (live mode), then the error event.
+  - Outside `DEMO_MODE`, a stage that raises emits an `error` event with a Spanish message naming the provider and what to do (never the exception text: it can carry URLs or keys), and keeps the run waiting on that stage as `awaiting: retry:<stage>` with `status: failed`. It never replays the recorded run. `DEMO_MODE` keeps today's replay. `pipeline.retry(run_id)` reruns only that stage and reuses the ids already created.
+  - Miro: a note that still fails after its retries is skipped (not marked created, so a retry tries it again) and the other notes, frames and connectors are kept; the stage finishes with what exists (`demo_data: false`). The skipped titles are reported with an `error` event carrying `recovered: true`, and `costs` does not count a recovered error as a failed stage.
+  - Three existing tests assert the old behaviour and are rewritten for the new one, each with a one-line reason in the commit: `test_pipeline.py::test_failing_provider_falls_back_to_recorded_run` and `::test_provider_with_invalid_payload_falls_back` (a real run now stops at `retry:3`; `DEMO_MODE` keeps the fallback), and `test_stages.py::test_items_created_before_a_failure_show_up_on_the_rerun` (the run stops at `retry:5`; the rerun is `pipeline.retry`, not a rejection). No other existing test is edited.
+- **Verify:** `uv run pytest -q && uv run ruff check app && uv run python e2e/judge_path.py`
+- **Next step:** the code and `app/tests/test_live_failures.py` are on `feat/hack-064`; rewrite the three tests, then the `recovered` event and the `costs` rule.
 
 ## HACK-065 · The whole pitch is narrated with Dylan's ElevenLabs voice
 
@@ -578,3 +577,19 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
   - Measure the image size and peak memory of a run with Node + Playwright Chromium added; if it fits the Render plan in use, add them and verify the four checks on Render; if not, write the ADR with the numbers and the alternative (a larger plan, or running build/smoke elsewhere).
 - **Verify:** `test -s docs/adr/0001-render-quality-checks.md || docker build -t speedhack-check .`
 - **Next step:** build the image locally with Node + Chromium and measure.
+
+## HACK-070 · A failed stage offers "Reintentar" in the project view and the endpoint behind it
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `.uak/PROJECT.md` principle 4
+- **Depends on:** HACK-064
+- **Paths:** app/routers/runs.py, app/tests/test_retry_endpoint.py, web/src/features/project/
+- **Acceptance:**
+  - `POST /api/runs/{id}/retry` runs `pipeline.retry` in the background: 200 when the run waits on `retry:<stage>`, 409 when nothing failed, 404 for an unknown run.
+  - `#/project` shows the `error` card for a failed stage with the provider's message and a "Reintentar" button that calls the endpoint and goes back to the working state; a `recovered` error (a skipped Miro note) is shown as a warning that lists the skipped titles, with no retry button.
+  - Retrying reuses the ids already created: a board or issues made by the failed attempt are not duplicated (test with a Miro stub that counts `POST /boards`).
+  - Verified in a real browser at 1280×720 and 390×844 with reduced motion: the card has no overlap or clipped text.
+- **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** failing test for the 409 on a run that has not failed, then the endpoint, then the card.
