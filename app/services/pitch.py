@@ -90,6 +90,21 @@ def _words(text):
     }
 
 
+
+# Words that only ask (how much, who, where) and the ways to ask for a price, folded into one term.
+QUESTION_WORDS = {"cuanto", "cuanta", "cuantos", "cuantas", "quien", "quienes", "donde", "cuando", "hay"}
+PRICE_WORDS = {"precio", "precios", "cuesta", "cuestan", "costo", "costos", "cobra", "cobran", "tarifa", "tarifas"}
+
+
+def _terms(text):
+    return {"precio" if w in PRICE_WORDS else w for w in _words(text) - QUESTION_WORDS}
+
+
+def _relevant(question, text):
+    """Most of what the question is about appears in the passage: one shared word ("precio") is not enough."""
+    asked = _terms(question)
+    return bool(asked) and 2 * len(asked & _terms(text)) > len(asked)
+
 def recall(run_id, query, k=5):
     """Use the memory contract; only the named demo run has local sample data."""
     if run_id == DEMO_RUN and settings.DEMO_MODE:
@@ -176,7 +191,7 @@ def ask(run_id, question):
         for p in records
         if p.get("run_id") == run_id
         and p.get("source")
-        and _words(question) & _words(p.get("text", ""))
+        and _relevant(question, p.get("text", ""))
     ]
     if not records and _words(question) & PROJECT_WORDS:
         # A general question about the project ("¿de qué trata el proyecto?") shares no word with any passage:
