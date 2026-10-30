@@ -40,7 +40,7 @@ CODEOWNERS: Dylan (all paths) · On-call: Dylan · Runbook: `docs/runbook.md` (n
 ```text
 Mode: marathon
 Backlog-Proposed-Epoch: 0
-Backlog-Approved: no
+Backlog-Approved: yes
 Autonomy: yes
 Auto-Merge: no
 Review-Mode: claims

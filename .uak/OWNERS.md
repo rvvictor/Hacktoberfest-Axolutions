@@ -8,8 +8,8 @@ An owner is not a prerequisite for everyone: consumers work on published contrac
 | pyproject.toml | HACK-001 |
 | uv.lock | HACK-001 |
 | .env.example | HACK-001 |
-| Dockerfile | HACK-001 |
-| render.yaml | HACK-001 |
+| Dockerfile | HACK-069 |
+| render.yaml | HACK-069 |
 | web/package.json | HACK-001 |
 | web/package-lock.json | HACK-001 |
 | app/main.py | HACK-001 |

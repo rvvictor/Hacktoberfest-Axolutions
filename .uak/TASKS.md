@@ -467,3 +467,114 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
   - No figure, URL or date is invented; the links in the README still resolve.
 - **Verify:** `bash .uak/bin/q bash -c 'test -s README.md && bash .uak/bin/smoke'`
 - **Next step:** list every hackathon reference with `rg -n -i "juez|judge|hackathon|jury|rubric|C1|plan-b|submission" README.md IDEA.md docs/`.
+
+## HACK-063 · Research finds real competitors of the idea, not job guides and stock quotes
+
+- **Type:** bug
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `.uak/PROJECT.md` principle 4 · `IDEA.md` §4 step 2
+- **Depends on:** None
+- **Paths:** app/services/research.py, app/services/stages.py, app/services/llm.py, app/services/prompts/research_query.md, app/tests/test_research_query.py
+- **Acceptance:**
+  - Found in the real run `run_242dc4bf` (2026-10-30, client mode, "catálogo de bombas de agua y motores"): the 5 results were an Indeed guide to starting a clothing business, Indeed articles on marketing and SMEs, a Kraken stock quote and a CB Insights page read as pricing "$1". Cause: `_research_stage` sends the idea plus the answers, cut at 200 characters, with " competitors pricing Mexico" appended (`research.py:192`).
+  - The query is built from the idea's product, customer and market (the LLM writes 1–3 short search queries from the idea; it never writes a result, a figure or a URL), in the idea's language, with the country only when the idea names one.
+  - Results whose page is not about a product, company or service in that market (job guides, news, stock quotes, generic how-tos) are dropped before they reach the plan; an empty result says so in the conversation instead of padding it.
+  - `pricing` is kept only when the price sits next to a product or plan name on that page; a lone "$1" is not a price.
+  - Tests with recorded Tavily responses (no network) cover the pump-catalog idea and the expense-SaaS idea; one real run with keys is reported in the PR (top 5 titles and URLs).
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** write the failing test with the recorded junk results of `run_242dc4bf`, then the query builder.
+
+## HACK-064 · A failed stage in a real run says so; it never shows another project's recording
+
+- **Type:** bug
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `.uak/PROJECT.md` principle 4
+- **Depends on:** None
+- **Paths:** app/services/pipeline.py, app/services/miro.py, app/services/stages.py, app/tests/test_live_failures.py, web/src/features/project/
+- **Acceptance:**
+  - Found in `run_242dc4bf`: Miro answered `500 Internal error occurred` on a sticky note after its retries, stage 5 raised, and `pipeline._produce` replayed `app/fixtures/demo/run.jsonl` stage 5 — the expense-SaaS board ("Dashboard de gastos"…) in a pump-catalog project. Half a real board was left in Miro.
+  - Outside `DEMO_MODE`, a stage that raises emits an `error` event with a Spanish message naming the provider and what to do, keeps the run waiting on that stage, and offers "Reintentar"; it never replays the recorded run. `DEMO_MODE` keeps today's replay.
+  - Miro: a note that still fails after its retries is skipped and reported; the notes and frames already created are kept, and the stage finishes with what exists (`demo_data: false`).
+  - `#/project` shows the error card with "Reintentar"; retrying reuses the ids already created (no duplicate board or issues).
+  - Tests: a stub provider that raises in a live run produces the error event and no fixture events; a Miro stub that fails one note keeps the others.
+- **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** failing test for the replay in `_produce` (live mode), then the error event.
+
+## HACK-065 · The whole pitch is narrated with Dylan's ElevenLabs voice
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `IDEA.md` §4 step 7
+- **Depends on:** None
+- **Paths:** app/services/pitch.py, app/services/voice.py, app/routers/pitch.py, app/services/prompts/narration.md, app/fixtures/voice/, app/tests/test_pitch_narration.py, web/src/features/pitch/
+- **Acceptance:**
+  - Today only the Q&A answers are spoken (`/api/voice/tts`); the slides are silent text cards.
+  - Every slide gets a short spoken script (2–4 sentences, Spanish) written only from that slide's title, bullets and sources; the script is validated (no figure or name absent from the slide) before it is used.
+  - The pitch room has "Presentar con voz": it plays each slide's script with the voice in `ELEVENLABS_VOICE_ID` (never another voice), advances to the next slide when it ends, and has pause, resume and stop; the Q&A answers keep using the same voice. The narration starts with the AI disclosure once.
+  - Audio is generated once per slide and cached per run; without a key or in `DEMO_MODE` a recorded narration of the demo deck plays, labeled demo.
+  - Keyboard operable; visible "Narrado por IA" while it plays; if the voice fails, the slide text stays and a Spanish message says the voice is unavailable.
+- **Verify:** `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** failing test for the per-slide script validation, then the narration endpoint.
+
+## HACK-066 · The pitch is a real presentation, not text cards
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `IDEA.md` §4 step 7 · `web/DESIGN.md`
+- **Depends on:** None
+- **Paths:** web/src/features/pitch/, app/services/pitch.py, app/tests/test_pitch_deck.py
+- **Acceptance:**
+  - Today the deck is cards with a title, bullets and a "SpeedHack · Pitch" label; in `DEMO_MODE` it has 2 slides built from memory, and the recorded 6-slide deck (`app/fixtures/llm/deck.json`) is never shown.
+  - Slides are 16:9, designed with the project's tokens: a cover with the project's name and one line, one idea per slide with a large title, at most 4 bullets, and sources as small footnotes; a full-screen presenter mode (arrows, Esc) and "Exportar PDF" with one slide per page.
+  - A real run shows the deck the LLM built; `DEMO_MODE` shows the recorded deck of the demo case; no slide shows a source that is not in that run's research.
+  - Verified in a real browser at 1280×720 and 390×844: no overlap or clipped text; PDF export of a 5-slide deck has 5 pages.
+- **Verify:** `uv run pytest -q && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** failing test that the demo deck uses `deck.json`, then the slide layout.
+
+## HACK-067 · Pitch Q&A is labeled real in a real run and does not ground answers on irrelevant pages
+
+- **Type:** bug
+- **Priority:** P1
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `.uak/PROJECT.md` principle 4
+- **Depends on:** HACK-063
+- **Paths:** app/services/pitch.py, app/services/memory.py, app/tests/test_pitch_live.py
+- **Acceptance:**
+  - In `run_242dc4bf` every answer came back `demo_data: true` (local memory recall marks every passage demo), "¿Quiénes son los competidores?" said "no tengo ese dato", and "¿Cómo pide una cotización el cliente?" answered about WhatsApp citing the CB Insights page.
+  - Passages recalled for a real run keep `demo_data: false`; only recorded or demo passages are demo.
+  - A competitor question answers from the run's research notes with their URLs; an answer is rejected when its cited passage does not contain the facts it states.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test on the demo flag of a live run's recall.
+
+## HACK-068 · Spike: SpeedHack creates the product in Lovable through the Lovable MCP server
+
+- **Type:** spike
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `IDEA.md` §4 step 4 · feeds spec 002 (real product)
+- **Depends on:** None
+- **Paths:** scripts/spikes/lovable_mcp.py, docs/specs/002-real-product/spike-lovable.md
+- **Acceptance:**
+  - Lovable documents AI project creation through its MCP server at `https://mcp.lovable.dev` (`create_project`, deploy and cloud-database tools; OAuth with the user's Lovable account; every plan, consumes credits; research preview): https://docs.lovable.dev/integrations/lovable-mcp-server.md. SpeedHack today only builds a "Build with URL" link (`generator.LovableGenerator`).
+  - A server-side script authenticates once with Dylan's Lovable account (OAuth, done by Dylan in the browser; no token in the repo, logs or chat), sends the build prompt `generator.build_prompt` makes for `run_242dc4bf`, and records: the tools the server lists, whether `create_project` returns a project id and a preview or published URL, the time to a working app, the credits used, and the errors.
+  - `spike-lovable.md` reports those facts with the commands run and a go/no-go for using it in stage 7, including how a server keeps a user's OAuth token safe; nothing is integrated into the app in this task.
+- **Verify:** `test -s docs/specs/002-real-product/spike-lovable.md && uv run ruff check scripts`
+- **Next step:** read the MCP server docs; Dylan authorizes the OAuth login and the credit spend before the first call.
+
+## HACK-069 · All four quality checks run on Render, or the decision not to is recorded
+
+- **Type:** chore
+- **Priority:** P1
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `.uak/PROJECT.md` §Environments
+- **Depends on:** None
+- **Paths:** Dockerfile, render.yaml, docs/adr/0001-render-quality-checks.md
+- **Acceptance:**
+  - On https://speedhack.onrender.com only "lint" and "secrets" run: the runtime image (`python:3.12-slim`) has no Node and no browser, so "build" and "smoke" are reported as not run (seen 2026-10-30, `run_f5460ad2`).
+  - Measure the image size and peak memory of a run with Node + Playwright Chromium added; if it fits the Render plan in use, add them and verify the four checks on Render; if not, write the ADR with the numbers and the alternative (a larger plan, or running build/smoke elsewhere).
+- **Verify:** `test -s docs/adr/0001-render-quality-checks.md || docker build -t speedhack-check .`
+- **Next step:** build the image locally with Node + Chromium and measure.
