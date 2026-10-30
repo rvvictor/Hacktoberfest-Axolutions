@@ -3,7 +3,7 @@ from anthropic import APIError
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field, field_validator
 
-from app.schemas import Pitch, Slide
+from app.schemas import Pitch
 from app.services import llm, pitch, voice
 
 router = APIRouter(prefix="/api/pitch", tags=["pitch"])
@@ -20,24 +20,24 @@ class Question(BaseModel):
         return value.strip()
 
 
-class NarrationRequest(BaseModel):
-    index: int = Field(ge=0)
-    slide: Slide
-
-
-@router.post("/{run_id}/narration")
-async def narrate(run_id: str, body: NarrationRequest) -> Response:
+@router.post("/{run_id}/narration/{index}")
+async def narrate(run_id: str, index: int) -> Response:
     try:
-        audio, demo = await pitch.narrate(run_id, body.index, body.slide)
+        spoken = await pitch.narrate(run_id, index)
     except (voice.VoiceUnavailable, llm.LLMError, APIError, httpx.HTTPError, OSError) as exc:
         raise HTTPException(503, "La voz no está disponible. Lee el texto de la diapositiva.") from exc
+    if spoken is None:
+        raise HTTPException(404, "Esa diapositiva no existe. Abre el pitch de nuevo.")
+    audio, demo = spoken
     return Response(audio, media_type="audio/mpeg", headers={"X-Demo-Data": str(demo).lower()})
 
 
 @router.get("/{run_id}", response_model=Pitch)
 def get_deck(run_id: str):
     try:
-        return pitch.deck(run_id)
+        result = pitch.deck(run_id)
+        pitch.remember_deck(run_id, result)
+        return result
     except (pitch.PitchUnavailable, llm.LLMError, APIError, OSError) as exc:
         raise HTTPException(
             503, "No se pudo preparar el pitch. Intenta de nuevo."

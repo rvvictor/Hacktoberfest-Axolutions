@@ -1,9 +1,13 @@
 """Run-scoped pitch projections and source-checked Q&A."""
 
+import asyncio
 import hashlib
 import importlib
+import os
 import re
 import unicodedata
+
+from starlette.concurrency import run_in_threadpool
 
 from app.config import settings
 from app.schemas import Pitch, QAEntry, ResearchItem, Spec
@@ -234,6 +238,8 @@ def _fold(text):
 
 def validate_script(script, slide):
     """A spoken script may only say what its slide says: 2-4 sentences, no figure, name or domain the slide lacks."""
+    if not isinstance(script, str):
+        raise TypeError("script must be a string")
     script = script.strip()
     sentences = [s for s in SENTENCE_END.split(script) if s.strip()]
     low, high = SCRIPT_SENTENCES
@@ -274,25 +280,52 @@ def narration_script(slide):
     return llm._run("narration", user, lambda data: validate_script(data["script"], slide))
 
 
-def _audio_path(run_id, key):
-    run = hashlib.sha256(run_id.encode()).hexdigest()[:16]
-    return settings.DATA_DIR / "narration" / run / f"{key}.mp3"
+def _run_dir(kind, run_id):
+    return settings.DATA_DIR / kind / hashlib.sha256(run_id.encode()).hexdigest()[:16]
 
 
-async def narrate(run_id, index, slide):
-    """Audio for one slide, generated once per run and cached; the first slide opens with the AI disclosure."""
-    from starlette.concurrency import run_in_threadpool
+def remember_deck(run_id, result):
+    """Keep the deck a run was last shown: narration speaks only slides the server itself served."""
+    path = _run_dir("pitch", run_id) / "deck.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _write(path, result.model_dump_json().encode())
 
+
+def served_slide(run_id, index):
+    try:
+        slides = Pitch.model_validate_json((_run_dir("pitch", run_id) / "deck.json").read_text()).slides
+    except (OSError, ValueError):
+        return None
+    return slides[index] if 0 <= index < len(slides) else None
+
+
+def _write(path, data):
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    tmp.write_bytes(data)
+    os.replace(tmp, path)
+
+
+NARRATION_SLOTS = asyncio.Semaphore(2)  # each miss costs an LLM call and a paid TTS call
+
+
+async def narrate(run_id, index):
+    """Audio for one served slide, generated once per run and cached; slide 0 opens with the AI disclosure.
+
+    Returns None when the run has no served deck or the index is outside it."""
+    slide = served_slide(run_id, index)
+    if slide is None:
+        return None
     if voice.recorded():
         return (voice.FIXTURES / "tts.mp3").read_bytes(), True
-    voice_id = settings.ELEVENLABS_VOICE_ID or ""
-    key = hashlib.sha256(f"{voice_id}|{index == 0}|{slide.model_dump_json()}".encode()).hexdigest()[:32]
-    path = _audio_path(run_id, key)
     demo = llm._demo()
+    voice_id = settings.ELEVENLABS_VOICE_ID or ""
+    key = hashlib.sha256(f"{voice_id}|{index == 0}|{demo}|{slide.model_dump_json()}".encode()).hexdigest()[:32]
+    path = _run_dir("narration", run_id) / f"{key}.mp3"
     if path.exists():
         return path.read_bytes(), demo
-    script = await run_in_threadpool(narration_script, slide)
-    audio = await voice.synthesize(voice.with_disclosure(script) if index == 0 else script)
+    async with NARRATION_SLOTS:
+        script = await run_in_threadpool(narration_script, slide)
+        audio = await voice.synthesize(voice.with_disclosure(script) if index == 0 else script)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(audio)
+    _write(path, audio)
     return audio, demo

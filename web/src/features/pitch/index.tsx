@@ -69,8 +69,8 @@ export default function PitchRoom() {
     };
   }, [run, revision]);
 
-  async function fetchNarration(slides: Slide[], index: number, current: number) {
-    const response = await fetch(`/api/pitch/${encodeURIComponent(run)}/narration`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ index, slide: slides[index] }) });
+  async function fetchNarration(index: number, current: number) {
+    const response = await fetch(`/api/pitch/${encodeURIComponent(run)}/narration/${index}`, { method: "POST" });
     if (!response.ok) throw new Error("voice");
     const blob = await response.blob();
     if (current !== narrating.current) throw new Error("stopped");
@@ -86,12 +86,12 @@ export default function PitchRoom() {
     try {
       for (let i = from; i < slides.length; i++) {
         setSlide(i); setNarration("loading");
-        const next = upcoming ?? fetchNarration(slides, i, current);
+        const next = upcoming ?? fetchNarration(i, current);
         upcoming = null;
         const { blob, demo } = await next;
         if (current !== narrating.current || gen !== generation.current) return;
         setNarrationDemo(demo);
-        if (i + 1 < slides.length) { upcoming = fetchNarration(slides, i + 1, current); upcoming.catch(() => undefined); }
+        if (i + 1 < slides.length) { upcoming = fetchNarration(i + 1, current); upcoming.catch(() => undefined); }
         audioUrl.current = URL.createObjectURL(blob);
         const player = new Audio(audioUrl.current); audio.current = player;
         const ended = new Promise<void>((resolve, reject) => { player.onended = () => resolve(); player.onerror = () => reject(new Error("play")); });
