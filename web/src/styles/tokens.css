@@ -28,7 +28,7 @@
      Migrate screens to the names above; remove these when nothing uses them. */
   --sh-rosa: var(--sh-accent);
   --sh-rosa-soft: var(--sh-accent-soft);
-  --sh-naranja: var(--sh-demo);
+  --sh-naranja: var(--sh-demo-soft); /* the demo pair: --sh-naranja-ink (--sh-demo) reads on it at AA */
   --sh-naranja-ink: var(--sh-demo);
 
   /* type: DM Sans for everything people read, Gloock only for page titles */
