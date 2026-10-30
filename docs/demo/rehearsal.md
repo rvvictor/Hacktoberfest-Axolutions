@@ -1,4 +1,27 @@
-# Clean-clone rehearsal — 2026-10-28
+# Clean-clone rehearsals
+
+## 2026-10-29 · `main` at `bca7672` (conversation flow, kit 5.8.0)
+
+Environment: macOS (Darwin 24.6.0), Python 3.12.4, Node v24.21.0. No `.env`, no provider
+keys: `DEMO_MODE` defaults to true. Fresh clone of `origin/main` in an empty directory.
+
+```bash
+git clone https://github.com/rvvictor/Hacktoberfest-Axolutions.git rehearsal && cd rehearsal
+uv sync --frozen && npm --prefix web ci && npm --prefix web run build
+```
+
+| Check | Actual result |
+|---|---|
+| Clone + README setup + build | done in 8 s (uv and npm caches already warm on this machine; a cold install was not timed) |
+| `bash .uak/bin/q bash -c 'test -s README.md && test -s docs/demo/script.md && bash .uak/bin/smoke'` | `OK exit=0 46s · PRODUCT_PASS: current adapter exited 0.` |
+| `UAK_PORT=8645 uv run python e2e/judge_path.py` | `OK exit=0 19s · PASS judge path run=run_d0180b98 steps=8 demo_data=true` (includes no overlapping board labels and no page scroll at 1280×720) |
+| Machine time to the wow (API, `DEMO_MODE=1`, default `DEMO_SPEED=2`) | 1.8 s to the questions, 2.6 s answers → plan, 4.8 s approval 1 → board and tasks: **9.2 s** |
+| Pitch Q&A on that run | “¿Cómo funcionan las alertas?” → quotes “Funcionalidad del MVP: Alertas automatizadas…”, source `spec:v1`; “¿De qué trata el proyecto?” → quotes “Problema: La gestión de gastos corporativos…”, source `spec:v1` |
+
+Not rehearsed here: a human walking the script with a stopwatch, and the plan-B video,
+which is outdated and must be re-recorded (`plan-b.md`).
+
+## 2026-10-28 · HACK-024 base `174dcce`
 
 Rehearsed revision: `174dcce` (integrated application base for HACK-024).
 The documentation and capture utility are the HACK-024 changes on top of it.

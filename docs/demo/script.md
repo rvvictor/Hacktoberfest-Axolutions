@@ -1,36 +1,40 @@
 # SpeedHack — three-minute demo
 
-Language: Spanish. Budget: 180 seconds. Based on `IDEA.md` §4.
-The board starts at 00:55; its completed state must be visible by 01:20
-(before the 90-second deadline). Rehearse at 1280×720 with reduced motion.
+Language: Spanish narration. Budget: 180 seconds. Based on `IDEA.md` §4.
+Rehearse at 1280×720 with reduced motion, with the no-key setup from the README
+(`DEMO_MODE=1`). One run, one browser tab: the conversation at `#/project` links to
+every other view and keeps the run in `?run=`.
 
-Before presenting, start the no-key setup in the README. Open these tabs:
-`/#/intake`, `/#/run`, `/#/spec`, `/#/live-board`, `/#/delivery`,
-`/#/client`, `/#/hunter`, and `/#/pitch`. Standalone pages use independent
-recorded fixtures: say `demo_data: true`; do not describe them as one live run.
-Keep the [plan-B recording](plan-b.md) downloaded locally.
+Machine time to the wow, measured in the clean-clone rehearsal (`rehearsal.md`,
+2026-10-29, `DEMO_SPEED=2` default): 9.2 s (1.8 s to the questions, 2.6 s to the plan,
+4.8 s to the board and tasks). The rest of the 90 seconds is the presenter: typing,
+three answers and one approval.
 
-| Time | Action and narration | Evidence on screen | Fallback |
-|---|---|---|---|
-| 00:00–00:20 | Open intake in developer mode. “SpeedHack mantiene el contexto desde una idea hasta un pitch defendible. Esta demostración usa datos grabados, `demo_data: true`.” Type: “SaaS de control de gastos corporativos con React, Supabase y alertas automatizadas.” | Developer mode and idea input. | Type instead of dictating if the microphone is unavailable. If submission stalls, open the prepared execution tab. |
-| 00:20–00:40 | Show execution and clarification. “Definimos empresas, roles y alertas; el equipo conserva el control con tres aprobaciones.” | Nine-stage timeline and first approval. | Use `/#/run` without a run ID for the labeled replay; do not wait more than five seconds for a provider. |
-| 00:40–00:55 | Open spec; show sources and assumptions, then approve spec. “La investigación conserva sus fuentes. Las cifras de una muestra no son precios actuales verificados.” | Versioned spec, source links, approval 1. | Open `/#/spec` fixture. Read assumptions if the source page cannot load. Do not invent a market statistic. |
-| 00:55–01:20 | Open board and click **Repetir** if needed. “De este spec salen la arquitectura y el backlog: pantallas, datos e integraciones junto a tickets con criterios de aceptación.” | **Wow:** architecture and Linear issue feed side by side. | Open `/#/live-board` without query parameters for the labeled mirror. If rendering fails, play the corresponding segment of the recording or show the real board screenshot in README. |
-| 01:20–01:45 | Approve design, open delivery, inspect checks, approve delivery. “La puerta de calidad muestra qué pasó y qué falló antes de aceptar el prototipo.” | Prototype, quality report, approvals 2 and 3. | Use `/#/delivery` replay. Report fixture results as recorded examples, never as a fresh build or security audit. |
-| 01:45–02:05 | Open client, then hunter. “La misma idea se explica sin jerga. Para prospectar, una persona revisa el mensaje y el consentimiento antes del envío.” | Fictional barbershop; draft, consent, opt-out and approval controls. | Show the sample without pressing send. If short on time, describe client mode while showing hunter. No real contact is required. |
-| 02:05–02:45 | Open pitch with `demo-pitch`. Ask: “¿Alertas?” “Soy una IA; respondo con el contexto del proyecto y sus fuentes.” Then ask “¿Qué funciones incluye el control de gastos?” to show the current fixture's conservative refusal. | Deck, grounded response, source labels; “no tengo ese dato” when the fixture cannot support an answer. | Type the question instead of speaking. The bundled demo audio is a placeholder, so read the response aloud and identify it as AI-generated. If API fails, play recording, which shows the refusal case. |
-| 02:45–03:00 | Close on board or pitch. “El valor es la continuidad del contexto y las decisiones humanas. Hoy mostramos el recorrido grabado; las integraciones reales dependen de sus credenciales.” | Visible `demo_data: true` and the artifacts already shown. | Close on the real board screenshot. Stop at 03:00. |
+Rubric: the official rubric is not published (`IDEA.md` §8). Each part names the
+`IDEA.md` §4 step it shows and C1; remap the column when the rubric is published.
+
+| Time | Part | Do and say | On screen | `IDEA.md` §4 · rubric | Fallback |
+|---|---|---|---|---|---|
+| 00:00–00:20 | Problem | “Tienes una idea y necesitas defenderla: investigar, escribir el plan, repartir el trabajo y mostrar algo que funcione. Normalmente son días, y cada herramienta pierde el contexto de la anterior.” | Landing: the idea in one line and the three moments. | context · C1 | Read it off the landing. |
+| 00:20–01:50 | Live demo to the wow | **Nuevo proyecto** → type “SaaS de control de gastos corporativos con React, Supabase y alertas automatizadas” (or dictate). Answer the three questions with one short line each. On the plan: “Estas fuentes son reales y cada dato lleva su enlace.” Approve the plan, then click **Ver el tablero en vivo**. | **Wow (by 01:50):** the Miro board and the Linear tickets filled from the same plan, side by side. | steps 1–3 · C1 | The “Datos de demostración” badge stays visible. If the board view fails, go back to `#/project`: the same board and tasks are cards in the conversation. |
+| 01:50–02:30 | How it works | Back to the conversation; approve the tasks. “SpeedHack construye el prototipo con tu plan; esta es la app, funcionando aquí mismo.” In the prototype: **Entrar al Sistema** → **Mis Gastos**. Point at the four checks: “se revisan de verdad: compila, sin recursos externos, sin llaves expuestas, abre sin errores.” Approve. | The prototype inside the card, its check chips, approval 3. | steps 4–5 · C1 | **Abrir el prototipo** opens it full screen. |
+| 02:30–03:00 | Impact | **Ir a la sala de pitch**. Ask “¿Cómo funcionan las alertas?” or “¿De qué trata el proyecto?”: “Soy una IA; respondo solo con la memoria del proyecto y cito la fuente.” Close: “Una persona decide en cada paso, no se inventa ninguna cifra y todo sale con su fuente.” | Deck, answer with its source. | steps 6–7 · C1 | Type the question instead of speaking. If the answer fails, read the plan card aloud and say so. |
+
+Say once, out loud: the demo uses recorded data (`demo_data: true`); the real
+integrations (Tavily, Firecrawl, Miro, Linear, the LLM) need their credentials.
+Do not claim a time from idea to pitch: none has been measured.
 
 ## Live-run routing and recovery
 
-Standalone fixtures are the reliable no-key presentation path. For a real run,
-retain the created run ID and use the route convention of each feature:
+Every view reads the run from `?run=RUN_ID` before the hash, the form the intake
+redirect and the conversation links use:
 
-- Execution: `/#/run?run=RUN_ID`.
-- Board: `/?run=RUN_ID#/live-board` (query before the hash).
-- Pitch: `/?run_id=RUN_ID#/pitch` (query before the hash).
+- Conversation: `/?run=RUN_ID#/project`.
+- Board (the wow): `/?run=RUN_ID#/live-board`.
+- Nine-stage detail: `/?run=RUN_ID#/run`.
+- Pitch: `/?run=RUN_ID#/pitch`.
 
-Do not promise that moving between fixture tabs preserves a single run. If a live
-connection fails, announce the switch to recorded sample data, remove run query
-parameters, and continue with the prepared tab. Never retry a provider on stage
-for more than five seconds. Keep all three human decisions explicit.
+Without `?run=`, `#/project` plays a recorded example and the other views show their
+own labeled samples; do not present those as the same run. If a live provider
+fails, say that the run switched to recorded data and continue; never retry a
+provider on stage for more than five seconds. Keep all three human decisions explicit.

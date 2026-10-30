@@ -1,6 +1,13 @@
 # Plan-B recording
 
-[Play or download the local screen recording](plan-b.webm).
+> **Outdated: re-record before presenting.** `plan-b.webm` was recorded on 2026-10-28,
+> before the conversation flow (HACK-045 to HACK-058): it walks the old standalone tabs
+> (intake, execution, spec, delivery…) and shows neither the prototype SpeedHack builds
+> nor the recorded research. A person must record the current flow following
+> [script.md](script.md) and replace the file; no agent has recorded or seen a newer video.
+> `capture.py --screenshots-only` refreshes the screenshots without touching the video.
+
+[Play or download the local screen recording](plan-b.webm) (outdated, see above).
 
 This is a 3:03 silent recording of the actual application at 1280×720, with reduced
 motion and `DEMO_MODE=1`. Narrate using [script.md](script.md). Download the WebM
