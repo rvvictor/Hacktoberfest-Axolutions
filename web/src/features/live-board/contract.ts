@@ -12,6 +12,7 @@ export interface StageEvent {
 }
 export interface MiroItem {
   kind: string; title: string; miro_id: string | null; x: number; y: number; demo_data: boolean;
+  w?: number; h?: number; // the live board's frames and notes carry their size
 }
 export interface BacklogItem {
   epic: string; title: string; acceptance: string[]; external_id: string;

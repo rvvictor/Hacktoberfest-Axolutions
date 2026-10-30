@@ -156,6 +156,20 @@ def step(page: Page, name: str, shots: list[str]) -> Iterator[None]:
     shots.append(name)
 
 
+# Pairs of visible text labels on the Miro mirror whose boxes intersect (1 px tolerance).
+BOARD_OVERLAPS = """() => {
+  const els = [...document.querySelectorAll('.lb-canvas *')]
+    .filter((e) => e.children.length === 0 && e.textContent.trim() && e.getClientRects().length);
+  const boxes = els.map((e) => [e.textContent.trim().slice(0, 30), e.getBoundingClientRect()]);
+  const out = [];
+  for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+    const [ta, a] = boxes[i], [tb, b] = boxes[j];
+    if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) out.push([ta, tb]);
+  }
+  return out;
+}"""
+
+
 def shot(page: Page, name: str) -> None:
     page.screenshot(path=str(OUT / f"{name}.png"), full_page=True)
 
@@ -238,7 +252,17 @@ def judge(page: Page, base: str, p: int, shots: list[str]) -> str:
         decide(page, p, run_id, 2, "Aprobado. Seguimos.")
         go(page, base, run_id, "live-board")
         expect(page.get_by_text(re.compile(r"^[1-9]\d* elementos$"))).to_be_visible(timeout=T)
+        # The wow is judged on a projector: 1280×720, no page scroll, no label on top of another.
+        page.set_viewport_size({"width": 1280, "height": 720})
+        page.wait_for_timeout(500)
+        overlaps = page.evaluate(BOARD_OVERLAPS)
+        if overlaps:
+            raise AssertionError(f"board labels overlap at 1280x720: {overlaps[:3]}")
+        scroll = page.evaluate("document.documentElement.scrollHeight")
+        if scroll > 720:
+            raise AssertionError(f"the wow needs page scroll at 1280x720 (scrollHeight {scroll})")
         shot(page, "05-board-wow")
+        page.set_viewport_size({"width": 1280, "height": 800})
         go(page, base, run_id, "project")
 
     # 5. Prototype and its review; approval 3 on the prototype card.
