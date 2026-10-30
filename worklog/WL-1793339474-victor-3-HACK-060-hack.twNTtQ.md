@@ -10,3 +10,4 @@
 
 ## History
 - 1793339474 | CLAIMED | victor-3 | claim; next: read `web/src/features/live-board/demo.ts` and the `WEB` table of `scripts/demo_from_recordings.py`.
+- 1793339841 | CLAIMED | victor-3 | heartbeat; lease until 1793354241

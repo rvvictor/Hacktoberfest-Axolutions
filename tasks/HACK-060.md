@@ -9,13 +9,16 @@ Priority: P1
 Paths: web/src/features/live-board/demo.ts, scripts/demo_from_recordings.py, app/tests/test_demo_fixture.py
 Depends: None
 Verify: `uv run pytest -q && uv run ruff check app scripts && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
-Lease-Until: 1793353874
-Updated: 1793339474
+Lease-Until: 1793354241
+Updated: 1793339841
 Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
 Next: read `web/src/features/live-board/demo.ts` and the `WEB` table of `scripts/demo_from_recordings.py`.
 PR: -
 Evidence: -
-Events: 1
+Events: 2
 Checkpoints: 0
-Sessions: 1
+Sessions: 2
 Last-Checkpoint: 0
+Progress: 0 commit(s) since the claim · last: 89ab83e Merge pull request #64 from rvvictor/plan/hack-063-069 (25 minutes ago) · 0 uncommitted tracked file(s) · at 1793339841
+Progress-Head: 89ab83e/4294967295
+Progress-Changed: 1793339841
