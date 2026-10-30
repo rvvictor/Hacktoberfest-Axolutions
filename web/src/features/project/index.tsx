@@ -201,7 +201,7 @@ export default function Project() {
 
         {c.spec && (
           <>
-            <Message>Con tus respuestas y esas fuentes armé tu plan. ¿Lo dejamos así?</Message>
+            <Message>Con tus respuestas{c.research.length > 0 ? " y esas fuentes" : ""} armé tu plan. ¿Lo dejamos así?</Message>
             <Panel className="pj-card">
               <h2 className="pj-h">Qué vamos a construir</h2>
               <dl className="pj-plan">
