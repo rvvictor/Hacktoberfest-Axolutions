@@ -52,6 +52,30 @@ class Conflict(Exception):
     """The run is not waiting for what the caller sent."""
 
 
+class StageFailed(Exception):
+    """A provider failed in a real run: tell the user, keep the run on this stage, never replay a recording."""
+
+    def __init__(self, stage: int, message: str) -> None:
+        super().__init__(message)
+        self.stage = stage
+        self.message = message
+
+
+# Who to blame, in the user's words, when a stage fails in a real run.
+PROVIDER_NAMES = {
+    1: "Claude", 2: "Claude", 3: "Tavily o Firecrawl", 4: "Claude", 5: "Miro",
+    6: "Linear", 7: "el generador del prototipo", 8: "los chequeos de calidad", 9: "Claude",
+}
+
+
+def _failure_message(stage: int) -> str:
+    # Never the exception text: it can carry URLs, ids or keys. The detail goes to the server log.
+    return (
+        f"La etapa «{STAGES[stage]}» no se pudo completar: {PROVIDER_NAMES[stage]} no respondió. "
+        "Revisa la llave o el estado del servicio y pulsa «Reintentar»."
+    )
+
+
 @dataclass
 class StageContext:
     run: Run
@@ -129,7 +153,11 @@ def _produce(ctx: StageContext) -> tuple[Produced, bool]:
             events = _validated(ctx.stage, fn(ctx))
             # A service that answered from its own recorded data (no key, plan B) is still demo data.
             return events, any(payload.get("demo_data") for _, _, payload in events)
-        except Exception:
+        except Exception as exc:
+            if not settings.DEMO_MODE:
+                # A real run must never show another project's recording as if it were its own.
+                log.exception("stage %s failed in a real run", ctx.stage)
+                raise StageFailed(ctx.stage, _failure_message(ctx.stage)) from exc
             log.exception("stage %s failed, falling back to the recorded run", ctx.stage)
         finally:
             # Money spent before a failure is still spent: record it whether or not the stage succeeded.
@@ -237,10 +265,22 @@ def _advance(run_id: str, first: int, comment: str | None = None) -> None:
                 return
             stage += 1
         store.set_state(run_id, status=RunStatus.done)
+    except StageFailed as failed:
+        _emit(run_id, failed.stage, EventType.error, {"message": failed.message, "retry": True}, False)
+        store.set_state(run_id, stage=failed.stage, status=RunStatus.failed, awaiting=f"retry:{failed.stage}")
     except Exception as exc:
         log.exception("run %s failed", run_id)
         _emit(run_id, stage, EventType.error, {"message": str(exc)}, True)
         store.set_state(run_id, status=RunStatus.failed)
+
+
+def retry(run_id: str) -> Callable[[], None]:
+    """Run again the stage that failed. Ids it already created in Miro or Linear are reused, not duplicated."""
+    awaiting = store.get_awaiting(run_id) or ""
+    stage = int(awaiting.removeprefix("retry:")) if awaiting.startswith("retry:") else 0
+    if not stage or not store.claim(run_id, awaiting):
+        raise Conflict("the run has no failed stage to retry")
+    return lambda: _advance(run_id, stage)
 
 
 def create(mode: Mode, idea: str, stack_prefs: list[str] | None = None) -> Run:
