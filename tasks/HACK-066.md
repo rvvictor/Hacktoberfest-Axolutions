@@ -15,7 +15,7 @@ Task-Base: 686a57431b016f535deaf468833791e2300ac886
 Next: failing test that the demo deck uses `deck.json`, then the slide layout.
 PR: -
 Evidence: -
-Events: 1
+Events: 2
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
