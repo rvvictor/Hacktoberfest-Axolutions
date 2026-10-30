@@ -133,3 +133,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793342086 | HACK-064 | stop and ask: 3 existing tests + runs.py are outside Paths | Why: the task reverses the behaviour those tests assert; editing them without a Paths amendment breaks the never-edit-a-test rule
 - 1793342603 | HACK-064 | recovered:true error for a skipped Miro note; getattr(board,'skipped') in stages so test doubles keep working | Why: no miro_item kind (would pollute the mirror board); plain error would mark the stage failed in /ops
 - 1793342719 | HACK-065 | server speaks only the deck it served | Why: security review: client-supplied slide = forged speech + spend
+- 1793344534 | HACK-070 | recovered error = warning (no status change, no button); retryable only when payload.retry; stage_started clears error | Why: recovered errors must not look like a failed run; retry button only where the endpoint can act
