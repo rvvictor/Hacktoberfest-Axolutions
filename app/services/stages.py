@@ -192,7 +192,19 @@ def _architecture_stage(ctx: StageContext) -> Events:
             for key, value in board.ids.items():
                 store.set_external(ctx.run.run_id, ctx.stage, BOARD_IDS + key, value)
     items = _already_on_board(ctx.run.run_id, architecture, board.ids, items) + items
-    return [("miro_item", {**item, "demo_data": item.get("demo_data", demo)}) for item in items]
+    events: Events = [("miro_item", {**item, "demo_data": item.get("demo_data", demo)}) for item in items]
+    skipped = list(getattr(board, "skipped", []))  # a stand-in for BoardRun may not have it
+    if skipped:  # the stage finishes with what exists; say what is missing
+        shown = ", ".join(skipped[:5]) + ("…" if len(skipped) > 5 else "")
+        events.append((
+            "error",
+            {
+                "message": f"Miro no pudo crear {len(skipped)} nota(s): {shown}. El resto del tablero se conservó.",
+                "recovered": True,
+                "skipped": skipped,
+            },
+        ))
+    return events
 
 
 def _already_on_board(
