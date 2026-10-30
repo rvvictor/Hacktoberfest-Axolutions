@@ -11,6 +11,14 @@ from app.services import llm
 DEMO_RUN = "demo-pitch"
 DISCLOSURE = "Soy una IA. "
 NO_DATA = "no tengo ese dato"
+# Words that make a question about the project as a whole, so the plan answers it when nothing else matches.
+PROJECT_WORDS = {
+    "proyecto", "idea", "producto", "app", "aplicacion", "sistema", "plataforma", "solucion",
+    "trata", "resumen", "objetivo", "sirve", "propuesta", "speedhack",
+}
+# Matches every spec note the pipeline stores ("Problema: …", "Usuarios: …", "Funcionalidad del MVP: …").
+PLAN_QUERY = "Problema Usuarios Funcionalidad MVP"
+PLAN_ORDER = ("Problema:", "Usuarios:", "Funcionalidad del MVP:")  # what the project is, for whom, then what it does
 DEMO_PASSAGES = [
     {
         "run_id": DEMO_RUN,
@@ -161,6 +169,17 @@ def ask(run_id, question):
         and p.get("source")
         and _words(question) & _words(p.get("text", ""))
     ]
+    if not records and _words(question) & PROJECT_WORDS:
+        # A general question about the project ("¿de qué trata el proyecto?") shares no word with any passage:
+        # answer from the plan's notes (problem, users, features). Any other unmatched question stays NO_DATA.
+        records = sorted(
+            (
+                p
+                for p in recall(run_id, PLAN_QUERY, k=10)
+                if p.get("run_id") == run_id and p.get("source") and p.get("kind") == "spec_note"
+            ),
+            key=lambda p: next((n for n, head in enumerate(PLAN_ORDER) if p["text"].startswith(head)), len(PLAN_ORDER)),
+        )
     # Pipeline runs store readable notes next to the raw spec JSON; quote a note, never the JSON.
     notes = [p for p in records if p.get("kind") in ("spec_note", "research_note")]
     quotable = bool(notes) and settings.DEMO_MODE
