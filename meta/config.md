@@ -1,7 +1,7 @@
 # Verifiable config
-Config-Source: 679b5d08dd66df6acce37eb3f4a271a92ce03c25
+Config-Source: 9e5f835e56ba5b458732afea18ca62769a949ef4
 Backlog-Proposed-Epoch: 1793142481
-Backlog-Approved: no
+Backlog-Approved: yes
 Autonomy: yes
 Auto-Merge: no
 Freeze-Epoch: 0
