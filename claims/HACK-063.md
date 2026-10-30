@@ -9,8 +9,8 @@ Priority: P0
 Paths: app/services/research.py, app/services/stages.py, app/services/llm.py, app/services/prompts/research_query.md, app/tests/test_research_query.py
 Depends: None
 Verify: `uv run pytest -q && uv run ruff check app`
-Lease-Until: 1793426534
-Updated: 1793340134
+Lease-Until: 1793427452
+Updated: 1793341052
 Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
 Next: Wait for review of SHA 04e9feb
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/72
