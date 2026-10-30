@@ -1,7 +1,7 @@
 {
   "demo_data": true,
   "screenshots_only": true,
-  "elapsed_seconds": 58.2,
+  "elapsed_seconds": 72.4,
   "routes": [
     {
       "route": "intake",
@@ -40,6 +40,11 @@
     },
     {
       "route": "pitch",
+      "http": 200,
+      "demo_label": true
+    },
+    {
+      "route": "live-board",
       "http": 200,
       "demo_label": true
     }
