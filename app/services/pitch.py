@@ -3,6 +3,7 @@
 import asyncio
 import hashlib
 import importlib
+import json
 import os
 import re
 import unicodedata
@@ -11,7 +12,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.config import settings
 from app.schemas import Pitch, QAEntry, ResearchItem, Spec
-from app.services import llm, voice
+from app.services import llm, research, store, voice
 
 DEMO_RUN = "demo-pitch"
 DISCLOSURE = "Soy una IA. "
@@ -36,7 +37,13 @@ DEMO_PASSAGES = [
         "text": "El proyecto de control de gastos corporativos incluye registro con comprobante, aprobación por rol y alertas automáticas al superar un límite.",
         "demo_data": True,
     }
+] + [
+    # The recorded research of the demo case, so the recorded deck cites this sample's own evidence.
+    {"run_id": DEMO_RUN, "kind": "research", "source": item.url, "text": item.model_dump_json(), "demo_data": True}
+    for item in research._items(json.loads(research.RECORDED.read_text(encoding="utf-8")))
 ]
+DEMO_IDEA = "SaaS de control de gastos corporativos con React, Supabase y alertas automatizadas"  # IDEA.md §3
+MAX_BULLETS = 4
 
 
 class PitchUnavailable(Exception):
@@ -120,6 +127,40 @@ def recall(run_id, query, k=5):
     return memory.recall(run_id, query, k=k)
 
 
+def cover_name(idea):
+    """A short title from the idea as typed: up to its first comma or "con", at most 60 characters."""
+    name = re.split(r",| con ", idea.strip(), maxsplit=1)[0].strip()
+    if len(name) > 60:
+        name = name[:59].rstrip() + "…"
+    return name[:1].upper() + name[1:]
+
+
+def _idea(run_id):
+    if run_id == DEMO_RUN:
+        return DEMO_IDEA
+    run = store.get_run(run_id)
+    return store.get_project(run.project_id).idea if run else ""
+
+
+def _cover(run_id, spec, sources):
+    """Slide 0: the project's name and one line, the first sentence of the plan's problem."""
+    line = re.split(r"(?<=[.!?])\s+", spec.problem.strip(), maxsplit=1)[0]
+    if len(line) > 160:
+        line = line[:159].rstrip() + "…"
+    return {"title": cover_name(_idea(run_id)) or "Tu proyecto", "bullets": [line], "sources": sources}
+
+
+def _cited(slides, allowed):
+    """Sources only from this run's research and plan; a slide that loses every source it had is dropped."""
+    kept = []
+    for s in slides:
+        sources = [src for src in s.sources if src in allowed]
+        if s.sources and not sources:
+            continue
+        kept.append({"title": s.title, "bullets": s.bullets[:MAX_BULLETS], "sources": sources})
+    return kept
+
+
 def deck(run_id):
     passages = recall(
         run_id,
@@ -131,57 +172,45 @@ def deck(run_id):
     if not passages:
         return Pitch(slides=[])
     # The stored spec is authoritative; never substitute another run's sample spec.
-    spec = None
+    spec, spec_sources = None, []
     for passage in passages:
         if passage.get("kind") == "spec":
             try:
                 spec = Spec.model_validate_json(passage["text"])
+                spec_sources = [passage["source"]]
                 break
             except ValueError:
                 continue
     if spec is None:
+        plan = [p for p in passages if p.get("kind") == "spec"] or passages
         spec = Spec(
             version=1,
-            problem="\n".join(p["text"] for p in passages),
+            problem="\n".join(p["text"] for p in plan),
             users=[],
             mvp_features=[],
             demo_data=any(p.get("demo_data") for p in passages),
         )
-    if llm._demo():
-        # The provider's fixed deck fixture belongs to a different input; project
-        # this run's actual evidence instead, with explicit demo provenance.
-        return Pitch(
-            slides=[
-                {
-                    "title": "El proyecto",
-                    "bullets": [spec.problem],
-                    "sources": [p["source"] for p in passages],
-                },
-                {
-                    "title": "La propuesta",
-                    "bullets": spec.mvp_features
-                    or ["Pregúntale a la memoria del proyecto."],
-                    "sources": spec.sources or [p["source"] for p in passages],
-                },
-            ],
-            demo_data=True,
-        )
-    research = []
+        spec_sources = list(dict.fromkeys(p["source"] for p in plan))
+    found = []
     for passage in passages:
         if passage.get("kind") == "research":
             try:
-                research.append(ResearchItem.model_validate_json(passage["text"]))
+                found.append(ResearchItem.model_validate_json(passage["text"]))
             except ValueError:
                 continue
-    result = llm.build_deck(spec, research)
-    return result.model_copy(
-        update={
-            "demo_data": result.demo_data
-            or spec.demo_data
-            or any(p.get("demo_data") for p in passages)
-        }
+    allowed = {r.url for r in found} | set(spec_sources)
+    cover = _cover(run_id, spec, spec_sources)
+    if llm._demo() and not found:
+        # Nothing researched to show: the plan's features, with the plan as the source.
+        proposal = {"title": "La propuesta", "bullets": (spec.mvp_features or ["Pregúntale a la memoria del proyecto."])[
+            :MAX_BULLETS], "sources": spec_sources}
+        return Pitch(slides=[cover, proposal], demo_data=True)
+    # In demo, build_deck returns the recorded deck of the demo case; it is shown only with that run's research.
+    result = llm.build_deck(spec, found)
+    return Pitch(
+        slides=[cover, *_cited(result.slides, allowed)],
+        demo_data=result.demo_data or spec.demo_data or any(p.get("demo_data") for p in passages),
     )
-
 
 def ask(run_id, question):
     question = question.strip()

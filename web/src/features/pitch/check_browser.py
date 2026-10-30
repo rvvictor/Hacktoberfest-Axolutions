@@ -36,11 +36,12 @@ with sync_playwright() as p:
     page.on("pageerror", lambda error: errors.append(str(error)))
     page.goto(f"http://127.0.0.1:{PORT}/#/pitch")
     page.wait_for_load_state("networkidle")
-    expect(page.get_by_role("heading", name="El proyecto", exact=True)).to_be_visible()
+    # HACK-066: a cover, then the recorded deck of the demo case; "Exportar PDF" prints one page per slide.
+    expect(page.locator(".pitch-cover h2")).to_have_text("SaaS de control de gastos corporativos")
     page.get_by_role("button", name="Siguiente", exact=True).click()
-    expect(page.get_by_role("heading", name="La propuesta", exact=True)).to_be_visible()
+    expect(page.get_by_role("heading", name="El Problema", exact=True)).to_be_visible()
     page.emulate_media(media="print")
-    assert page.locator(".pitch-slide:visible").count() == 2
+    assert page.locator(".pitch-slide:visible").count() == page.locator(".pitch-slide").count() == 7
     page.pdf(path=str(OUT / "pitch.pdf"))
     page.emulate_media(media="screen")
     page.get_by_role("button", name="Anterior", exact=True).click()
