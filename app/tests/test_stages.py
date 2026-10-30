@@ -277,11 +277,48 @@ def test_items_created_before_a_failure_show_up_on_the_rerun(client, live_servic
         run_id = _start(client)
         _approve(client, run_id, 1)
     assert store.get_externals(run_id, 5)  # the ids created before the failure were kept
+    # HACK-064: a real run now stops at the failed stage instead of replaying the recording.
+    assert client.get(f"/api/runs/{run_id}").json()["awaiting"] == "retry:5"
     with respx.mock(assert_all_called=False) as router:  # the board exists: no new board is created
         _real_board_with_mocked_miro(monkeypatch, router, ids)
-        _approve(client, run_id, 2, approved=False, comment="otra vez")
+        pipeline.retry(run_id)()
         assert not router.routes[0].called
     titles = sorted(
         p["title"] for p in stages._payloads(run_id, 5, EventType.miro_item) if p["kind"] in stages.GROUPS
     )
     assert titles == ["Gasto", "Login", "Supabase"]
+
+
+def test_a_miro_note_that_keeps_failing_is_skipped_and_reported_as_recovered(client, live_services, monkeypatch):
+    import re
+
+    import httpx
+    import respx
+
+    from app.services import miro as miro_service
+
+    async def no_wait(seconds):
+        return None
+
+    monkeypatch.setattr(stages, "_backoff", no_wait)
+    monkeypatch.setattr(stages.miro, "build_board", lambda arch, **kw: miro_service.BoardRun(arch, **kw))
+    created = iter(range(1, 100))
+
+    def reply(request):
+        if request.url.path.endswith("/sticky_notes") and b"Login" in request.content:
+            return httpx.Response(500, text="Internal error occurred")
+        return httpx.Response(201, json={"id": f"item-{next(created)}"})
+
+    with respx.mock() as router:
+        router.post("https://api.miro.com/v2/boards").mock(return_value=httpx.Response(201, json={"id": "board-1"}))
+        router.post(url__regex=re.compile(r"https://api\.miro\.com/v2/boards/board-1/.*")).mock(side_effect=reply)
+        run_id = _start(client)
+        _approve(client, run_id, 1)
+
+    titles = sorted(p["title"] for p in stages._payloads(run_id, 5, EventType.miro_item) if p["kind"] in stages.GROUPS)
+    assert titles == ["Gasto", "Supabase"]  # the other notes were kept
+    errors = [e for _, e in store.list_events(run_id) if e.stage == 5 and e.type is EventType.error]
+    assert len(errors) == 1
+    assert errors[0].payload["recovered"] is True and errors[0].payload["skipped"] == ["Login"]
+    assert not errors[0].demo_data
+    assert client.get(f"/api/runs/{run_id}").json()["awaiting"] == "approval:2"  # the stage finished

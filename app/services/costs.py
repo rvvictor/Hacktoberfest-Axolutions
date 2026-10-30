@@ -62,7 +62,9 @@ def _stages(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         mine = [e for e in events if e["stage"] == number]
         start = next((e["ts"] for e in mine if e["type"] == "stage_started"), None)
         end = next((e["ts"] for e in mine if e["type"] == "stage_done"), None)
-        errors = [e for e in mine if e["type"] == "error"]
+        # A recovered error (a skipped Miro note) is a warning: the stage finished with what exists.
+        errors = [e for e in mine if e["type"] == "error" and not e["payload"].get("recovered")]
+        warnings = [e for e in mine if e["type"] == "error" and e["payload"].get("recovered")]
         if errors:
             status = "failed"
         elif end is not None:
@@ -78,6 +80,7 @@ def _stages(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "duration_s": round(end - start, 2) if start is not None and end is not None else None,
             "failures": len(errors),
             "error": str(errors[-1]["payload"].get("message", "")) if errors else None,
+            "warning": str(warnings[-1]["payload"].get("message", "")) if warnings else None,
         })
     return out
 

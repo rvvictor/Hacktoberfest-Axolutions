@@ -60,6 +60,8 @@ class BoardRun:
         self.demo = settings.DEMO_MODE if demo is None else demo
         self.ids = ids if ids is not None else {}
         self.embed_url: str | None = None
+        # Notes that still failed after their retries: skipped so the rest of the board is kept.
+        self.skipped: list[str] = []
         self._client = client
         self._sleep = sleep
 
@@ -130,26 +132,33 @@ class BoardRun:
                     )
                     self.ids[f"height:{kind}"] = str(fh)
                 notes = getattr(self.architecture, field)
-                if notes:  # connectors join the first note of each column: Miro refuses frames as ends
-                    frame_ids.append(f"{kind}:{notes[0]}")
                 for row, text in enumerate(notes):
                     nkey = f"{kind}:{text}"
                     if nkey in self.ids:
                         continue
                     # position is relative to the parent frame's top-left corner
                     rx, ry = FRAME_W / 2, NOTE / 2 + NOTE_GAP + row * (NOTE + NOTE_GAP)
-                    n = await self._request(
-                        client, "POST", f"/boards/{board_id}/sticky_notes",
-                        json={
-                            "data": {"content": text, "shape": "square"},
-                            "style": {"fillColor": MIRO_COLORS[kind]},
-                            "position": {"x": rx, "y": ry},
-                            "geometry": {"width": NOTE},
-                            "parent": {"id": self.ids[fkey]},
-                        },
-                    )
+                    try:
+                        n = await self._request(
+                            client, "POST", f"/boards/{board_id}/sticky_notes",
+                            json={
+                                "data": {"content": text, "shape": "square"},
+                                "style": {"fillColor": MIRO_COLORS[kind]},
+                                "position": {"x": rx, "y": ry},
+                                "geometry": {"width": NOTE},
+                                "parent": {"id": self.ids[fkey]},
+                            },
+                        )
+                    except MiroError:
+                        # Not recorded in `ids`, so a retry of the stage tries this note again.
+                        self.skipped.append(text)
+                        continue
                     self.ids[nkey] = n["id"]
                     yield _event(kind, text, n["id"], fx, ry - fh / 2, NOTE, NOTE, COLORS[kind])
+                # connectors join the first note of each column: Miro refuses frames as ends
+                first = next((f"{kind}:{t}" for t in notes if f"{kind}:{t}" in self.ids), None)
+                if first:
+                    frame_ids.append(first)
             for a_key, b_key in itertools.pairwise(frame_ids):
                 a, b = self.ids[a_key], self.ids[b_key]
                 ckey = f"connector:{a}:{b}"

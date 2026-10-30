@@ -38,6 +38,12 @@
 .pj-done { font-size: var(--sh-text-sm); color: var(--sh-ok); font-weight: 700; }
 .pj-error { color: var(--sh-error); font-weight: 700; }
 .pj-working { color: var(--sh-muted); }
+.pj-failed, .pj-warning { display: flex; flex-direction: column; gap: 10px; overflow-wrap: anywhere; }
+.pj-failed { border-color: var(--sh-error); }
+.pj-failed .pj-error { font-weight: 400; }
+.pj-failed .sh-btn { white-space: nowrap; }
+.pj-failed .pj-hint { flex-basis: 100%; }
+.pj-skipped { margin: 0; padding-left: 18px; list-style: disc; }
 
 @media (prefers-reduced-motion: no-preference) {
   .pj-chat > * { animation: pj-in 0.3s ease-out both; }
