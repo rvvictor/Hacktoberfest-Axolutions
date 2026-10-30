@@ -1,5 +1,5 @@
 ID: HACK-068
-State: MERGING
+State: HUMAN
 Owner: dylan-3
-Queued: 1793339787
-Reason: Waiting for queue
+Updated: 1793339822
+Reason: Auto-merge not explicitly authorized

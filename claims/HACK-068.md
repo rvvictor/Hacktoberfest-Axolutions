@@ -12,7 +12,7 @@ Verify: `test -s docs/specs/002-real-product/spike-lovable.md && uv run ruff che
 Lease-Until: 1793425901
 Updated: 1793339501
 Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/67; run .uak/bin/smoke
+Next: Humano: Auto-merge not explicitly authorized
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/67
 Evidence: -
 Thread-Read: 0
