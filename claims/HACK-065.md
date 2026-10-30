@@ -9,8 +9,8 @@ Priority: P0
 Paths: app/services/pitch.py, app/services/voice.py, app/routers/pitch.py, app/services/prompts/narration.md, app/fixtures/voice/, app/tests/test_pitch_narration.py, web/src/features/pitch/
 Depends: None
 Verify: `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
-Lease-Until: 1793354623
-Updated: 1793340223
+Lease-Until: 1793356986
+Updated: 1793342586
 Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
 Next: apply security-reviewer findings, push, gh pr create, uak done HACK-065
 PR: -
