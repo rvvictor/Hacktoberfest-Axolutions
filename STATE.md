@@ -1,8 +1,8 @@
 # STATE
 
 Phase: execution
-Updated: 1793342781
-AVAILABLE: HACK-061 HACK-066 HACK-067 HACK-070 
+Updated: 1793343809
+AVAILABLE: HACK-061 HACK-066 HACK-067 HACK-070 HACK-071 
 CLAIMED: -
 BLOCKED: -
 REVIEW: HACK-064 HACK-065 
@@ -11,7 +11,7 @@ CANCELLED: HACK-030
 
 Claims (first 24; status --task ID shows detail):
 HACK-064 | REVIEW | sebas-1 | until 1793429014
-HACK-065 | REVIEW | victor-2 | until 1793429119
+HACK-065 | REVIEW | victor-2 | until 1793430209
 
 Blockers: BLOCKED tasks; use status --task ID --summary.
 Current decisions (last 5):
