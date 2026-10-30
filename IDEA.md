@@ -2,7 +2,7 @@
 
 > Reto: TBD · Evento: Hacktoberfest Hack Day CDMX (MLH), 2026-10-27 15:30 → 2026-10-28 19:00 America/Mexico_City. Etiquetas: **[Decided]** · **[Recommended]** · **[To validate]**.
 > Cada número del pitch sale de §10 con su fuente. §4 → tareas verticales · §6 → contrato · §7 → spikes · §8 → aceptación.
-> Fuente: propuesta de Dylan (archivo `zero-to-pitch-propuesta.md`, del nombre anterior del proyecto, 2026-10-27, versión afinada). Este hackathon es su **Fase 0**: se permiten sus atajos (cuentas de la plataforma en vez de OAuth, sin multi-tenancy, sin Stripe, negocios ficticios para el Agente Cazador).
+> Fuente: propuesta de Dylan (archivo `zero-to-pitch-propuesta.md`, del nombre anterior del proyecto, 2026-10-27, versión afinada). El hackathon fue la **Fase 0** (histórico): SpeedHack ya es el producto propio de Dylan. En esa fase se permitieron sus atajos (cuentas de la plataforma en vez de OAuth, sin multi-tenancy, sin Stripe, negocios ficticios para el Agente Cazador).
 
 ## 0. Nombre y marca (fijos en T0)
 - Nombre: **SpeedHack** · repo: `Hacktoberfest-Axolutions` · tagline: **De idea a pitch defendible en una hora**. [Decided]
@@ -36,7 +36,7 @@ Ventaja frente a otros equipos: el diferenciador no es generar código sino **la
 | 6 | Entra a la sala de pitch | Deck generado y un juez pregunta por voz; el agente (que se identifica como IA) responde citando la investigación del proyecto | `POST /api/pitch/{run_id}/ask` | P0 |
 
 - Wow en una frase: al aprobar el spec, Miro y Linear se llenan en vivo en la misma pantalla desde un solo spec. · Segundos hasta el wow: ≤ 45 desde que se aprueba el spec (con `DEMO_MODE` las etapas previas se reproducen aceleradas).
-- Plan B: `DEMO_MODE=1` reproduce una ejecución grabada completa (`app/fixtures/demo/`) con los mismos eventos SSE y tiempos; voz con audio pregrabado; Miro y Linear con capturas espejo dibujadas por nuestra UI. Todo lo simulado muestra `demo_data: true`.
+- Plan B (histórico, del evento): `DEMO_MODE=1` reproduce una ejecución grabada completa (`app/fixtures/demo/`) con los mismos eventos SSE y tiempos; voz con audio pregrabado; Miro y Linear con capturas espejo dibujadas por nuestra UI. Todo lo simulado muestra `demo_data: true`.
 
 ## 5. Núcleo técnico
 - Método: pipeline de 9 etapas con estados explícitos (máquina de estados en FastAPI), 3 aprobaciones humanas y eventos por SSE. El **spec es un JSON versionado** y es la fuente de verdad; Miro, Linear, el prompt del generador y el deck son proyecciones de ese spec. Cada etapa es idempotente (guarda IDs externos). [Decided]
@@ -76,7 +76,7 @@ Orquestación: **FastAPI es el backend y orquestador** [Decided]; n8n solo ejecu
 ## 8. Rúbrica → evidencia
 | Criterio oficial | Peso | Paso/artefacto que lo prueba |
 |---|---|---|
-| C1 · TBD (rúbrica oficial sin publicar) | - | Todo el flujo §4; se remapea cuando se publique |
+| C1 · TBD (histórico: rúbrica del evento, nunca publicada) | - | Todo el flujo §4; se remapea cuando se publique |
 
 ## 9. Alcance
 - Dentro (todo visible; lo que no se alcance real va simulado con `demo_data: true`): Modo Desarrollador, Modo Cliente (barbería), Agente Cazador con consentimiento, investigación citada, Miro, Linear, prototipo, puerta de calidad, deck + Q&A por voz, panel de costos por etapa, landing con planes (Gratis / Pro / Equipos) y aviso de privacidad.
