@@ -1,5 +1,5 @@
 Task: HACK-064
-Events: 2
-Checkpoints: 1
+Events: 3
+Checkpoints: 2
 Sessions: 2
-Last-Checkpoint: 1793342086
+Last-Checkpoint: 1793342603

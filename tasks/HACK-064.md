@@ -9,13 +9,13 @@ Priority: P0
 Paths: app/services/pipeline.py, app/services/miro.py, app/services/stages.py, app/tests/test_live_failures.py, web/src/features/project/
 Depends: None
 Verify: `uv run pytest -q && uv run ruff check app && npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
-Lease-Until: 1793356486
-Updated: 1793342086
+Lease-Until: 1793357003
+Updated: 1793342603
 Task-Base: d92026db547cd029f55cb062e4690a476e48b4b7
-Next: after Paths amendment: POST /runs/{id}/retry, rewrite the 3 tests, 'Reintentar' card in web/src/features/project
+Next: PR + done; HACK-070 does endpoint + card
 PR: -
 Evidence: -
-Events: 2
-Checkpoints: 1
+Events: 3
+Checkpoints: 2
 Sessions: 2
-Last-Checkpoint: 1793342086
+Last-Checkpoint: 1793342603
