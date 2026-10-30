@@ -37,7 +37,7 @@ function openRun(): string | null {
 }
 
 const link =
-  "flex min-h-11 items-center whitespace-nowrap rounded-[12px] px-3 text-[length:var(--sh-text-sm)] text-[color:var(--sh-ink)] no-underline hover:bg-[color:var(--sh-surface)] aria-[current=page]:bg-[color:var(--sh-surface)] aria-[current=page]:font-bold focus-visible:outline-3 focus-visible:outline-[color:var(--sh-accent)]";
+  "flex min-h-11 items-center whitespace-nowrap rounded-[var(--sh-radius-sm)] px-3 text-[length:var(--sh-text-sm)] text-[color:var(--sh-ink)] no-underline hover:bg-[color:var(--sh-surface)] aria-[current=page]:bg-[color:var(--sh-surface)] aria-[current=page]:font-bold focus-visible:outline-3 focus-visible:outline-[color:var(--sh-accent)]";
 
 export default function App() {
   const [path, setPath] = useState(currentPath);
@@ -68,7 +68,7 @@ export default function App() {
         >
           <span
             aria-hidden="true"
-            className="grid size-8 place-items-center rounded-[10px] bg-[color:var(--sh-ink)] font-[family-name:var(--sh-display)] text-[color:var(--sh-bg)]"
+            className="grid size-8 place-items-center rounded-[var(--sh-radius-sm)] bg-[color:var(--sh-ink)] font-[family-name:var(--sh-display)] text-[color:var(--sh-bg)]"
           >
             S
           </span>
@@ -96,7 +96,7 @@ export default function App() {
             </summary>
             <ul
               aria-label="Más pantallas"
-              className="absolute right-0 z-10 mt-2 flex w-60 flex-col gap-0.5 rounded-[16px] border border-[color:var(--sh-line)] bg-[color:var(--sh-raised)] p-2"
+              className="absolute right-0 z-10 mt-2 flex w-60 flex-col gap-0.5 rounded-[var(--sh-radius-lg)] border border-[color:var(--sh-line)] bg-[color:var(--sh-raised)] p-2"
             >
               {secondary.map(({ path: href, label }) => (
                 <li key={href}>

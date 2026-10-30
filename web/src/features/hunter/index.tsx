@@ -103,7 +103,7 @@ function ProspectCard({ prospect, onChange }: { prospect: ProspectRow; onChange:
           <>
             <textarea
               aria-label={`Mensaje para ${prospect.business}`}
-              className="w-full rounded-[10px] border-2 border-[var(--sh-line)] p-3 text-sm"
+              className="w-full rounded-[var(--sh-radius-sm)] border-2 border-[var(--sh-line)] p-3 text-sm"
               rows={5}
               value={body}
               readOnly={!editable}
