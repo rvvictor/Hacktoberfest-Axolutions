@@ -15,4 +15,4 @@ Task-Base: 89ab83e9ba5bedb101910f7626e0ade2cf2060f6
 Next: failing test for the per-slide script validation, then the narration endpoint.
 PR: -
 Evidence: -
-Thread-Read: 265
+Thread-Read: 294
