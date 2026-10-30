@@ -135,3 +135,4 @@ Why: a reversible option after 15 min keeps work moving.
 - 1793342719 | HACK-065 | server speaks only the deck it served | Why: security review: client-supplied slide = forged speech + spend
 - 1793344534 | HACK-070 | recovered error = warning (no status change, no button); retryable only when payload.retry; stage_started clears error | Why: recovered errors must not look like a failed run; retry button only where the endpoint can act
 - 1793344905 | HACK-070 | stopped before waiting for approval: human is away | Why: user asked to leave no blockers
+- 1793380544 | HACK-071 | caps 2000 idea / 1000 answer | Why: security review HACK-063
