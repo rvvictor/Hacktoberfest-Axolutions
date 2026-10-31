@@ -12,7 +12,7 @@ Verify: `uv run pytest -q && uv run ruff check app`
 Lease-Until: 1793563463
 Updated: 1793477063
 Task-Base: 9f9cb50015a908400c93009d321cefb3ee42f6ce
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/90; run .uak/bin/smoke
+Next: Humano: Queue/base push rejected; check remote, atomic push and permissions
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/90
 Evidence: -
 Thread-Read: 0
