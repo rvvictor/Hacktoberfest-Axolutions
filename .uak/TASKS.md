@@ -873,3 +873,37 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
   - Without a connection the stage keeps today's labeled fallback; no recorded report is shown as this app's result.
 - **Verify:** `uv run pytest -q && uv run ruff check app`
 - **Next step:** failing test with a fake adapter returning one file with a hard-coded key → `secrets` fails.
+
+## HACK-088 · Render never logs the Google sign-in code, and knows its public URL
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Estimate:** 0.25 day
+- **Rubric / Spec:** `docs/specs/001-accounts-and-limits/plan.md` §Design · `.uak/docs/SECURITY.md` launch checklist #16
+- **Depends on:** HACK-080
+- **Follow-up of:** HACK-076
+- **Paths:** Dockerfile, render.yaml, app/tests/test_deploy_config.py
+- **Acceptance:**
+  - Security review of HACK-076 (dylan-1, SHA 06d98d3, 2026-10-31) found that uvicorn's default access log writes `GET /api/auth/google/callback?state=…&code=…` to Render's stdout, against "no log line contains the code"; caplog cannot see it because TestClient bypasses uvicorn.
+  - The Dockerfile starts uvicorn without the access log (`--no-access-log`, or a filter that drops the query of `/api/auth/google/callback`); a test reads the Dockerfile and fails if the access log would print that query.
+  - `render.yaml` declares `PUBLIC_URL` as `sync: false` (with a comment: the https address Google redirects to), next to the Google settings HACK-080 adds; a test checks the key is there.
+- **Verify:** `uv run pytest -q && uv run ruff check app && bash .uak/bin/q bash .uak/bin/smoke`
+- **Next step:** failing test: the Dockerfile's uvicorn command has no access log.
+
+## HACK-089 · Sign-in leaves nothing behind: failed callbacks, expired sessions, missing PUBLIC_URL
+
+- **Type:** follow-up
+- **Priority:** P2
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `docs/specs/001-accounts-and-limits/plan.md` §Design (STRIDE)
+- **Depends on:** HACK-077, HACK-078
+- **Follow-up of:** HACK-076
+- **Paths:** app/routers/auth.py, app/services/auth.py, app/services/store.py, app/tests/test_auth_hygiene.py
+- **Acceptance:**
+  - Security review of HACK-076 (dylan-1, SHA 06d98d3, 2026-10-31) found three LOW issues: a failed callback leaves the `sh_oauth` cookie for 10 min; expired session rows are only deleted when presented; off loopback without `PUBLIC_URL` the redirect URI is built from the request (sign-in then fails at Google instead of saying why).
+  - Every failed callback answer also deletes `sh_oauth` (test: wrong `state` → `Set-Cookie` expires it).
+  - A new sign-in deletes that user's expired sessions, and `store` purges every expired row at most once per hour; a test with a frozen clock checks both.
+  - `GET /api/auth/google/login` answers 503 with a Spanish message when `PUBLIC_URL` is unset and the host is not loopback; loopback keeps working without it.
+  - Rate limits stay in HACK-078; nothing here logs a code, a token or an email.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test: a callback with a wrong `state` expires `sh_oauth`.
