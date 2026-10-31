@@ -9,13 +9,13 @@ Priority: P0
 Paths: web/src/lib/api.ts, web/src/lib/types.ts, web/src/App.tsx, web/src/features/account/, web/src/features/intake/, e2e/judge_path.py
 Depends: HACK-076
 Verify: `npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
-Lease-Until: 1793496600
-Updated: 1793482200
+Lease-Until: 1793496879
+Updated: 1793482479
 Task-Base: 140d906035847b39cd93c6f61d4650de6bba9a7b
-Next: read DESIGN.md recipe and /api/auth/me contract, then the account chip
+Next: git merge origin/main, smoke, PR
 PR: -
 Evidence: -
-Events: 1
-Checkpoints: 0
+Events: 2
+Checkpoints: 1
 Sessions: 1
-Last-Checkpoint: 0
+Last-Checkpoint: 1793482479
