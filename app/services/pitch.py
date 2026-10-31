@@ -392,6 +392,7 @@ def _write(path, data):
 
 
 NARRATION_SLOTS = asyncio.Semaphore(2)  # each miss costs an LLM call and a paid TTS call
+NARRATION_LOCKS = {}  # one lock per audio key: concurrent misses for a slide pay once
 
 
 async def narrate(run_id, index):
@@ -409,9 +410,16 @@ async def narrate(run_id, index):
     path = _run_dir("narration", run_id) / f"{key}.mp3"
     if path.exists():
         return path.read_bytes(), demo
-    async with NARRATION_SLOTS:
-        script = await run_in_threadpool(narration_script, slide)
-        audio = await voice.synthesize(voice.with_disclosure(script) if index == 0 else script)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    _write(path, audio)
+    lock = NARRATION_LOCKS.setdefault(key, asyncio.Lock())
+    async with lock:
+        if path.exists():  # a concurrent request for this slide already paid for it
+            return path.read_bytes(), demo
+        if not demo:
+            voice.check_budget()
+        async with NARRATION_SLOTS:
+            script = await run_in_threadpool(narration_script, slide)
+            audio = await voice.synthesize(voice.with_disclosure(script) if index == 0 else script)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _write(path, audio)
+        NARRATION_LOCKS.pop(key, None)
     return audio, demo
