@@ -349,3 +349,4 @@ Append-only; use bash .uak/bin/uak msg / inbox. Format: - N | epoch | from | to 
 - 345 | 1793478134 | dylan-2 | human | human | HACK-082 | Merge of HACK-082 in human queue: Shared resource/CI needs a human: uv.lock
 - 346 | 1793478442 | dylan-1 | human | human | HACK-075 | Merge of HACK-075 in human queue: Queue/base push rejected; check remote, atomic push and permissions
 - 347 | 1793478618 | dylan-1 | human | human | HACK-075 | Merge of HACK-075 in human queue: Queue/base push rejected; check remote, atomic push and permissions
+- 348 | 1793479380 | dylan-1 | task:HACK-021,task:HACK-071,task:HACK-076,task:HACK-078 | contract | HACK-077 | auth.py gains current_user (Depends; 401 w/o session when AUTH_REQUIRED, else user or None), own_run(), owner_only, set_owner(project_id,user_id); create_project now takes user via Depends(auth.current_user) and calls set_owner · HACK-078: do quota check after current_user in create_project, user['id'] is the owner
