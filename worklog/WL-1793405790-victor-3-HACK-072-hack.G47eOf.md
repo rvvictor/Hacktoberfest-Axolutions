@@ -10,3 +10,4 @@
 
 ## History
 - 1793405790 | CLAIMED | victor-3 | claim; next: failing test: two concurrent `narrate()` calls for one slide, counting the TTS stub's calls.
+- 1793405831 | CLAIMED | victor-3 | heartbeat; lease until 1793420231
