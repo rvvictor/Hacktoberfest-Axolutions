@@ -907,3 +907,21 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
   - Rate limits stay in HACK-078; nothing here logs a code, a token or an email.
 - **Verify:** `uv run pytest -q && uv run ruff check app`
 - **Next step:** failing test: a callback with a wrong `state` expires `sh_oauth`.
+
+## HACK-090 · Paid routes are throttled too, and "runs left" tells the truth in demo
+
+- **Type:** follow-up
+- **Priority:** P1
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `docs/specs/001-accounts-and-limits/plan.md` §Design (rate limits) · `.uak/PROJECT.md` principle 4
+- **Depends on:** HACK-078
+- **Follow-up of:** HACK-078
+- **Paths:** app/routers/pitch.py, app/routers/prototypes.py, app/routers/voice.py, app/services/limits.py, app/tests/test_limits_paid_routes.py, .env.example
+- **Acceptance:**
+  - Review of HACK-078 (dylan-2, SHA 9c5634f, 2026-10-31) left three gaps: `/api/pitch/*`, `/api/prototypes/*` and `/api/voice/*` are not throttled although pitch Q&A and narration spend LLM and TTS credit (plan §Design names them); `limits.runs_left` ignores `DEMO_MODE`, so `/api/auth/me` can say 0 runs left while creation is allowed; `.env.example` lacks `MAX_PROJECTS_PER_DAY` and `REQUESTS_PER_MINUTE`.
+  - With `AUTH_REQUIRED` on, more than `REQUESTS_PER_MINUTE` requests a minute by one user to one of those routes answers 429 with `Retry-After` and a Spanish message, before any provider call (test with a counting stub).
+  - In `DEMO_MODE`, `runs_left_today` matches what creation allows (test).
+  - `.env.example` lists both settings with their defaults and one comment line each; no value is a secret.
+  - With `AUTH_REQUIRED` off nothing changes; logs carry only user id, route template and reason.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test: the 31st pitch question in a minute answers 429 and the LLM stub is not called.
