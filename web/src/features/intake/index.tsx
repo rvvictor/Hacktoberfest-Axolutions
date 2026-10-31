@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
 import { Button, Message, Moments, Title } from "../../lib/ui";
-import { api } from "../../lib/api";
+import { ApiError, api } from "../../lib/api";
+import type { LimitRefusal } from "../../lib/types";
+import { refreshAccount, resetText, useAccount } from "../account/store";
 import { STACKS } from "./contract";
 import type { Mode, Run } from "./contract";
 import "./intake.css";
@@ -22,9 +24,35 @@ function goToProject(runId?: string) {
   window.location.href = `${window.location.pathname}${query}#/project`;
 }
 
+// Signing in leaves the page; the draft survives the round trip so the idea is not lost.
+const DRAFT_KEY = "sh_idea_draft";
+function readDraft(): string {
+  try {
+    return window.sessionStorage.getItem(DRAFT_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+function writeDraft(text: string) {
+  try {
+    if (text) window.sessionStorage.setItem(DRAFT_KEY, text);
+    else window.sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* storage blocked: the draft just does not survive */
+  }
+}
+
 export default function Intake() {
+  const account = useAccount();
+  const [limit, setLimit] = useState<LimitRefusal | null>(null);
   const [mode, setMode] = useState<Mode>("dev");
-  const [idea, setIdea] = useState("");
+  const [idea, setIdeaText] = useState(readDraft);
+  const setIdea: typeof setIdeaText = (value) =>
+    setIdeaText((cur) => {
+      const next = typeof value === "function" ? value(cur) : value;
+      writeDraft(next);
+      return next;
+    });
   const [stack, setStack] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,12 +114,42 @@ export default function Intake() {
         method: "POST",
         body: JSON.stringify({ mode, idea: idea.trim(), stack_prefs: mode === "dev" ? stack : [] }),
       });
+      writeDraft("");
       goToProject(run.run_id);
-    } catch {
+    } catch (err) {
       setCreating(false);
+      if (err instanceof ApiError && err.status === 401) return; // the sign-in prompt in the top bar takes over
+      if (err instanceof ApiError && (err.status === 429 || err.status === 503) && err.detail) {
+        setLimit({ ...(err.body as unknown as LimitRefusal), detail: err.detail });
+        void refreshAccount();
+        return;
+      }
       setError("No pude crear tu proyecto. Intenta de nuevo o mira el ejemplo.");
     }
   };
+
+  // Why "Empezar" is disabled (DESIGN rule 5): a refused project, or no projects left for today.
+  const left = account.user?.runs_left_today;
+  const localReset = resetText(limit?.resets_at ?? account.user?.resets_at);
+  const blocked = limit
+    ? [limit.detail, localReset && `Se renueva el ${localReset} (tu hora).`].filter(Boolean)
+    : left !== undefined && left <= 0
+      ? [
+          "Hoy ya usaste tus proyectos.",
+          `Podrás crear otro el ${localReset ?? "día de mañana"} (tu hora).`,
+        ]
+      : null;
+  const hint = blocked
+    ? null
+    : account.needsSignIn
+      ? "Entra con Google para empezar tu proyecto."
+      : recording
+        ? "Te escucho… habla con calma."
+        : !idea.trim() && !creating
+          ? "Escribe o dicta tu idea para empezar."
+          : creating
+            ? "Ahora te haré unas preguntas cortas."
+            : "";
 
   return (
     <div className="intake">
@@ -163,20 +221,14 @@ export default function Intake() {
           )}
 
           <div className="intake__row">
-            <Button variant="primary" type="submit" disabled={!idea.trim() || creating}>
+            <Button variant="primary" type="submit" disabled={!idea.trim() || creating || !!blocked}>
               {creating ? "Creando tu proyecto…" : "Empezar"}
             </Button>
             <Button onClick={toggleMic} disabled={transcribing || creating} aria-pressed={recording}>
               {recording ? "Detener y transcribir" : transcribing ? "Transcribiendo…" : "Dictar por voz"}
             </Button>
             <span className="intake__status" role="status">
-              {recording
-                ? "Te escucho… habla con calma."
-                : !idea.trim() && !creating
-                  ? "Escribe o dicta tu idea para empezar."
-                  : creating
-                    ? "Ahora te haré unas preguntas cortas."
-                    : ""}
+              {blocked ? blocked.join(" ") : hint}
             </span>
           </div>
         </form>
