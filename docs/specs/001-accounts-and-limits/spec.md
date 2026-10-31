@@ -1,5 +1,6 @@
 # Spec 001 · Accounts and spending limits
-- Status: draft · Owner: Dylan · PROJECT principles: 1 (secure and private by default), 4 (no invented figures)
+- Status: draft, answers from Dylan 2026-10-31 · Owner: Dylan · PROJECT principles: 1 (secure and private by default), 4 (no invented figures)
+- Needed by: spec 002 (Lovable builds the product with the owner's credits), which spends paid credit per user.
 
 ## Problem
 Today no API route asks who is calling (checked on `main` 740fd0e: no route in `app/routers/` uses an auth dependency and
@@ -14,12 +15,14 @@ Nothing limits how many runs or calls one caller makes. SpeedHack cannot be publ
 
 ## Stories
 - As a visitor, I want to try the recorded example without an account, so that I see what SpeedHack does before signing up.
-- As a user, I want to sign in, so that my projects are mine and nobody else can read, answer or approve them.
+- As a user, I want to sign in with my Google account, so that my projects are mine and nobody else can read, answer or approve them.
 - As a user, I want to see how many runs I have left, so that a limit never surprises me in the middle of a project.
 - As the owner, I want a cap per user and a global cap on paid calls, so that one person or a script cannot drain the provider credit.
 - As the owner, I want outreach (Hunter) available only to me, so that no visitor can send messages in my name.
 
 ## Acceptance criteria (EARS)
+- When a visitor chooses "Entrar con Google", the system shall sign them in with Google (OpenID Connect, authorization code with PKCE and `state`), keep only their verified email and Google subject id, and create the account on the first sign-in.
+- If Google answers with an error, a mismatched `state` or an unverified email, the system shall not create a session and shall say in Spanish that the sign-in failed and how to retry.
 - When a request without a valid session reaches a route that creates, reads, answers, approves or asks about a run, the system shall answer 401 and do no provider call.
 - When a signed-in user requests a run, prototype, event stream or pitch of another user, the system shall answer 404 (not 403, so ids are not confirmed).
 - When a signed-in user creates a project, the system shall record the user as its owner, and every later read and write of that run shall check that owner.
@@ -31,23 +34,28 @@ Nothing limits how many runs or calls one caller makes. SpeedHack cannot be publ
 - When a run is refused or limited, the system shall log the user id, the route and the reason, and shall not log the idea text, answers or keys.
 
 ## Non-functional
-- Every number below is a proposal for Dylan to set; none is measured or decided yet:
-  - runs per user per day: `<to decide, e.g. 3>`;
-  - global paid calls per day: `<to decide, from the provider budget>`;
-  - requests per minute per route and caller: `<to decide>`.
+- Numbers (Dylan, 2026-10-31, unless marked proposal):
+  - new projects per user per day: **1** (decided; the owner pays every provider call, including the Lovable build of spec 002);
+  - global new projects per day: proposal **5**, a setting (`MAX_PROJECTS_PER_DAY`), so a burst of sign-ups cannot drain the credit; it is not derived from a measured budget;
+  - requests per minute per route and user: proposal **30**, a setting.
+- Who pays: the owner's keys pay every provider call (Dylan, 2026-10-31). Plans and prices that cover the cost come later (out of scope).
 - Sessions in `HttpOnly`, `Secure`, `SameSite=Lax` cookies; no session token in URLs, logs or the browser's storage.
 - Personal data kept: an email and the projects; nothing else. Account deletion removes both.
-- The added auth check costs `<to decide>` ms at p95 per request.
+- The added auth check costs at most 20 ms at p95 per request (proposal; measured in the PR that adds it).
+- Deployment: Render (Dylan, 2026-10-31). The free plan's disk is not persistent and the service sleeps, so accounts and quotas need a persistent store there (a paid persistent disk for SQLite, or a managed database); the choice and its cost go in an ADR before any task that needs it.
 
 ## Out of scope
 - Payments, plans and paid tiers.
 - Teams and shared projects (one owner per project).
-- Moving off SQLite (a separate spec once there is a production environment).
+- Moving off SQLite beyond what the Render ADR decides.
+- Sign-in methods other than Google (GitHub or email can be added later).
 - Per-user provider keys ("bring your own key").
 
 ## Open questions
-- [ ] How do people sign in: email magic link, Google/GitHub OAuth, or email + password? · answered by Dylan
-- [ ] Who pays the provider calls of a user's run: the owner's keys (today) or the user's? · answered by Dylan
-- [ ] The run, quota and budget numbers above · answered by Dylan
-- [ ] Does Client mode (the barbershop journey) need an account, or stays a public recorded example? · answered by Dylan
-- [ ] Where will it be deployed (it decides the session store and how the limits are shared between processes)? · answered by Dylan
+- [x] How do people sign in? · Google (Dylan, 2026-10-31)
+- [x] Who pays the provider calls of a user's run? · the owner's keys (Dylan, 2026-10-31)
+- [x] Runs per user · 1 new project per day (Dylan, 2026-10-31); the global and per-minute numbers above are proposals
+- [x] Does Client mode need an account? · no: it stays a public recorded example with no provider call (default taken by the agent; Dylan can change it)
+- [x] Where will it be deployed? · Render (Dylan, 2026-10-31)
+- [ ] Creating the Google OAuth client (Google Cloud project, consent screen) needs Dylan's Google account · Dylan
+- [ ] Global projects per day and requests per minute: keep the proposals (5 and 30)? · Dylan
