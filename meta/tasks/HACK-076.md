@@ -1,5 +1,5 @@
 Task: HACK-076
-Events: 3
-Checkpoints: 1
-Sessions: 1
-Last-Checkpoint: 1793471797
+Events: 4
+Checkpoints: 2
+Sessions: 2
+Last-Checkpoint: 1793475896
