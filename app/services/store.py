@@ -44,7 +44,15 @@ CREATE TABLE IF NOT EXISTS answers (
     run_id TEXT NOT NULL, seq INTEGER NOT NULL, answer TEXT NOT NULL,
     PRIMARY KEY (run_id, seq)
 );
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY, google_sub TEXT NOT NULL UNIQUE, email TEXT NOT NULL, created REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions (
+    token_sha256 TEXT PRIMARY KEY, user_id TEXT NOT NULL, expires REAL NOT NULL
+);
 """
+# Columns added after the first release (expand step): SQLite has no ADD COLUMN IF NOT EXISTS.
+LATER_COLUMNS = {"projects": {"owner_id": "TEXT", "created": "REAL"}}
 
 
 def _connect() -> sqlite3.Connection:
@@ -52,6 +60,11 @@ def _connect() -> sqlite3.Connection:
     conn = sqlite3.connect(settings.DATA_DIR / "speedhack.db", timeout=10)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    for table, columns in LATER_COLUMNS.items():
+        have = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+        for name, kind in columns.items():
+            if name not in have:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
     return conn
 
 
@@ -74,8 +87,8 @@ def create_run(mode: Mode, idea: str, stack_prefs: list[str], demo_data: bool) -
     approvals = [Approval(number=n).model_dump(mode="json") for n in (1, 2, 3)]
     with closing(_connect()) as conn, conn:
         conn.execute(
-            "INSERT INTO projects VALUES (?,?,?,?,?)",
-            (project.id, mode.value, idea, json.dumps(stack_prefs), int(demo_data)),
+            "INSERT INTO projects (id, mode, idea, stack_prefs, demo_data, created) VALUES (?,?,?,?,?,?)",
+            (project.id, mode.value, idea, json.dumps(stack_prefs), int(demo_data), time.time()),
         )
         conn.execute(
             "INSERT INTO runs (run_id, project_id, stage, status, awaiting, approvals, demo_data, created)"
@@ -220,3 +233,50 @@ def mark_demo(run_id: str) -> None:
     """A stage fell back to recorded data, so the whole run is labeled demo_data."""
     with closing(_connect()) as conn, conn:
         conn.execute("UPDATE runs SET demo_data=1 WHERE run_id=?", (run_id,))
+
+
+# --- accounts (spec 001) ----------------------------------------------------------------------
+
+
+def upsert_user(google_sub: str, email: str) -> str:
+    """The user id for this Google account, created on the first sign-in; the email follows Google's."""
+    with closing(_connect()) as conn, conn:
+        row = conn.execute("SELECT id FROM users WHERE google_sub=?", (google_sub,)).fetchone()
+        if row:
+            conn.execute("UPDATE users SET email=? WHERE id=?", (email, row["id"]))
+            return row["id"]
+        user_id = f"usr_{uuid.uuid4().hex[:12]}"
+        conn.execute("INSERT INTO users VALUES (?,?,?,?)", (user_id, google_sub, email, time.time()))
+        return user_id
+
+
+def add_session(token_sha256: str, user_id: str, expires: float) -> None:
+    with closing(_connect()) as conn, conn:
+        conn.execute("INSERT INTO sessions VALUES (?,?,?)", (token_sha256, user_id, expires))
+
+
+def session_user(token_sha256: str, now: float) -> dict[str, Any] | None:
+    """The signed-in user of an unexpired session; an expired row is deleted."""
+    with closing(_connect()) as conn, conn:
+        row = conn.execute(
+            "SELECT s.expires, u.id, u.email FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_sha256=?",
+            (token_sha256,),
+        ).fetchone()
+        if row is None:
+            return None
+        if row["expires"] <= now:
+            conn.execute("DELETE FROM sessions WHERE token_sha256=?", (token_sha256,))
+            return None
+        return {"id": row["id"], "email": row["email"]}
+
+
+def delete_session(token_sha256: str) -> None:
+    with closing(_connect()) as conn, conn:
+        conn.execute("DELETE FROM sessions WHERE token_sha256=?", (token_sha256,))
+
+
+def projects_since(owner_id: str, since: float) -> int:
+    with closing(_connect()) as conn:
+        return conn.execute(
+            "SELECT COUNT(*) FROM projects WHERE owner_id=? AND created>=?", (owner_id, since)
+        ).fetchone()[0]
