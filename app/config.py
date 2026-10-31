@@ -25,5 +25,13 @@ class Settings(BaseSettings):
     N8N_WEBHOOK_URL: str | None = None
     N8N_WEBHOOK_SECRET: str | None = None
 
+    # Accounts (spec 001). AUTH_REQUIRED stays false until accounts persist on the deployment (ADR 0002).
+    GOOGLE_CLIENT_ID: str | None = None
+    GOOGLE_CLIENT_SECRET: str | None = None
+    OWNER_EMAIL: str | None = None
+    AUTH_REQUIRED: bool = False
+    PUBLIC_URL: str | None = None  # e.g. https://speedhack.onrender.com; the OAuth redirect is built from it behind a proxy
+    RUNS_PER_USER_PER_DAY: int = 1
+
 
 settings = Settings()
