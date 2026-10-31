@@ -18,6 +18,7 @@ from fastapi import Cookie, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.config import settings
 from app.services import auth, store
 
 log = logging.getLogger(__name__)
@@ -85,8 +86,12 @@ def _refusal(status: int, request: Request, user: dict[str, Any], reason: str, m
 
 
 def new_project_refusal(request: Request, user: dict[str, Any] | None) -> JSONResponse | None:
-    """The 429 / 503 answer for a new project, or None when it may go ahead. Call it holding `project_gate`."""
-    if not auth.required() or user is None:
+    """The 429 / 503 answer for a new project, or None when it may go ahead. Call it holding `project_gate`.
+
+    DEMO_MODE serves recorded fixtures and spends no credit, so the project quotas apply only to live runs
+    (the same rule `auth.paid_voice` follows).
+    """
+    if not auth.required() or settings.DEMO_MODE or user is None:
         return None
     limit, used = auth.runs_per_day(), _used_today(user)
     if used >= limit:
@@ -111,12 +116,14 @@ def new_project_refusal(request: Request, user: dict[str, Any] | None) -> JSONRe
 
 
 def throttle(request: Request, sh_session: str | None = Cookie(default=None)) -> None:
-    """Dependency: at most REQUESTS_PER_MINUTE requests per route and user (per client address while anonymous)."""
+    """Dependency: at most REQUESTS_PER_MINUTE requests per route and user (anonymous callers get 401 from the route)."""
     if not auth.required():
         return
     user = auth.user_for(sh_session)
+    if user is None:
+        return  # anonymous calls are refused with 401 by the route and reach no provider
     route = getattr(request.scope.get("route"), "path", request.url.path)
-    who = user["id"] if user else f"ip:{request.client.host if request.client else '-'}"
+    who = user["id"]
     now = clock()
     with _hits_lock:
         if len(_hits) > SWEEP_AT:

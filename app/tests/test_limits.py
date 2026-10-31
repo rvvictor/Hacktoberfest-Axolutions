@@ -21,6 +21,7 @@ BODY = {"mode": "dev", "idea": IDEA}
 def world(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "DATA_DIR", tmp_path)
     monkeypatch.setattr(settings, "AUTH_REQUIRED", True)
+    monkeypatch.setattr(settings, "DEMO_MODE", False)  # recorded demo runs spend nothing, so they are not limited
     monkeypatch.setattr(settings, "RUNS_PER_USER_PER_DAY", 1)
     monkeypatch.setattr(limits.env, "MAX_PROJECTS_PER_DAY", 5)
     monkeypatch.setattr(limits.env, "REQUESTS_PER_MINUTE", 30)
@@ -167,6 +168,12 @@ def test_refusals_log_user_route_and_reason_but_not_the_idea_or_email(world, cap
     assert auth.user_for(world["tokens"]["alice"])["id"] in text
     assert "/api/projects" in text and "quota" in text
     assert IDEA not in text and ALICE not in text and world["tokens"]["alice"] not in text
+
+
+def test_demo_mode_projects_are_not_limited(world, monkeypatch):
+    monkeypatch.setattr(settings, "DEMO_MODE", True)
+    codes = [call("alice", "POST", "/api/projects", world, json=BODY).status_code for _ in range(7)]
+    assert codes == [201] * 7
 
 
 def test_nothing_is_limited_while_accounts_are_off(world, monkeypatch):
