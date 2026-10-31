@@ -1,11 +1,11 @@
 """Sign in with Google and the current session (spec 001)."""
 from urllib.parse import urlsplit
 
-from fastapi import APIRouter, Cookie, HTTPException, Request, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 
 from app.config import settings
-from app.services import auth
+from app.services import auth, limits
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 LOOPBACK = {"localhost", "127.0.0.1", "::1"}
@@ -59,12 +59,12 @@ def google_callback(
     return response
 
 
-@router.get("/me")
+@router.get("/me", dependencies=[Depends(limits.throttle)])
 def get_me(sh_session: str | None = Cookie(default=None)) -> dict:
     user = auth.user_for(sh_session)
     if user is None:
         raise HTTPException(401, "Inicia sesión para continuar.")
-    return auth.me(user)
+    return {**auth.me(user), "runs_left_today": limits.runs_left(user)}
 
 
 @router.post("/logout", status_code=204)
