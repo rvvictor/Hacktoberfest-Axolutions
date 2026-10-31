@@ -1,6 +1,6 @@
 # HACK-072
 ID: HACK-072
-State: CLAIMED
+State: REVIEW
 Owner: victor-3
 Branch: feat/hack-072
 Worktree: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions-wt/hack-072
@@ -9,10 +9,10 @@ Priority: P1
 Paths: app/services/pitch.py, app/services/voice.py, app/config.py, app/tests/test_narration_spend.py
 Depends: HACK-065
 Verify: `uv run pytest -q && uv run ruff check app`
-Lease-Until: 1793421442
-Updated: 1793407042
+Lease-Until: 1793493844
+Updated: 1793407444
 Task-Base: 70c03b4dcc4f77270f80cb63b3a7e58242799656
-Next: failing test: two concurrent `narrate()` calls for one slide, counting the TTS stub's calls.
-PR: -
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/85; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/85
 Evidence: -
 Thread-Read: 0

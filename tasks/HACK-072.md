@@ -1,6 +1,6 @@
 # HACK-072
 ID: HACK-072
-State: CLAIMED
+State: REVIEW
 Owner: victor-3
 Branch: feat/hack-072
 Worktree: /Users/victor/Documents/Proyectos/Hacktoberfest-Axolutions-wt/hack-072
@@ -9,16 +9,17 @@ Priority: P1
 Paths: app/services/pitch.py, app/services/voice.py, app/config.py, app/tests/test_narration_spend.py
 Depends: HACK-065
 Verify: `uv run pytest -q && uv run ruff check app`
-Lease-Until: 1793421442
-Updated: 1793407042
+Lease-Until: 1793493844
+Updated: 1793407444
 Task-Base: 70c03b4dcc4f77270f80cb63b3a7e58242799656
-Next: failing test: two concurrent `narrate()` calls for one slide, counting the TTS stub's calls.
-PR: -
-Evidence: -
-Events: 3
+Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/85; run .uak/bin/smoke
+PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/85
+Evidence: uv run pytest -q && uv run ruff check app exit 0; smoke PRODUCT_PASS; concurrent narrate -> 1 script + 1 TTS; daily cap -> 503 es, counter on disk without slide text
+Events: 4
 Checkpoints: 0
 Sessions: 2
 Last-Checkpoint: 0
 Progress: 4 commit(s) since the claim · last: c6c6408 chore(HACK-072): drop test-run artifacts under data/ from the branch (15 minutes ago) · 0 uncommitted tracked file(s) · at 1793407042
 Progress-Head: c6c6408/2262605012
 Progress-Changed: 1793407042
+Task-Tip: 56f21a301e924494a3899b9cc17bb47a55b21327
