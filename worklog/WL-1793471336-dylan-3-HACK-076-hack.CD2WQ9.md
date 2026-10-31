@@ -6,7 +6,7 @@
 - Why: Safari drops Secure cookies on http://localhost -> state mismatch (server log)
 - Failing: none
 - Commands: uv run pytest -q && uv run ruff check app
-- Next: Dylan retries Google sign-in in Safari at http://localhost:8000; security review at 06d98d3
+- Next: Integrated in main: a46fa99915c167753aecfa3d88bbb2d346d7d026
 
 ## History
 - 1793471336 | CLAIMED | dylan-3 | claim; next: failing test: callback with a wrong `state` creates no session.
@@ -14,3 +14,4 @@
 - 1793471797 | REVIEW | dylan-3 | checkpoint; next: independent security review (session hit 30-subagent cap: needs a fresh session); Dylan creates Google OAuth client
 - 1793475896 | REVIEW | dylan-3 | checkpoint; next: Dylan retries Google sign-in in Safari at http://localhost:8000; security review at 06d98d3
 - 1793476809 | REVIEW | dylan-1 | review; approve; SHA 06d98d33285f970de1416c58380e7456a8ec5f43; reviewer dylan-1
+- 1793478293 | INTEGRATED | dylan-3 | merge; smoke and Verify PASS; commit a46fa99915c167753aecfa3d88bbb2d346d7d026; reviewer dylan-1
