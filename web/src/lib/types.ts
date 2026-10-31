@@ -52,3 +52,9 @@ export interface Prospect {
   business: string; public_info: string; draft_message: string;
   approved_by: string | null; opt_out: boolean; consent: boolean; demo_data: boolean;
 }
+
+// Accounts and limits (app/routers/auth.py, app/services/limits.py; spec 001).
+/** GET /api/auth/me. `resets_at` is the next UTC midnight as ISO 8601. */
+export interface Account { email: string; runs_left_today: number; resets_at: string }
+/** Body of a refused POST /api/projects: 429 (own quota; `used`, `limit`) or 503 (global cap; `limit`). */
+export interface LimitRefusal { detail: string; resets_at?: string; used?: number; limit?: number }

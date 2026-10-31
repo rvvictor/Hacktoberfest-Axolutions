@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { ComponentType } from "react";
 
+import { AccountChip, SignInPrompt } from "./features/account/AccountChip";
+
 // Each feature is web/src/features/<name>/index.tsx exporting `default`, `path`, `label` and `order`.
 // Adding a feature = creating its folder; App.tsx never becomes a conflict point.
 type FeatureModule = {
@@ -108,7 +110,11 @@ export default function App() {
             </ul>
           </details>
         </nav>
+        <AccountChip />
       </header>
+      <div className="mx-auto max-w-7xl px-4">
+        <SignInPrompt />
+      </div>
       <main className="mx-auto max-w-7xl px-4 pb-6 pt-2">{Active ? <Active /> : <p>SpeedHack</p>}</main>
     </div>
   );

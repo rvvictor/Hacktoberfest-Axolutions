@@ -86,7 +86,8 @@ def install_chromium() -> None:
 def start_api(p: int) -> subprocess.Popen:
     data = OUT / "data"
     shutil.rmtree(data, ignore_errors=True)
-    env = {**os.environ, "DEMO_MODE": "1", "DATA_DIR": str(data)}
+    # The judge path never signs in: the recorded example and a new project work with AUTH_REQUIRED off (spec 001).
+    env = {**os.environ, "DEMO_MODE": "1", "AUTH_REQUIRED": "false", "DATA_DIR": str(data)}
     log = (OUT / "api.log").open("w")
     proc = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(p)],
@@ -191,6 +192,8 @@ def judge(page: Page, base: str, p: int, shots: list[str]) -> str:
     # 1. Intake, the first turn: dictation (the STT fixture in DEMO_MODE), then typing, then POST /api/projects,
     #    which hands off to the conversation at ?run=ID#/project.
     page.goto(f"{base}/#/intake")
+    # Signed out, the top bar offers "Entrar con Google" and the form still works.
+    expect(page.get_by_role("button", name="Entrar con Google")).to_be_visible(timeout=T)
     idea = page.get_by_label("Tu idea")
     with step(page, "1 intake: dictate", shots):
         page.get_by_role("radio", name=re.compile("Soy desarrollador")).click()
