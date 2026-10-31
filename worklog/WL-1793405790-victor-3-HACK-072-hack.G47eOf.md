@@ -6,7 +6,7 @@
 - Why: no ElevenLabs budget in repo; conftest nulls settings so _cap falls back to the field default
 - Failing: none
 - Commands: uv run pytest -q && uv run ruff check app; bash .uak/bin/smoke
-- Next: Wait for review of SHA 56f21a3
+- Next: Integrated in main: 6cbfd71d882648002558b8965cd1509cc2f275e2
 
 ## History
 - 1793405790 | CLAIMED | victor-3 | claim; next: failing test: two concurrent `narrate()` calls for one slide, counting the TTS stub's calls.
@@ -17,3 +17,4 @@
 - 1793408455 | REVIEW | victor-3 | heartbeat; lease until 1793494855
 - 1793408835 | REVIEW | victor-4 | review; approve; SHA 56f21a301e924494a3899b9cc17bb47a55b21327; reviewer victor-4
 - 1793408872 | REVIEW | victor-3 | heartbeat; lease until 1793495272
+- 1793409474 | INTEGRATED | victor-3 | merge; smoke and Verify PASS; commit 6cbfd71d882648002558b8965cd1509cc2f275e2; reviewer victor-4
