@@ -1,5 +1,5 @@
 ID: HACK-082
-State: MERGING
+State: HUMAN
 Owner: dylan-2
-Queued: 1793478119
-Reason: Waiting for queue
+Updated: 1793478134
+Reason: Shared resource/CI needs a human: uv.lock
