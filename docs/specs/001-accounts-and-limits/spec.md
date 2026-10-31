@@ -1,5 +1,5 @@
 # Spec 001 · Accounts and spending limits
-- Status: draft, answers from Dylan 2026-10-31 · Owner: Dylan · PROJECT principles: 1 (secure and private by default), 4 (no invented figures)
+- Status: approved (Dylan, 2026-10-31) · Owner: Dylan · PROJECT principles: 1 (secure and private by default), 4 (no invented figures)
 - Needed by: spec 002 (Lovable builds the product with the owner's credits), which spends paid credit per user.
 
 ## Problem
@@ -36,8 +36,8 @@ Nothing limits how many runs or calls one caller makes. SpeedHack cannot be publ
 ## Non-functional
 - Numbers (Dylan, 2026-10-31, unless marked proposal):
   - new projects per user per day: **1** (decided; the owner pays every provider call, including the Lovable build of spec 002);
-  - global new projects per day: proposal **5**, a setting (`MAX_PROJECTS_PER_DAY`), so a burst of sign-ups cannot drain the credit; it is not derived from a measured budget;
-  - requests per minute per route and user: proposal **30**, a setting.
+  - global new projects per day: **5** (Dylan), a setting (`MAX_PROJECTS_PER_DAY`), so a burst of sign-ups cannot drain the credit;
+  - requests per minute per route and user: **30** (Dylan), a setting.
 - Who pays: the owner's keys pay every provider call (Dylan, 2026-10-31). Plans and prices that cover the cost come later (out of scope).
 - Sessions in `HttpOnly`, `Secure`, `SameSite=Lax` cookies; no session token in URLs, logs or the browser's storage.
 - Personal data kept: an email and the projects; nothing else. Account deletion removes both.
@@ -57,5 +57,5 @@ Nothing limits how many runs or calls one caller makes. SpeedHack cannot be publ
 - [x] Runs per user · 1 new project per day (Dylan, 2026-10-31); the global and per-minute numbers above are proposals
 - [x] Does Client mode need an account? · no: it stays a public recorded example with no provider call (default taken by the agent; Dylan can change it)
 - [x] Where will it be deployed? · Render (Dylan, 2026-10-31)
-- [ ] Creating the Google OAuth client (Google Cloud project, consent screen) needs Dylan's Google account · Dylan
-- [ ] Global projects per day and requests per minute: keep the proposals (5 and 30)? · Dylan
+- [ ] Creating the Google OAuth client (Google Cloud project, consent screen) needs Dylan's Google account; the agent tells Dylan when the task reaches it (Dylan, 2026-10-31) · Dylan
+- [x] Global projects per day and requests per minute · 5 and 30 (Dylan, 2026-10-31)

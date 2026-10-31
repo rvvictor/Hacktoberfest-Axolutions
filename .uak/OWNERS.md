@@ -5,24 +5,24 @@ An owner is not a prerequisite for everyone: consumers work on published contrac
 
 | Pattern | Owner task |
 |---|---|
-| pyproject.toml | HACK-001 |
-| uv.lock | HACK-001 |
-| .env.example | HACK-001 |
-| Dockerfile | HACK-069 |
-| render.yaml | HACK-069 |
+| pyproject.toml | HACK-082 |
+| uv.lock | HACK-082 |
+| .env.example | HACK-076 |
+| Dockerfile | HACK-080 |
+| render.yaml | HACK-080 |
 | web/package.json | HACK-001 |
 | web/package-lock.json | HACK-001 |
 | app/main.py | HACK-001 |
-| app/config.py | HACK-001 |
-| web/src/App.tsx | HACK-046 |
+| app/config.py | HACK-076 |
+| web/src/App.tsx | HACK-079 |
 | web/src/main.tsx | HACK-046 |
-| web/src/lib/api.ts | HACK-001 |
+| web/src/lib/api.ts | HACK-079 |
 | web/src/lib/sse.ts | HACK-001 |
 | .github/workflows/ | HACK-001 |
 | .uak/PROJECT.md | HACK-001 |
 | app/schemas/ | HACK-050 |
 | app/fixtures/demo/ | HACK-053 |
-| web/src/lib/types.ts | HACK-050 |
+| web/src/lib/types.ts | HACK-079 |
 | web/src/lib/mock.ts | HACK-002 |
 | web/DESIGN.md | HACK-003 |
 | web/src/styles/ | HACK-003 |

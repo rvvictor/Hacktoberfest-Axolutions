@@ -1,6 +1,7 @@
 # Spec 002 · Lovable builds the product and SpeedHack delivers it
-- Status: draft · Owner: Dylan · PROJECT principles: 1 (secure and private by default), 3 (ADR for costly decisions), 4 (no invented figures)
-- Depends on: spec 001 (accounts and limits). Facts from the HACK-068 spike: `docs/specs/002-real-product/spike-lovable.md`.
+- Status: approved (Dylan, 2026-10-31) · Owner: Dylan · PROJECT principles: 1 (secure and private by default), 3 (ADR for costly decisions), 4 (no invented figures)
+- Depends on: spec 001 (accounts and limits). Decision record: ADR 0003.
+- **Launch gate:** no public user gets a Lovable build until Lovable confirms in writing that this use fits its terms (see Open questions); until then it runs only for the owner. Facts from the HACK-068 spike: `docs/specs/002-real-product/spike-lovable.md`.
 
 ## Problem
 Today stage 7 gives the user SpeedHack's own one-page prototype (sample data in the browser, no real login or
@@ -35,12 +36,14 @@ What the HACK-068 spike measured (2026-10-30, one build, from this Claude Code s
 - While `DEMO_MODE` is on, the system shall make no Lovable call and shall show a recorded result labeled `demo_data: true`.
 - When a build or change finishes, the system shall record the credit Lovable reports for it against the run, and `/api/ops` shall show it; no credit figure is estimated or invented.
 - When a signed-in user asks for another user's Lovable project, build status or change history, the system shall answer 404.
+- When a user's account is deleted, the system shall unpublish that user's Lovable apps (Dylan, 2026-10-31).
+- While the launch gate is closed (`LOVABLE_PUBLIC=false`), only the owner's runs shall use Lovable; every other run gets SpeedHack's own prototype.
 - The system shall keep the owner's Lovable tokens only on the server, encrypted at rest, and never in the browser, URLs, logs, events or the repository.
 - When the user's idea or a change request is sent to Lovable, the system shall send it as data inside the build instructions, together with the content rules of the owner's terms; if Lovable refuses the content, the system shall stop and say so.
 
 ## Non-functional
 - Build time: from approval to a published app, p95 ≤ 5 minutes (one spike build took ≤ 137 s; to be measured on real runs).
-- Credit: Dylan's Lovable plan has 100 credits a month (Dylan, 2026-10-30); a build costs about 2.2 (one measurement). Proposal: a monthly cap setting (`LOVABLE_MONTHLY_CREDITS`) that stops new builds at 80 % of it, and at most 3 change requests per project; both are proposals for Dylan.
+- Credit: Dylan's Lovable plan has 100 credits a month (Dylan, 2026-10-30); a build costs about 2.2 (one measurement). A monthly cap setting (`LOVABLE_MONTHLY_CREDITS`, 100) stops new builds at 80 % of it, and each project accepts at most 3 change requests (Dylan, 2026-10-31).
 - Privacy: SpeedHack stores per run only the Lovable project id, its published URL and the credit spent; the user's app data lives in that app's database, not in SpeedHack.
 - The Lovable connection is a research preview: every call goes through one adapter, so a change in its tools touches one file.
 
@@ -51,8 +54,8 @@ What the HACK-068 spike measured (2026-10-30, one build, from this Claude Code s
 - Custom domains for the published app.
 
 ## Open questions
-- [ ] Do Lovable's terms allow one workspace to build and publish apps for other people (SpeedHack's users)? Check the terms or ask Lovable before going live · Dylan
-- [ ] Can a published `*.lovable.app` page be shown inside SpeedHack (an iframe), or does it forbid framing? Measured in the first task; if not, the app opens in a new tab from SpeedHack · agent (spike)
-- [ ] Monthly credit cap at 80 % and 3 change requests per project: keep the proposals? · Dylan
-- [ ] Who may see a published app: anyone with the link (Lovable's default), or should it be private to the user? · Dylan
-- [ ] What happens to a user's app when the period ends or the user deletes their account (unpublish, delete the project)? · Dylan
+- [ ] **Do Lovable's terms allow this?** Read 2026-10-31 (https://lovable.dev/terms, updated 2026-08-28): the license is "for your personal or internal business purposes" and lets "your end users … access and use those projects", but it forbids making the Services "available to any third party on a service bureau or time-sharing basis" and using "automated tools … to access or interact with the Services" without written permission. Building apps for SpeedHack's users from one workspace through MCP is close to both. **Ask support@lovable.dev for written permission before the launch gate opens** · Dylan
+- [x] Can a published `*.lovable.app` be shown inside SpeedHack? · yes: measured 2026-10-31, https://pump-motor-quote-catalog.lovable.app sends no `X-Frame-Options` or `frame-ancestors` and renders inside an iframe in Chromium; if that changes, the app opens in a new tab (Dylan's fallback)
+- [x] Credit cap 80 % of 100 credits a month and 3 change requests per project · yes (Dylan, 2026-10-31)
+- [x] Who may see a published app? · anyone with the link, Lovable's default (taken by the agent: Dylan did not know; the user wants to share it)
+- [x] What happens to a user's app when they delete their account? · it is unpublished (Dylan, 2026-10-31)
