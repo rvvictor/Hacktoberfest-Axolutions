@@ -1,4 +1,6 @@
 """Sign in with Google and the current session (spec 001)."""
+from urllib.parse import urlsplit
+
 from fastapi import APIRouter, Cookie, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 
@@ -6,6 +8,7 @@ from app.config import settings
 from app.services import auth
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+LOOPBACK = {"localhost", "127.0.0.1", "::1"}
 
 
 def _redirect_uri(request: Request) -> str:
@@ -15,8 +18,14 @@ def _redirect_uri(request: Request) -> str:
     return str(request.url_for("google_callback"))
 
 
-def _cookie(response: Response, name: str, value: str, max_age: int) -> None:
-    response.set_cookie(name, value, max_age=max_age, httponly=True, secure=True, samesite="lax", path="/")
+def _secure(request: Request) -> bool:
+    # Safari drops Secure cookies sent over http://localhost, which loses the state; only local plain http goes without.
+    url = urlsplit(settings.PUBLIC_URL) if settings.PUBLIC_URL else request.url
+    return not (url.scheme == "http" and url.hostname in LOOPBACK)
+
+
+def _cookie(request: Request, response: Response, name: str, value: str, max_age: int) -> None:
+    response.set_cookie(name, value, max_age=max_age, httponly=True, secure=_secure(request), samesite="lax", path="/")
 
 
 @router.get("/google/login")
@@ -25,7 +34,7 @@ def google_login(request: Request) -> RedirectResponse:
         raise HTTPException(503, "El inicio de sesión con Google no está configurado todavía.")
     state, verifier, challenge = auth.new_flow()
     response = RedirectResponse(auth.authorize_url(_redirect_uri(request), state, challenge), status_code=302)
-    _cookie(response, auth.FLOW_COOKIE, f"{state}.{verifier}", auth.FLOW_SECONDS)
+    _cookie(request, response, auth.FLOW_COOKIE, f"{state}.{verifier}", auth.FLOW_SECONDS)
     return response
 
 
@@ -46,7 +55,7 @@ def google_callback(
         raise HTTPException(400, str(exc)) from None
     response = RedirectResponse("/#/", status_code=303)
     response.delete_cookie(auth.FLOW_COOKIE, path="/")
-    _cookie(response, auth.SESSION_COOKIE, auth.start_session(claims), auth.SESSION_SECONDS)
+    _cookie(request, response, auth.SESSION_COOKIE, auth.start_session(claims), auth.SESSION_SECONDS)
     return response
 
 

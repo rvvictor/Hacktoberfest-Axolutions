@@ -158,3 +158,16 @@ def test_an_old_database_gains_the_owner_columns_and_still_creates_runs(tmp_path
         assert {"owner_id", "created"} <= columns
         assert db.execute("SELECT owner_id FROM projects WHERE id='prj_old'").fetchone() == (None,)
     assert store.get_project(run.project_id).idea == "SaaS de gastos"
+
+
+@pytest.mark.parametrize("base_url, public_url, secure", [
+    ("http://localhost:8000", None, False),  # Safari drops Secure cookies on http://localhost: state would mismatch
+    ("http://127.0.0.1:8000", None, False),
+    ("http://localhost:8000", "https://speedhack.example", True),
+    ("http://speedhack.example", None, True),
+])
+def test_cookies_are_secure_except_on_plain_http_loopback(client, monkeypatch, base_url, public_url, secure):
+    monkeypatch.setattr(settings, "PUBLIC_URL", public_url)
+    local = TestClient(app, base_url=base_url)
+    r = local.get("/api/auth/google/login", follow_redirects=False)
+    assert ("secure" in r.headers["set-cookie"].lower()) is secure
