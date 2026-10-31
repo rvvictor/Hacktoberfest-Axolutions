@@ -1,0 +1,9 @@
+{
+  "demo_data": true,
+  "_note": "Hand-written from the tool descriptions of the Lovable MCP server (send_message/get_message): a paused agent reports status awaiting_input plus an awaiting_input object. Not a recorded response.",
+  "projectId": "3b7c2d67-adb0-45e1-befd-90ce66ad8776",
+  "agent_response": {
+    "status": "awaiting_input",
+    "awaiting_input": {"event_id": "demo-event", "tool_id": "demo-tool", "requires_secure_form": false}
+  }
+}
