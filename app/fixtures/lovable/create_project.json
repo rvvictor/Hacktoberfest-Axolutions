@@ -1,0 +1,12 @@
+{
+  "demo_data": true,
+  "_note": "Shape of the real create_project(wait=true) response measured in the HACK-068 spike (docs/specs/002-real-product/spike-lovable.md): projectId, agent_response.status/commit_sha, editor_url, preview_url, cost_credits 2.2. Placeholders mark the values the spike did not record; this is not a verbatim server response.",
+  "projectId": "3b7c2d67-adb0-45e1-befd-90ce66ad8776",
+  "agent_response": {
+    "status": "completed",
+    "commit_sha": "demo-commit-sha"
+  },
+  "editor_url": "https://lovable.dev/projects/3b7c2d67-adb0-45e1-befd-90ce66ad8776",
+  "preview_url": "https://id-preview--demo.lovable.app",
+  "cost_credits": 2.2
+}
