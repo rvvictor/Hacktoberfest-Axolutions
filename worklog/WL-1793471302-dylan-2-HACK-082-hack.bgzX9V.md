@@ -10,3 +10,4 @@
 
 ## History
 - 1793471302 | CLAIMED | dylan-2 | claim; next: failing test: an `awaiting_input` result raises `LovableNeedsInput`.
+- 1793471398 | CLAIMED | dylan-2 | pending decision HACK-082-1793471398; option: uv add mcp cryptography (pyproject.toml, uv.lock); Why: ADR 0003 (accepted by Dylan) names the official mcp SDK; plan 002 names cryptography (Fernet, HACK-083). Both open source, no runtime fee. Needs license/CVE check (pip-audit) before merge.

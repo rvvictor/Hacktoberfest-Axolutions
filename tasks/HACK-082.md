@@ -15,7 +15,7 @@ Task-Base: 9f9cb50015a908400c93009d321cefb3ee42f6ce
 Next: failing test: an `awaiting_input` result raises `LovableNeedsInput`.
 PR: -
 Evidence: -
-Events: 1
+Events: 2
 Checkpoints: 0
 Sessions: 1
 Last-Checkpoint: 0
