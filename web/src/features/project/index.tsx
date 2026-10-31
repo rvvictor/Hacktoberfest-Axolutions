@@ -83,16 +83,18 @@ function Source({ item }: { item: ResearchItem }) {
   );
 }
 
+const ANSWER_MAX = 1000; // the API's cap per answer (app/routers/runs.py)
+
 export default function Project() {
   const [runId] = useState(runFromUrl);
-  const { state: c, busy, answer, decide } = useConversation(runId);
+  const { state: c, busy, answer, decide, retry } = useConversation(runId);
   const own = c.prototype?.generator === "speedhack"; // built here: previewed inline, Lovable only to keep building
   const [answers, setAnswers] = useState<string[]>([]);
   const [turn, setTurn] = useState(0); // the question being answered now
   const end = useRef<HTMLDivElement>(null);
   const progress = [
     turn, c.questions.length, c.research.length, c.spec?.version, c.miro.length, c.issues.length,
-    c.prototype?.url, c.checks.length, c.pitch?.slides.length, c.awaiting, c.error,
+    c.prototype?.url, c.checks.length, c.pitch?.slides.length, c.awaiting, c.error, c.warning?.stage,
   ].join("|");
 
   // Keep the newest turn and its action in view (usability: visibility of system status).
@@ -159,6 +161,7 @@ export default function Project() {
                         rows={2}
                         autoFocus
                         placeholder="Responde lo que sepas; puede ser breve."
+                        maxLength={ANSWER_MAX}
                         value={answers[i] ?? ""}
                         onChange={(e) => setAnswers((a) => Object.assign([...a], { [i]: e.target.value }))}
                       />
@@ -188,9 +191,17 @@ export default function Project() {
           </>
         )}
 
+        {c.spec && c.research.length === 0 && (
+          // Research ran (the plan exists) and kept nothing: say it here, not only inside the plan.
+          <Message>
+            No encontré competidores confiables para tu idea, así que no inventé ninguno. El plan lo anota como
+            supuesto.
+          </Message>
+        )}
+
         {c.spec && (
           <>
-            <Message>Con tus respuestas y esas fuentes armé tu plan. ¿Lo dejamos así?</Message>
+            <Message>Con tus respuestas{c.research.length > 0 ? " y esas fuentes" : ""} armé tu plan. ¿Lo dejamos así?</Message>
             <Panel className="pj-card">
               <h2 className="pj-h">Qué vamos a construir</h2>
               <dl className="pj-plan">
@@ -316,7 +327,41 @@ export default function Project() {
         )}
 
         {working && <Message><span className="pj-working">{working}</span></Message>}
-        {c.error && (
+        {c.warning && (
+          <>
+            <Message>Casi todo quedó listo, pero me faltó algo.</Message>
+            <Panel className="pj-card pj-warning" role="status">
+              <h2 className="pj-h">Aviso: quedó algo sin crear</h2>
+              <p>
+                {c.warning.skipped.length > 0
+                  ? `Miro no me dejó crear ${c.warning.skipped.length} ${c.warning.skipped.length === 1 ? "nota" : "notas"}; el resto del tablero se conservó.`
+                  : c.warning.message}
+              </p>
+              {c.warning.skipped.length > 0 && (
+                <>
+                  <ul className="pj-skipped">{c.warning.skipped.map((t) => <li key={t}>{t}</li>)}</ul>
+                  <p className="pj-hint">Puedes agregarlas a mano en Miro cuando quieras.</p>
+                </>
+              )}
+            </Panel>
+          </>
+        )}
+        {c.error && c.retryable && (
+          <>
+            <Message>Tuve un problema con esta etapa. Pulsa Reintentar y lo intento otra vez.</Message>
+            <Panel className="pj-card pj-failed" role="alert">
+              <h2 className="pj-h">Esta etapa no terminó</h2>
+              <p className="pj-error">{c.error}</p>
+              <div className="pj-actions">
+                <Button variant="primary" disabled={busy} onClick={() => void retry()}>
+                  {busy ? "Reintentando…" : "Reintentar"}
+                </Button>
+                <span className="pj-hint">Lo que ya se creó no se duplica.</span>
+              </div>
+            </Panel>
+          </>
+        )}
+        {c.error && !c.retryable && (
           <Message>
             <span className="pj-error">{c.error}</span> Puedes volver a intentarlo desde el <a href={`${runQuery}#/run`}>detalle</a>.
           </Message>

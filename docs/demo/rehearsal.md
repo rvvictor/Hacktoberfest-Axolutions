@@ -87,7 +87,7 @@ in the browser. `POST /api/pitch/demo-pitch/ask` with `Alertas?` returned HTTP 2
 the recorded expense-control answer, `sources: ["demo:spec"]`, and `demo_data: true`.
 The machine-readable result is `public-check.json`; `screenshots/public-*.png`
 are actual captures of that deployment. This verifies recorded mode only.
-Render's free tier sleeps after 15 minutes idle; judges should allow about one
+Render's free tier sleeps after 15 minutes idle; visitors should allow about one
 minute for the first load. Hosting configuration and autodeploy on `main` were
 reported by the deployment owner; no hosting service was created or paid for here.
 

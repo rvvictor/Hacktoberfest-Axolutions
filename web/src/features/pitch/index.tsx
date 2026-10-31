@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Microphone, Printer } from "@phosphor-icons/react";
+import { CornersOut, FilePdf, Microphone, Pause, Play, SpeakerHigh, Stop } from "@phosphor-icons/react";
 import { api } from "../../lib/api";
 import { Button, DemoBadge, MetroLine, Panel } from "../../lib/ui";
 import { currentRunId } from "../run/runId";
@@ -17,6 +17,22 @@ function Sources({ sources }: { sources: string[] }) {
     {/^https?:\/\//.test(source) ? <a href={source} target="_blank" rel="noreferrer">{source}</a> : source}
   </li>)}</ul>;
 }
+
+// A slide cites its sources as footnotes: the site's name for a web page, "Tu plan" for the project's own plan.
+function sourceName(source: string) {
+  if (!/^https?:\/\//.test(source)) return "Tu plan";
+  try { return new URL(source).hostname.replace(/^www\./, ""); } catch { return source; }
+}
+
+function SlideSources({ sources }: { sources: string[] }) {
+  if (!sources.length) return null;
+  return <p className="pitch-foot-sources">Fuentes: {sources.map((source, i) => <span key={source}>
+    {i > 0 && " · "}{/^https?:\/\//.test(source) ? <a href={source} target="_blank" rel="noreferrer" title={source}>{sourceName(source)}</a> : sourceName(source)}
+  </span>)}</p>;
+}
+
+type Narration = "idle" | "loading" | "playing" | "paused";
+const NARRATION_FAILED = "La voz no está disponible. Lee el texto de la diapositiva.";
 
 export default function PitchRoom() {
   const [run, setRun] = useState(() => currentRunId() || "demo-pitch");
@@ -37,6 +53,13 @@ export default function PitchRoom() {
   const audio = useRef<HTMLAudioElement | null>(null);
   const audioUrl = useRef("");
   const locked = useRef(false);
+  const [narration, setNarration] = useState<Narration>("idle");
+  const [narrationDemo, setNarrationDemo] = useState(false);
+  const [narrationError, setNarrationError] = useState("");
+  const narrating = useRef(0);
+  const stage = useRef<HTMLDivElement>(null);
+  const [presenting, setPresenting] = useState(false);
+  function stopNarration() { ++narrating.current; setNarration("idle"); stopAudio(); }
   function stopAudio() {
     audio.current?.pause(); audio.current = null;
     if (audioUrl.current) URL.revokeObjectURL(audioUrl.current);
@@ -49,6 +72,7 @@ export default function PitchRoom() {
     const controller = new AbortController();
     setDeck(null); setAnswers([]); setSlide(0); setQuestion(""); setError(""); setLoading(true);
     setBusy(false); locked.current = false; setRecording(false); setVoiceStatus("");
+    setNarration("idle"); setNarrationError(""); setNarrationDemo(false); ++narrating.current;
     api<Deck>(`/pitch/${encodeURIComponent(run)}`, { signal: controller.signal })
       .then(result => { if (current === generation.current) setDeck(result); })
       .catch(() => { if (!controller.signal.aborted) setError("No pudimos cargar el deck. Reintenta o abre la demostración."); })
@@ -56,13 +80,80 @@ export default function PitchRoom() {
     return () => {
       ++generation.current; controller.abort();
       if (recorder.current?.state === "recording") recorder.current.stop();
-      stopTracks(); stopAudio();
+      stopTracks(); stopAudio(); ++narrating.current;
     };
   }, [run, revision]);
 
+  async function fetchNarration(index: number, current: number) {
+    const response = await fetch(`/api/pitch/${encodeURIComponent(run)}/narration/${index}`, { method: "POST" });
+    if (!response.ok) throw new Error("voice");
+    const blob = await response.blob();
+    if (current !== narrating.current) throw new Error("stopped");
+    return { blob, demo: response.headers.get("X-Demo-Data") === "true" };
+  }
+
+  // Each slide's script is spoken in order; the next slide's audio is requested while the current one plays.
+  async function present(from = 0) {
+    if (!deck?.slides.length) return;
+    const slides = deck.slides, current = ++narrating.current, gen = generation.current;
+    stopAudio(); setNarrationError(""); setNarration("loading"); setError("");
+    let upcoming: ReturnType<typeof fetchNarration> | null = null;
+    try {
+      for (let i = from; i < slides.length; i++) {
+        setSlide(i); setNarration("loading");
+        const next = upcoming ?? fetchNarration(i, current);
+        upcoming = null;
+        const { blob, demo } = await next;
+        if (current !== narrating.current || gen !== generation.current) return;
+        setNarrationDemo(demo);
+        if (i + 1 < slides.length) { upcoming = fetchNarration(i + 1, current); upcoming.catch(() => undefined); }
+        audioUrl.current = URL.createObjectURL(blob);
+        const player = new Audio(audioUrl.current); audio.current = player;
+        const ended = new Promise<void>((resolve, reject) => { player.onended = () => resolve(); player.onerror = () => reject(new Error("play")); });
+        await player.play();
+        if (current !== narrating.current) return;
+        setNarration("playing");
+        await ended;
+        if (current !== narrating.current) return;
+        stopAudio();
+      }
+      setNarration("idle");
+    } catch {
+      if (current !== narrating.current) return;
+      stopAudio(); setNarration("idle"); setNarrationError(NARRATION_FAILED);
+    }
+  }
+
+  function pauseNarration() { audio.current?.pause(); setNarration("paused"); }
+  function resumeNarration() { audio.current?.play().then(() => setNarration("playing")).catch(() => { stopNarration(); setNarrationError(NARRATION_FAILED); }); }
+  function goTo(index: number) { stopNarration(); setSlide(index); }
+
+  // Presenter mode: the slide fills the screen; arrows move, Esc leaves (the browser's full screen when it allows it).
+  function present16x9() {
+    setPresenting(true);
+    stage.current?.requestFullscreen?.().catch(() => undefined);
+  }
+  function leavePresenter() {
+    setPresenting(false);
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+  }
+  useEffect(() => {
+    if (!presenting) return;
+    const total = deck?.slides.length ?? 0;
+    const onKey = (event: KeyboardEvent) => {
+      if (["ArrowRight", "PageDown", " "].includes(event.key)) { event.preventDefault(); setSlide(i => Math.min(i + 1, total - 1)); }
+      else if (["ArrowLeft", "PageUp"].includes(event.key)) { event.preventDefault(); setSlide(i => Math.max(i - 1, 0)); }
+      else if (event.key === "Escape") leavePresenter();
+    };
+    const onFullscreen = () => { if (!document.fullscreenElement) setPresenting(false); };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("fullscreenchange", onFullscreen);
+    return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("fullscreenchange", onFullscreen); };
+  }, [presenting, deck]);
+
   async function ask(text: string, spoken = false, current = generation.current) {
     if (!text.trim() || locked.current || current !== generation.current) return;
-    locked.current = true; setBusy(true); setError(""); stopAudio();
+    locked.current = true; setBusy(true); setError(""); stopNarration();
     try {
       const result = await api<Answer>(`/pitch/${encodeURIComponent(run)}/ask`, { method: "POST", body: JSON.stringify({ question: text }) });
       if (current !== generation.current) return;
@@ -93,7 +184,7 @@ export default function PitchRoom() {
       setError("Este navegador no permite grabar. Escribe tu pregunta."); return;
     }
     const current = generation.current;
-    setBusy(true); setError(""); stopAudio();
+    setBusy(true); setError(""); stopNarration();
     try {
       const media = await navigator.mediaDevices.getUserMedia({ audio: true });
       if (current !== generation.current) { media.getTracks().forEach(track => track.stop()); return; }
@@ -134,10 +225,24 @@ export default function PitchRoom() {
     <div className="pitch-layout">
       <Panel title="Tu presentación" meta={deck?.slides.length ? `${slide + 1} de ${deck.slides.length}` : undefined} className="pitch-deck">
         {loading ? <p role="status">Preparando las diapositivas…</p> : !deck?.slides.length ? <p>Aún no hay un deck para esta ejecución. Completa el proyecto o abre la demostración.</p> : <>
-          <div className="pitch-slides">{deck.slides.map((item, i) => <article className="pitch-slide" key={i} data-active={i === slide}>
-            <span className="pitch-slide-label">SpeedHack · Pitch</span><h2>{item.title}</h2><ul>{item.bullets.map((text, n) => <li key={n}>{text}</li>)}</ul><Sources sources={item.sources} />
-          </article>)}</div>
-          <div className="pitch-controls"><Button disabled={slide === 0} onClick={() => setSlide(slide - 1)}>Anterior</Button><Button disabled={slide === deck.slides.length - 1} onClick={() => setSlide(slide + 1)}>Siguiente</Button><Button onClick={() => window.print()}><Printer size={18} /> Imprimir / PDF</Button></div>
+          <div className="pitch-controls pitch-narration" role="group" aria-label="Presentar con voz">
+            {narration === "idle" ? <Button variant="primary" onClick={() => void present(slide)}><SpeakerHigh size={18} /> Presentar con voz</Button> : <>
+              {narration === "paused" ? <Button onClick={resumeNarration}><Play size={18} /> Reanudar</Button> : <Button disabled={narration === "loading"} onClick={pauseNarration}><Pause size={18} /> Pausar</Button>}
+              <Button onClick={stopNarration}><Stop size={18} /> Detener</Button>
+            </>}
+            {narration !== "idle" && <span className="pitch-ai-badge" role="status">Narrado por IA{narrationDemo ? " · voz grabada de demostración" : ""}{narration === "loading" ? " · preparando la voz…" : narration === "paused" ? " · en pausa" : ""}</span>}
+          </div>
+          {narrationError && <p role="alert" className="pitch-error">{narrationError}</p>}
+          <div className="pitch-stage" ref={stage} data-presenting={presenting}>{deck.slides.map((item, i) => <article className={i === 0 ? "pitch-slide pitch-cover" : "pitch-slide"} key={i} data-active={i === slide} aria-label={`Diapositiva ${i + 1} de ${deck.slides.length}`}>
+            <div className="pitch-slide-body">
+              <h2>{item.title}</h2>
+              {i === 0 ? <p className="pitch-cover-line">{item.bullets[0]}</p> : <ul>{item.bullets.map((text, n) => <li key={n}>{text}</li>)}</ul>}
+            </div>
+            <footer className="pitch-slide-foot"><SlideSources sources={item.sources} /><span className="pitch-slide-number">{i + 1} / {deck.slides.length}</span></footer>
+          </article>)}
+            {presenting && <p className="pitch-presenter-hint">Flechas para avanzar · Esc para salir</p>}
+          </div>
+          <div className="pitch-controls"><Button disabled={slide === 0} onClick={() => goTo(slide - 1)}>Anterior</Button><Button disabled={slide === deck.slides.length - 1} onClick={() => goTo(slide + 1)}>Siguiente</Button><Button onClick={present16x9}><CornersOut size={18} /> Pantalla completa</Button><Button onClick={() => window.print()}><FilePdf size={18} /> Exportar PDF</Button></div>
         </>}
       </Panel>
       <Panel title="Pregúntale al proyecto" className="pitch-qa">

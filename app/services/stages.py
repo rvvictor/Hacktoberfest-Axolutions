@@ -21,6 +21,7 @@ from app.schemas import (
     Architecture,
     BacklogItem,
     EventType,
+    Mode,
     ResearchItem,
     Spec,
     StageEvent,
@@ -33,6 +34,8 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 Events = list[tuple[str, dict[str, Any]]]
 REJECTION_NOTE = "Cambio pedido por la persona que revisó"
+NO_COMPETITORS_KEY = "Investigación de competidores"
+NO_COMPETITORS = "No se encontraron competidores confiables para esta idea; no se inventó ninguno."
 # BoardRun's own ids (board, frames, notes, connectors) live in `externals` under this prefix, so a
 # rerun of stage 5 reuses the same Miro board instead of creating a new one.
 BOARD_IDS = "boardrun:"
@@ -133,6 +136,16 @@ def _clarify(ctx: StageContext) -> Events:
     return [("question", {"text": q, "mode": mode.value, "demo_data": demo}) for q in questions]
 
 
+def _research_queries(idea: str, mode: Mode, answers: dict[str, str]) -> list[str] | None:
+    """The idea's own searches; the bare idea if the model cannot write them; None in demo."""
+    try:
+        return llm.research_queries(idea, mode, answers)
+    except Exception as exc:  # noqa: BLE001  (best effort: any model or SDK failure still leaves the idea to search)
+        # By type only: the message and traceback can carry the idea, the answers or the model's output.
+        log.warning("research queries failed (%s); searching the idea itself", type(exc).__name__)
+        return [idea.strip()[:200]]
+
+
 def _research_stage(ctx: StageContext) -> Events:
     draft = " ".join([ctx.project.idea, *ctx.answers])
     items = research.research(
@@ -142,6 +155,7 @@ def _research_stage(ctx: StageContext) -> Events:
         api_key=settings.TAVILY_API_KEY,
         firecrawl_key=settings.FIRECRAWL_API_KEY,
         stack=ctx.project.stack_prefs,
+        queries=_research_queries(ctx.project.idea, ctx.project.mode, _answers(ctx)),
     )
     return [("research_item", item.model_dump(mode="json")) for item in items]
 
@@ -152,7 +166,10 @@ def _spec_stage(ctx: StageContext) -> Events:
     if comment:
         answers[REJECTION_NOTE] = comment
     version = (ctx.spec or {}).get("version", 0) + 1
-    spec = llm.build_spec(ctx.project.idea, ctx.project.mode, answers, _research(ctx.run.run_id), version)
+    found = _research(ctx.run.run_id)
+    if not found:  # research filtered everything out: say so instead of leaving a silent gap
+        answers[NO_COMPETITORS_KEY] = NO_COMPETITORS
+    spec = llm.build_spec(ctx.project.idea, ctx.project.mode, answers, found, version)
     return [("spec_ready", spec.model_dump(mode="json"))]
 
 
@@ -176,7 +193,19 @@ def _architecture_stage(ctx: StageContext) -> Events:
             for key, value in board.ids.items():
                 store.set_external(ctx.run.run_id, ctx.stage, BOARD_IDS + key, value)
     items = _already_on_board(ctx.run.run_id, architecture, board.ids, items) + items
-    return [("miro_item", {**item, "demo_data": item.get("demo_data", demo)}) for item in items]
+    events: Events = [("miro_item", {**item, "demo_data": item.get("demo_data", demo)}) for item in items]
+    skipped = list(getattr(board, "skipped", []))  # a stand-in for BoardRun may not have it
+    if skipped:  # the stage finishes with what exists; say what is missing
+        shown = ", ".join(skipped[:5]) + ("…" if len(skipped) > 5 else "")
+        events.append((
+            "error",
+            {
+                "message": f"Miro no pudo crear {len(skipped)} nota(s): {shown}. El resto del tablero se conservó.",
+                "recovered": True,
+                "skipped": skipped,
+            },
+        ))
+    return events
 
 
 def _already_on_board(

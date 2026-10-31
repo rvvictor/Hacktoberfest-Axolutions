@@ -12,7 +12,7 @@ architecture, a Linear backlog, a working prototype it builds itself, and a pitc
 
 ## Non-negotiable principles
 1. Secure and private by default: least privilege, personal data encrypted and minimized.
-2. Nothing reaches `main` without green CI and Dylan's merge (one human: agents review on claims, Dylan merges).
+2. Nothing reaches `main` without green CI, a passing merge gate and another identity's approval (agents review on claims; the gate merges approved tasks, Auto-Merge: yes since 2026-10-30).
 3. Every decision that is costly to reverse has an ADR in `docs/adr/`.
 4. The LLM never produces figures: prices and features come from research with their URL, LLM output is
    validated against a schema before it is used, and anything simulated or recorded carries `demo_data: true`.
@@ -40,9 +40,9 @@ CODEOWNERS: Dylan (all paths) · On-call: Dylan · Runbook: `docs/runbook.md` (n
 ```text
 Mode: marathon
 Backlog-Proposed-Epoch: 0
-Backlog-Approved: no
+Backlog-Approved: yes
 Autonomy: yes
-Auto-Merge: no
+Auto-Merge: yes
 Review-Mode: claims
 Plan-Channel: main
 Freeze-Epoch: 0
