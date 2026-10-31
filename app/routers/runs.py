@@ -1,14 +1,22 @@
 import asyncio
 from typing import Annotated, Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+)
 from pydantic import BaseModel, Field, field_validator
 from sse_starlette.sse import EventSourceResponse
 
 from app.schemas import Mode, RunStatus
-from app.services import auth, pipeline, store
+from app.services import auth, limits, pipeline, store
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api", dependencies=[Depends(limits.throttle)])  # 30 requests a minute per route and user
 OWN_RUN = [Depends(auth.own_run())]  # 401 without a session, 404 for someone else's run
 
 POLL_SECONDS = 0.1
@@ -56,11 +64,15 @@ def _state(run_id: str) -> dict[str, Any]:
 
 @router.post("/projects", status_code=201)
 def create_project(
-    body: ProjectIn, background: BackgroundTasks, user: Annotated[dict[str, Any] | None, Depends(auth.current_user)],
-) -> dict[str, Any]:
-    run = pipeline.create(body.mode, body.idea.strip(), body.stack_prefs)
-    if user:
-        auth.set_owner(run.project_id, user["id"])
+    body: ProjectIn, background: BackgroundTasks, request: Request,
+    user: Annotated[dict[str, Any] | None, Depends(auth.current_user)],
+) -> Any:
+    with limits.project_gate:  # the quota check and the insert are one step
+        if refusal := limits.new_project_refusal(request, user):
+            return refusal  # 429 (own quota) or 503 (global cap): nothing created, no stage started
+        run = pipeline.create(body.mode, body.idea.strip(), body.stack_prefs)
+        if user:
+            auth.set_owner(run.project_id, user["id"])
     background.add_task(pipeline.start, run.run_id)
     return run.model_dump(mode="json")
 

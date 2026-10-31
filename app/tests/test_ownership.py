@@ -26,6 +26,7 @@ def world(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "DATA_DIR", tmp_path)
     monkeypatch.setattr(settings, "AUTH_REQUIRED", True)
     monkeypatch.setattr(settings, "OWNER_EMAIL", OWNER)
+    monkeypatch.setattr(settings, "RUNS_PER_USER_PER_DAY", 100)  # the fixture already gives alice a project today (HACK-078 quota)
     # a started run would call providers: ownership must be decided before that
     monkeypatch.setattr(pipeline, "start", lambda run_id: None)
     tokens = {"alice": _token("sub-a", ALICE), "bob": _token("sub-b", BOB), "owner": _token("sub-o", OWNER)}
