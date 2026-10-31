@@ -643,6 +643,38 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
 - **Verify:** `uv run pytest -q && uv run ruff check app`
 - **Next step:** tests with the 5 real URLs from PR #79, then the filter.
 
+## HACK-074 · Pitch room: the title clears the top bar on phones and the deck gets more room on desktop
+
+- **Type:** bug
+- **Priority:** P2
+- **Estimate:** 30 min
+- **Rubric / Spec:** `web/DESIGN.md`
+- **Depends on:** HACK-066
+- **Paths:** web/src/features/pitch/pitch.css, web/src/features/pitch/index.tsx
+- **Acceptance:**
+  - Found in the full walk of `main` (2026-10-31): at 390×844 the "Sala de pitch" title sits almost on the SpeedHack logo, because `.pitch-room` has `margin-top: -32px`; the HACK-066 design critic also noted that at 1280×720 the slide takes about a quarter of the frame (`.pitch-layout` is `1.3fr 1fr`) and that at 390 the four deck buttons stack in four rows.
+  - At 390×844 the title has at least the same gap to the top bar as the other screens' titles; at 1280×720 the deck column is visibly wider than the Q&A column and the slide stays 16:9; at 390 the deck buttons take at most two rows.
+  - The judge-path E2E keeps passing (heading "Sala de pitch", `.pitch-slide h2`); PDF export still gives one page per slide.
+  - Ships with `.uak-shots/HACK-074/1280.png`, `390.png` and the design critic's `VERDICT: SHIP`.
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** capture `#/pitch` at 390 and 1280 on main, then adjust `.pitch-room` and `.pitch-layout`.
+
+## HACK-075 · Research searches for competing businesses, not for catalogues
+
+- **Type:** bug
+- **Priority:** P1
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `IDEA.md` §4 step 2 · `.uak/PROJECT.md` principle 1
+- **Depends on:** HACK-073
+- **Paths:** app/services/prompts/research_query.md, app/services/llm.py, app/tests/test_research_queries.py
+- **Acceptance:**
+  - Two real runs for "negocio de catálogo de productos de bombas de agua y motores" (HACK-071, HACK-073) wrote queries such as "catálogo bombas de agua y motores" and "distribuidores de bombas y motores": they find catalogue PDFs and directory listings, and after HACK-073's filter only 1 item remained (a directory category page).
+  - The research-query prompt asks for queries that find the businesses or products that compete with the idea (for a client-mode business: other businesses that sell the same thing online, and the software they would use, e.g. "tienda en línea de bombas de agua", "software de catálogo y cotizaciones para distribuidores"), never the idea's own words alone; the prompt stays data-separated (the idea goes in its `<data>` block).
+  - A test with the LLM stubbed checks the prompt sent for the pump idea contains that instruction and the idea only inside its data block; `research_queries` keeps its 1–3 query contract and its fallback.
+  - One real run with keys (within the test budget) for the same idea is reported in the PR: queries written and the top titles and URLs kept; the goal is at least 3 businesses' own sites; if fewer remain, the PR says so and nothing is invented.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** read `research_query.md` and `llm.research_queries`; write the stubbed-prompt test first.
+
 ## HACK-076 · Sign in with Google (backend): users, hashed sessions, `/api/auth/*`
 
 - **Type:** feature
