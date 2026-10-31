@@ -642,3 +642,234 @@ Rules for every task: `DEMO_MODE=1` (default) works with no keys, using recorded
   - The same idea, run once with keys within the test budget, is reported in the PR with its top 5 titles and URLs; if fewer than 3 remain, the PR says so and the "no competitors" notice of HACK-071 is what the user sees (nothing is invented).
 - **Verify:** `uv run pytest -q && uv run ruff check app`
 - **Next step:** tests with the 5 real URLs from PR #79, then the filter.
+
+## HACK-074 · Pitch room: the title clears the top bar on phones and the deck gets more room on desktop
+
+- **Type:** bug
+- **Priority:** P2
+- **Estimate:** 30 min
+- **Rubric / Spec:** `web/DESIGN.md`
+- **Depends on:** HACK-066
+- **Paths:** web/src/features/pitch/pitch.css, web/src/features/pitch/index.tsx
+- **Acceptance:**
+  - Found in the full walk of `main` (2026-10-31): at 390×844 the "Sala de pitch" title sits almost on the SpeedHack logo, because `.pitch-room` has `margin-top: -32px`; the HACK-066 design critic also noted that at 1280×720 the slide takes about a quarter of the frame (`.pitch-layout` is `1.3fr 1fr`) and that at 390 the four deck buttons stack in four rows.
+  - At 390×844 the title has at least the same gap to the top bar as the other screens' titles; at 1280×720 the deck column is visibly wider than the Q&A column and the slide stays 16:9; at 390 the deck buttons take at most two rows.
+  - The judge-path E2E keeps passing (heading "Sala de pitch", `.pitch-slide h2`); PDF export still gives one page per slide.
+  - Ships with `.uak-shots/HACK-074/1280.png`, `390.png` and the design critic's `VERDICT: SHIP`.
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** capture `#/pitch` at 390 and 1280 on main, then adjust `.pitch-room` and `.pitch-layout`.
+
+## HACK-075 · Research searches for competing businesses, not for catalogues
+
+- **Type:** bug
+- **Priority:** P1
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `IDEA.md` §4 step 2 · `.uak/PROJECT.md` principle 1
+- **Depends on:** HACK-073
+- **Paths:** app/services/prompts/research_query.md, app/services/llm.py, app/tests/test_research_queries.py
+- **Acceptance:**
+  - Two real runs for "negocio de catálogo de productos de bombas de agua y motores" (HACK-071, HACK-073) wrote queries such as "catálogo bombas de agua y motores" and "distribuidores de bombas y motores": they find catalogue PDFs and directory listings, and after HACK-073's filter only 1 item remained (a directory category page).
+  - The research-query prompt asks for queries that find the businesses or products that compete with the idea (for a client-mode business: other businesses that sell the same thing online, and the software they would use, e.g. "tienda en línea de bombas de agua", "software de catálogo y cotizaciones para distribuidores"), never the idea's own words alone; the prompt stays data-separated (the idea goes in its `<data>` block).
+  - A test with the LLM stubbed checks the prompt sent for the pump idea contains that instruction and the idea only inside its data block; `research_queries` keeps its 1–3 query contract and its fallback.
+  - One real run with keys (within the test budget) for the same idea is reported in the PR: queries written and the top titles and URLs kept; the goal is at least 3 businesses' own sites; if fewer remain, the PR says so and nothing is invented.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** read `research_query.md` and `llm.research_queries`; write the stubbed-prompt test first.
+
+## HACK-076 · Sign in with Google (backend): users, hashed sessions, `/api/auth/*`
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `docs/specs/001-accounts-and-limits/spec.md` · `plan.md` §Design
+- **Depends on:** None
+- **Paths:** app/routers/auth.py, app/services/auth.py, app/services/store.py, app/config.py, app/tests/test_auth_google.py, .env.example
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - `GET /api/auth/google/login` redirects to Google with `state`, PKCE (`S256`) and scope `openid email`; `state` and the verifier live in a short-lived `HttpOnly` cookie.
+  - `GET /api/auth/google/callback` exchanges the code with `httpx`, checks `iss`, `aud`, `exp` and `email_verified` of the `id_token` (received over TLS from the token endpoint, OIDC §3.1.3.7), creates the user on first sign-in (`users`: google_sub, email) and sets a session cookie (`HttpOnly`, `Secure`, `SameSite=Lax`, 30 days) whose SHA-256 is the only thing stored (`sessions`).
+  - A wrong `state`, a Google error, a wrong `aud` or an unverified email creates no session and answers a Spanish message; `GET /api/auth/me` answers `{email, runs_left_today, resets_at}` or 401; `POST /api/auth/logout` deletes the session row.
+  - `store.py` adds `users`, `sessions`, `projects.owner_id` and `projects.created` (`ADD COLUMN` when missing); settings `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OWNER_EMAIL`, `AUTH_REQUIRED` (default false) in `config.py` and `.env.example`.
+  - Tests mock Google with `respx`; no log line contains the code, the token or the email. Human step: Dylan creates the Google OAuth client when this task reaches review (the agent asks through `uak msg human`).
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test: callback with a wrong `state` creates no session.
+
+## HACK-077 · Every run belongs to its user: 401 without a session, 404 for someone else's run, owner-only Hunter and Ops
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `docs/specs/001-accounts-and-limits/spec.md` (EARS 1–4, 8) · `plan.md` §Threat model
+- **Depends on:** HACK-076
+- **Paths:** app/routers/runs.py, app/routers/pitch.py, app/routers/prototypes.py, app/routers/voice.py, app/routers/hunter.py, app/routers/ops.py, app/services/auth.py, app/tests/test_ownership.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - With `AUTH_REQUIRED=true`: every route that creates, reads, answers, approves, streams or asks about a run answers 401 without a session and makes no provider call; `POST /api/projects` stores the user as `owner_id`.
+  - User B gets 404 (same body as an unknown run) for user A's run, events, spec, pitch, Q&A, narration and prototype; `/api/hunter/*` and `/api/ops*` answer 403 to anyone but `OWNER_EMAIL` and send nothing.
+  - While `DEMO_MODE` is on, `demo-pitch` and the recorded example stay usable without a session.
+  - With `AUTH_REQUIRED=false` every existing test passes unchanged.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test: user B reads user A's run → 404.
+
+## HACK-078 · Quotas and rate limits: 1 project per user per day, 5 per day for everyone, 30 requests per minute
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `docs/specs/001-accounts-and-limits/spec.md` (EARS 5–7, 9)
+- **Depends on:** HACK-077
+- **Paths:** app/services/limits.py, app/routers/runs.py, app/routers/auth.py, app/tests/test_limits.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - A user's second project in one UTC day answers 429 in Spanish with how many they used and when it resets, and starts no stage; the 6th project of the day for everyone answers 503 in Spanish; runs already going finish their current stage.
+  - More than 30 requests in a minute to one route by one user answer 429 with `Retry-After`.
+  - `GET /api/auth/me` reports `runs_left_today` and `resets_at` from the same count.
+  - Refusals log user id, route and reason, never the idea, answers or email. Numbers are settings (`RUNS_PER_USER_PER_DAY=1`, `MAX_PROJECTS_PER_DAY=5`, `REQUESTS_PER_MINUTE=30`).
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test: second project of the day → 429.
+
+## HACK-079 · Web: "Entrar con Google", who is signed in and runs left
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `docs/specs/001-accounts-and-limits/spec.md` (stories 1–3) · `web/DESIGN.md`
+- **Depends on:** HACK-076
+- **Paths:** web/src/lib/api.ts, web/src/lib/types.ts, web/src/App.tsx, web/src/features/account/, web/src/features/intake/, e2e/judge_path.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - The top bar shows "Entrar con Google" without a session, and the user's email plus "Te queda N proyecto hoy" with one; "Salir" ends the session.
+  - A 401 from any call shows the sign-in prompt instead of an error; a 429/503 shows the Spanish `detail` next to "Contar mi idea", which is disabled with the reason (DESIGN rule 5).
+  - The recorded example ("Ver un ejemplo") still works without a session; the judge-path E2E passes with `AUTH_REQUIRED=false`.
+  - Ships with `.uak-shots/HACK-079/1280.png`, `390.png` and the design critic's `VERDICT: SHIP`.
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** read `web/src/lib/api.ts` and the top bar in `App.tsx`; mock `/api/auth/me` in the browser check first.
+
+## HACK-080 · Render keeps accounts across restarts (ADR 0002)
+
+- **Type:** chore
+- **Priority:** P1
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `docs/adr/0002-render-persistent-storage.md`
+- **Depends on:** HACK-076
+- **Paths:** render.yaml, Dockerfile, docs/adr/0002-render-persistent-storage.md, README.md
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - Starts only after Dylan accepts ADR 0002 (status `accepted`), since it changes the paid plan; the agent asks with `uak msg human` and waits.
+  - `render.yaml` mounts the chosen persistent storage at `DATA_DIR` and declares `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OWNER_EMAIL`, `AUTH_REQUIRED` and the Lovable settings as `sync: false`.
+  - README says how to turn on accounts on Render and that the free plan loses them; no price is written that was not read from Render's page that day, with its date.
+- **Verify:** `bash .uak/bin/q bash .uak/bin/smoke`
+- **Next step:** `uak msg human` asking Dylan to accept or change ADR 0002.
+
+## HACK-081 · A user can delete their account and everything in it
+
+- **Type:** feature
+- **Priority:** P1
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `docs/specs/001-accounts-and-limits/spec.md` §Non-functional (personal data)
+- **Depends on:** HACK-077
+- **Paths:** app/services/accounts.py, app/routers/account.py, app/tests/test_account_deletion.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - `DELETE /api/account` (signed in) removes the user, their sessions, projects, runs, events, specs, answers and their prototypes on disk, and answers 204; afterwards the cookie no longer works.
+  - Deletion calls a hook list that later tasks extend (HACK-085 unpublishes Lovable apps); a failing hook is logged by type and does not stop the deletion.
+  - Another user's data is untouched (test with two users).
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test: after deletion the session cookie gets 401.
+
+## HACK-082 · Lovable adapter: build, database, publish and change through MCP, with recorded fixtures
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `docs/specs/002-lovable-delivery/spec.md` · `plan.md` §Design · ADR 0003
+- **Depends on:** None
+- **Paths:** app/services/lovable.py, app/fixtures/lovable/, app/tests/test_lovable_adapter.py, pyproject.toml, uv.lock
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - `app/services/lovable.py` (its own settings class, like `llm.gemini_env`, until `config.py` declares them) offers `build`, `add_database`, `publish`, `change`, `unpublish` over the `mcp` Python SDK (new dependency; this task also adds `cryptography` for HACK-083, both pinned in `uv.lock`, since it owns `pyproject.toml`) against `https://mcp.lovable.dev`; the session's token comes from an injected token provider (HACK-083 supplies the real one).
+  - `build` waits for completion at most `LOVABLE_BUILD_TIMEOUT` (600 s); an `awaiting_input` result raises `LovableNeedsInput` and nothing answers it; errors and timeouts raise `LovableError`; with `DEMO_MODE` or no token provider every call raises `LovableUnavailable`.
+  - Credits come only from Lovable's `cost_credits`; nothing is estimated. Which MCP tool unpublishes is checked against the server's tool list and written in the module docstring; if none exists the PR says so.
+  - Tests use a fake MCP session (no network) and a recorded result in `app/fixtures/lovable/` built from the HACK-068 spike's real response shape, labeled `demo_data: true`; no log line contains the prompt or the token.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test: an `awaiting_input` result raises `LovableNeedsInput`.
+
+## HACK-083 · The owner connects Lovable once; the token is stored encrypted and refreshed
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `docs/specs/002-lovable-delivery/plan.md` §Design (owner connection), §Threat model
+- **Depends on:** HACK-082, HACK-077
+- **Paths:** app/routers/admin_lovable.py, app/services/secrets_store.py, app/services/lovable.py, app/tests/test_lovable_connection.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - `GET /api/admin/lovable/connect` and its callback (owner only, 403 otherwise) run the SDK's OAuth flow (dynamic registration, PKCE, `state`); the token set is stored with Fernet (`cryptography`, added by HACK-082) keyed by `LOVABLE_TOKEN_KEY` from the environment in table `secrets`; refreshed tokens are written back.
+  - `GET /api/admin/lovable` says connected or not and the credits used this month; no response, event, log or URL contains a token (test with `caplog` and the event list).
+  - Without `LOVABLE_TOKEN_KEY` the connection refuses to store anything and says why.
+  - Human step: the owner clicks "Conectar Lovable" once on a local run; the agent asks through `uak msg human`.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test: a stored token set reads back equal and the table holds no plaintext.
+
+## HACK-084 · Stage 7 builds the user's app in Lovable, gives it a database and publishes it; SpeedHack's prototype is the fallback
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `docs/specs/002-lovable-delivery/spec.md` (EARS 1, 2, 4–7, 10, 11)
+- **Depends on:** HACK-083
+- **Paths:** app/services/stages.py, app/services/costs.py, app/services/store.py, app/tests/test_stage7_lovable.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - When Lovable is allowed (connected, under 80 % of `LOVABLE_MONTHLY_CREDITS`=100, and `LOVABLE_PUBLIC` or the run is the owner's), stage 7 builds from `generator.build_prompt`, adds the database, publishes, and emits `prototype_ready` with `generator: "lovable"`, the published `url` and `demo_data: false`, with progress events (`step`: build, database, publish).
+  - Any `Lovable*` error, timeout or `awaiting_input` falls back to `SpeedHackGenerator` with a recovered `error` event in Spanish; at the cap, with no connection, with `LOVABLE_ENABLED=false` or in `DEMO_MODE`, no Lovable call is made.
+  - The credits Lovable reports are stored per run (`costs.credits`, added with `ADD COLUMN`) and `/api/ops` shows them; the Lovable project id is kept in `external_ids` so a rerun never builds twice.
+  - The user's idea goes inside the prompt's data block (test: an injected instruction in the idea stays inside it).
+- **Verify:** `uv run pytest -q && uv run ruff check app && uv run python e2e/judge_path.py`
+- **Next step:** failing test with a fake adapter: an allowed run emits `prototype_ready` with `generator: "lovable"`.
+
+## HACK-085 · The user asks for changes to their published app; deleting the account unpublishes it
+
+- **Type:** feature
+- **Priority:** P1
+- **Estimate:** 1 day
+- **Rubric / Spec:** `docs/specs/002-lovable-delivery/spec.md` (EARS 3, 9, account deletion)
+- **Depends on:** HACK-084, HACK-081
+- **Paths:** app/routers/prototype_changes.py, app/services/accounts.py, app/tests/test_prototype_changes.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - `POST /api/runs/{id}/prototype/changes {text}` (run owner only; 404 for others) accepts at most 1,000 characters and 3 changes per project (the 4th → 409 in Spanish), runs `change` + `publish` in the background and emits a new `prototype_ready`; failures emit a Spanish error and keep the previous app.
+  - Account deletion (HACK-081 hook) unpublishes every Lovable app of that user, with the tool HACK-082 found; if none exists, the PR says so and the hook makes the app private instead.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test: a 4th change request → 409.
+
+## HACK-086 · The user sees their published app inside SpeedHack and can ask for a change
+
+- **Type:** feature
+- **Priority:** P0
+- **Estimate:** 1 day
+- **Rubric / Spec:** `docs/specs/002-lovable-delivery/spec.md` (stories 1–4) · `web/DESIGN.md`
+- **Depends on:** HACK-084
+- **Paths:** web/src/features/project/, web/src/features/delivery/, e2e/judge_path.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - With `generator: "lovable"` the prototype card shows the published app in an `<iframe>` (another origin, `sandbox="allow-scripts allow-same-origin allow-forms allow-popups"`), "Hecha con Lovable", "Abrir en otra pestaña" and the public link; if the frame does not load in 10 s the link is the way in (framing measured allowed on 2026-10-31).
+  - The progress steps (build, database, publish) show as plain Spanish lines; a fallback shows SpeedHack's prototype with the Spanish notice.
+  - "Pedir un cambio" (≤ 1,000 characters, counter, disabled with its reason at 3 changes) calls the HACK-085 endpoint and shows the updated app.
+  - Verified in a real browser at 1280×720 and 390×844 with reduced motion against a recorded `prototype_ready` (no Lovable call); ships with `.uak-shots/HACK-086/1280.png`, `390.png` and the design critic's `VERDICT: SHIP`.
+- **Verify:** `npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+- **Next step:** replay a recorded `prototype_ready` with `generator: "lovable"` in the browser check first.
+
+## HACK-087 · Quality checks run on the Lovable app's files
+
+- **Type:** feature
+- **Priority:** P2
+- **Estimate:** 0.5 day
+- **Rubric / Spec:** `docs/specs/002-lovable-delivery/plan.md` §Design (stage 8) · ADR 0001
+- **Depends on:** HACK-084
+- **Paths:** app/services/quality.py, app/tests/test_quality_lovable.py
+- **Freeze-Allowed:** no
+- **Acceptance:**
+  - For a `generator: "lovable"` run, stage 8 reads the project's files through the adapter (`list_files`, `read_file`) and runs the existing `lint` and `secrets` checks on them; `build` and `smoke` are reported as not run, never passed.
+  - Without a connection the stage keeps today's labeled fallback; no recorded report is shown as this app's result.
+- **Verify:** `uv run pytest -q && uv run ruff check app`
+- **Next step:** failing test with a fake adapter returning one file with a hard-coded key → `secrets` fails.
