@@ -12,7 +12,7 @@ Verify: `npm --prefix web run build && bash .uak/bin/design-lint && uv run pytho
 Lease-Until: 1793569017
 Updated: 1793482617
 Task-Base: 140d906035847b39cd93c6f61d4650de6bba9a7b
-Next: Another agent reviews https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/95; run .uak/bin/smoke
+Next: Humano: Queue/base push rejected; check remote, atomic push and permissions
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/95
 Evidence: -
 Thread-Read: 0
