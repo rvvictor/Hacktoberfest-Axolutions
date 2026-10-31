@@ -1,12 +1,13 @@
 # worklog/WL-1793476848-dylan-1-HACK-075-hack.yRVwsH.md · HACK-075
 
 ## Live summary
-- Done: Claim created; implementation pending
-- Decision: Own branch and worktree
-- Why: Parallel work without touching the main checkout
-- Failing: No validation run yet
-- Commands: `uv run pytest -q && uv run ruff check app`
-- Next: write the stubbed-prompt test first
+- Done: prompt rewritten, stubbed test green
+- Decision: llm.py unchanged: contract and fallback already right; examples in prompt use other trades so idea words stay only in data block
+- Why: test asserts prompt has no pump words
+- Failing: real run blocked: no keys in worktree, reading main .env denied by classifier
+- Commands: uv run pytest -q && uv run ruff check app; smoke PRODUCT_PASS
+- Next: PR + uak done; human runs real-key query
 
 ## History
 - 1793476848 | CLAIMED | dylan-1 | claim; next: write the stubbed-prompt test first
+- 1793477019 | CLAIMED | dylan-1 | checkpoint; next: PR + uak done; human runs real-key query

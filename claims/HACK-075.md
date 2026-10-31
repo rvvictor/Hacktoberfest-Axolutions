@@ -9,10 +9,10 @@ Priority: P1
 Paths: app/services/prompts/research_query.md, app/services/llm.py, app/tests/test_research_queries.py
 Depends: HACK-073
 Verify: `uv run pytest -q && uv run ruff check app`
-Lease-Until: 1793491248
-Updated: 1793476848
+Lease-Until: 1793491419
+Updated: 1793477019
 Task-Base: 9f9cb50015a908400c93009d321cefb3ee42f6ce
-Next: write the stubbed-prompt test first
+Next: PR + uak done; human runs real-key query
 PR: -
 Evidence: -
 Thread-Read: 0
