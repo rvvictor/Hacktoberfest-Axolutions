@@ -9,8 +9,8 @@ Priority: P1
 Paths: app/services/pitch.py, app/services/voice.py, app/config.py, app/tests/test_narration_spend.py
 Depends: HACK-065
 Verify: `uv run pytest -q && uv run ruff check app`
-Lease-Until: 1793493864
-Updated: 1793407464
+Lease-Until: 1793494855
+Updated: 1793408455
 Task-Base: 70c03b4dcc4f77270f80cb63b3a7e58242799656
 Next: Wait for review of SHA 56f21a3
 PR: https://github.com/rvvictor/Hacktoberfest-Axolutions/pull/85
