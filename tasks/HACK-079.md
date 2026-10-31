@@ -1,0 +1,21 @@
+# HACK-079
+ID: HACK-079
+State: CLAIMED
+Owner: dylan-2
+Branch: feat/hack-079
+Worktree: /Users/dylanmartinezcastillo/Documents/Repositorios/Hackathon/Hacktoberfest-Axolutions-wt/hack-079
+Worklog: worklog/WL-1793482200-dylan-2-HACK-079-hack.fWJCmD.md
+Priority: P0
+Paths: web/src/lib/api.ts, web/src/lib/types.ts, web/src/App.tsx, web/src/features/account/, web/src/features/intake/, e2e/judge_path.py
+Depends: HACK-076
+Verify: `npm --prefix web run build && bash .uak/bin/design-lint && uv run python e2e/judge_path.py`
+Lease-Until: 1793496600
+Updated: 1793482200
+Task-Base: 140d906035847b39cd93c6f61d4650de6bba9a7b
+Next: read DESIGN.md recipe and /api/auth/me contract, then the account chip
+PR: -
+Evidence: -
+Events: 1
+Checkpoints: 0
+Sessions: 1
+Last-Checkpoint: 0
