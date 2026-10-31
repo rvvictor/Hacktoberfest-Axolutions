@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     ELEVENLABS_API_KEY: str | None = None
     ELEVENLABS_VOICE_ID: str | None = None
     ELEVENLABS_AGENT_ID: str | None = None
+    ELEVENLABS_DAILY_CHARS: int = 5000  # paid TTS characters per UTC day, all visitors; placeholder, no budget is set in the repo yet
     TAVILY_API_KEY: str | None = None
     FIRECRAWL_API_KEY: str | None = None
     MIRO_ACCESS_TOKEN: str | None = None
