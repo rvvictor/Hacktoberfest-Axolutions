@@ -1,14 +1,15 @@
 import asyncio
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 from sse_starlette.sse import EventSourceResponse
 
 from app.schemas import Mode, RunStatus
-from app.services import pipeline, store
+from app.services import auth, pipeline, store
 
 router = APIRouter(prefix="/api")
+OWN_RUN = [Depends(auth.own_run())]  # 401 without a session, 404 for someone else's run
 
 POLL_SECONDS = 0.1
 # Caps on what a visitor can send to the LLM (HACK-063 security review); the 422 message is shown in the UI.
@@ -54,18 +55,22 @@ def _state(run_id: str) -> dict[str, Any]:
 
 
 @router.post("/projects", status_code=201)
-def create_project(body: ProjectIn, background: BackgroundTasks) -> dict[str, Any]:
+def create_project(
+    body: ProjectIn, background: BackgroundTasks, user: Annotated[dict[str, Any] | None, Depends(auth.current_user)],
+) -> dict[str, Any]:
     run = pipeline.create(body.mode, body.idea.strip(), body.stack_prefs)
+    if user:
+        auth.set_owner(run.project_id, user["id"])
     background.add_task(pipeline.start, run.run_id)
     return run.model_dump(mode="json")
 
 
-@router.get("/runs/{run_id}")
+@router.get("/runs/{run_id}", dependencies=OWN_RUN)
 def get_run(run_id: str) -> dict[str, Any]:
     return _state(run_id)
 
 
-@router.post("/runs/{run_id}/answers")
+@router.post("/runs/{run_id}/answers", dependencies=OWN_RUN)
 def post_answers(run_id: str, body: AnswersIn, background: BackgroundTasks) -> dict[str, Any]:
     _state(run_id)
     try:
@@ -75,7 +80,7 @@ def post_answers(run_id: str, body: AnswersIn, background: BackgroundTasks) -> d
     return {"run_id": run_id, "accepted": True}
 
 
-@router.post("/runs/{run_id}/approvals/{number}")
+@router.post("/runs/{run_id}/approvals/{number}", dependencies=OWN_RUN)
 def post_approval(run_id: str, number: int, body: ApprovalIn, background: BackgroundTasks) -> dict[str, Any]:
     _state(run_id)
     try:
@@ -87,7 +92,7 @@ def post_approval(run_id: str, number: int, body: ApprovalIn, background: Backgr
     return {"run_id": run_id, "approval": number, "approved": body.approved}
 
 
-@router.post("/runs/{run_id}/retry")
+@router.post("/runs/{run_id}/retry", dependencies=OWN_RUN)
 def post_retry(run_id: str, background: BackgroundTasks) -> dict[str, Any]:
     _state(run_id)
     try:
@@ -97,7 +102,7 @@ def post_retry(run_id: str, background: BackgroundTasks) -> dict[str, Any]:
     return {"run_id": run_id, "accepted": True}
 
 
-@router.get("/runs/{run_id}/events")
+@router.get("/runs/{run_id}/events", dependencies=OWN_RUN)
 async def stream_events(
     run_id: str,
     after: int = Query(0, ge=0),

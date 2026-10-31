@@ -9,13 +9,16 @@ that follows `sent`.
 from __future__ import annotations
 
 import httpx
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
+from app.services import auth
 from app.services import outreach as svc
 from app.services.outreach import Outreach, OutreachError, OutreachStatus, Prospect
 
 router = APIRouter(prefix="/api/hunter", tags=["hunter"])
+# Owner-only (403 to anyone else). The n8n callback is exempt: it carries its own HMAC signature, not a session.
+OWNER = [Depends(auth.owner_only)]
 
 RETENTION_DAYS = 30
 RULES = [
@@ -116,12 +119,12 @@ def reset() -> None:
     _by_prospect.clear()
 
 
-@router.get("/rules")
+@router.get("/rules", dependencies=OWNER)
 def rules() -> dict[str, object]:
     return {"rules": RULES, "retention_days": RETENTION_DAYS, "demo_data": True}
 
 
-@router.get("/prospects")
+@router.get("/prospects", dependencies=OWNER)
 def prospects() -> list[ProspectView]:
     views = []
     for prospect in svc.load_prospects():
@@ -131,7 +134,7 @@ def prospects() -> list[ProspectView]:
     return views
 
 
-@router.post("/prospects/{prospect_id}/draft")
+@router.post("/prospects/{prospect_id}/draft", dependencies=OWNER)
 def create_draft(prospect_id: str) -> OutreachView:
     prospect = _prospect(prospect_id)
     try:
@@ -142,7 +145,7 @@ def create_draft(prospect_id: str) -> OutreachView:
     return _save(Record(outreach=started))
 
 
-@router.put("/outreach/{outreach_id}")
+@router.put("/outreach/{outreach_id}", dependencies=OWNER)
 def edit_draft(outreach_id: str, edit: DraftEdit) -> OutreachView:
     record = _record(outreach_id)
     if record.outreach.status != OutreachStatus.DRAFT:
@@ -155,7 +158,7 @@ def edit_draft(outreach_id: str, edit: DraftEdit) -> OutreachView:
     )
 
 
-@router.post("/outreach/{outreach_id}/approve")
+@router.post("/outreach/{outreach_id}/approve", dependencies=OWNER)
 def approve(outreach_id: str, approval: Approval) -> OutreachView:
     record = _record(outreach_id)
     try:
@@ -165,7 +168,7 @@ def approve(outreach_id: str, approval: Approval) -> OutreachView:
     return _save(record.model_copy(update={"outreach": approved}))
 
 
-@router.post("/outreach/{outreach_id}/send")
+@router.post("/outreach/{outreach_id}/send", dependencies=OWNER)
 def send(outreach_id: str) -> OutreachView:
     record = _record(outreach_id)
     try:
@@ -197,7 +200,7 @@ def callback(
     return _save(record.model_copy(update={"outreach": sent}))
 
 
-@router.post("/outreach/{outreach_id}/reply")
+@router.post("/outreach/{outreach_id}/reply", dependencies=OWNER)
 def reply(outreach_id: str, body: Reply) -> OutreachView:
     """Record that the business answered (demo: the operator logs it by hand)."""
     record = _record(outreach_id)

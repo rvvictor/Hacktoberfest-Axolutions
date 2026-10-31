@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile
 from pydantic import BaseModel
 
-from app.services import voice
+from app.services import auth, voice
 
-router = APIRouter(prefix="/api/voice", tags=["voice"])
+router = APIRouter(prefix="/api/voice", tags=["voice"], dependencies=[Depends(auth.paid_voice)])
 
 
 class TtsRequest(BaseModel):

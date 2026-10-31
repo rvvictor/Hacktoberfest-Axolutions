@@ -1,10 +1,10 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from app.services import costs
+from app.services import auth, costs
 
-router = APIRouter(prefix="/api/ops", tags=["ops"])
+router = APIRouter(prefix="/api/ops", tags=["ops"], dependencies=[Depends(auth.owner_only)])
 
 
 @router.get("/runs")

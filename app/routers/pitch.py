@@ -1,12 +1,13 @@
 import httpx
 from anthropic import APIError
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field, field_validator
 
 from app.schemas import Pitch
-from app.services import llm, pitch, voice
+from app.services import auth, llm, pitch, voice
 
 router = APIRouter(prefix="/api/pitch", tags=["pitch"])
+OWN_RUN = [Depends(auth.own_run("No existe ese proyecto", public_run=pitch.DEMO_RUN))]
 
 
 class Question(BaseModel):
@@ -20,7 +21,7 @@ class Question(BaseModel):
         return value.strip()
 
 
-@router.post("/{run_id}/narration/{index}")
+@router.post("/{run_id}/narration/{index}", dependencies=OWN_RUN)
 async def narrate(run_id: str, index: int) -> Response:
     try:
         spoken = await pitch.narrate(run_id, index)
@@ -32,7 +33,7 @@ async def narrate(run_id: str, index: int) -> Response:
     return Response(audio, media_type="audio/mpeg", headers={"X-Demo-Data": str(demo).lower()})
 
 
-@router.get("/{run_id}", response_model=Pitch)
+@router.get("/{run_id}", response_model=Pitch, dependencies=OWN_RUN)
 def get_deck(run_id: str):
     try:
         result = pitch.deck(run_id)
@@ -44,7 +45,7 @@ def get_deck(run_id: str):
         ) from exc
 
 
-@router.post("/{run_id}/ask", response_model=pitch.Answer)
+@router.post("/{run_id}/ask", response_model=pitch.Answer, dependencies=OWN_RUN)
 def ask(run_id: str, body: Question):
     try:
         return pitch.ask(run_id, body.question)

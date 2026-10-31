@@ -15,10 +15,12 @@ import json
 import logging
 import secrets
 import time
+from contextlib import closing
 from typing import Any
 from urllib.parse import urlencode
 
 import httpx
+from fastapi import Cookie, HTTPException, Request
 
 from app.config import Settings, settings
 from app.services import store
@@ -33,6 +35,8 @@ FLOW_COOKIE = "sh_oauth"  # state and PKCE verifier of a sign-in in progress
 FLOW_SECONDS = 600
 SESSION_SECONDS = 30 * 24 * 3600
 FAILED = "No pudimos iniciar sesión con Google. Vuelve a intentarlo."
+SIGN_IN = "Inicia sesión para continuar."
+OWNER_ONLY = "Solo la persona dueña del sitio puede usar esto."
 
 
 class AuthError(Exception):
@@ -139,3 +143,79 @@ def me(user: dict[str, Any]) -> dict[str, Any]:
     start, resets_at = day_window()
     used = store.projects_since(user["id"], start)
     return {"email": user["email"], "runs_left_today": max(0, runs_per_day() - used), "resets_at": resets_at}
+
+
+# --- Ownership (spec 001, HACK-077). Everything below is a no-op while AUTH_REQUIRED is false. ---
+
+
+def required() -> bool:
+    return bool(settings.AUTH_REQUIRED)  # the test configuration sets it to None
+
+
+def is_owner(user: dict[str, Any] | None) -> bool:
+    owner = (settings.OWNER_EMAIL or "").strip().lower()
+    return bool(user and owner and str(user["email"]).strip().lower() == owner)
+
+
+def set_owner(project_id: str, user_id: str) -> None:
+    with closing(store._connect()) as conn, conn:
+        conn.execute("UPDATE projects SET owner_id=? WHERE id=?", (user_id, project_id))
+
+
+def run_owner(run_id: str) -> tuple[bool, str | None]:
+    """(the run exists, its project's owner_id); legacy projects have owner_id NULL."""
+    with closing(store._connect()) as conn:
+        row = conn.execute(
+            "SELECT p.owner_id AS owner_id FROM runs r JOIN projects p ON p.id = r.project_id WHERE r.run_id=?",
+            (run_id,),
+        ).fetchone()
+    return (row is not None), (row["owner_id"] if row else None)
+
+
+def _refuse(request: Request, status: int, detail: str, reason: str, user: dict[str, Any] | None = None) -> HTTPException:
+    route = getattr(request.scope.get("route"), "path", request.url.path)  # the template, never the ids or the body
+    log.info("refused %s route=%s user=%s reason=%s", status, route, user["id"] if user else "-", reason)
+    return HTTPException(status, detail)
+
+
+def _authenticate(request: Request, token: str | None) -> dict[str, Any]:
+    user = user_for(token)
+    if user is None:
+        raise _refuse(request, 401, SIGN_IN, "no session")
+    return user
+
+
+def current_user(request: Request, sh_session: str | None = Cookie(default=None)) -> dict[str, Any] | None:
+    """The signed-in user; 401 without a session when AUTH_REQUIRED, otherwise anonymous (None) is fine."""
+    return _authenticate(request, sh_session) if required() else user_for(sh_session)
+
+
+def own_run(unknown: str | None = None, public_run: str | None = None):
+    """Dependency factory for routes with `{run_id}`: 401 without a session, 404 (the unknown-run answer) if not yours.
+
+    `unknown` is the route's own 404 message; `public_run` is the recorded example, open while DEMO_MODE is on.
+    """
+    def dependency(run_id: str, request: Request, sh_session: str | None = Cookie(default=None)) -> str:
+        if not required() or (public_run and run_id == public_run and settings.DEMO_MODE):
+            return run_id
+        user = _authenticate(request, sh_session)
+        exists, owner = run_owner(run_id)
+        if not exists or not (owner == user["id"] or (owner is None and is_owner(user))):
+            raise _refuse(request, 404, unknown or f"run {run_id} not found", "unknown run" if not exists else "not owner", user)
+        return run_id
+    return dependency
+
+
+def owner_only(request: Request, sh_session: str | None = Cookie(default=None)) -> None:
+    """Hunter and Ops: 403 for everyone but OWNER_EMAIL (anonymous included)."""
+    if not required():
+        return
+    user = user_for(sh_session)
+    if not is_owner(user):
+        raise _refuse(request, 403, OWNER_ONLY, "not the site owner", user)
+
+
+def paid_voice(request: Request, sh_session: str | None = Cookie(default=None)) -> None:
+    """Voice spends provider credit: a session is needed unless DEMO_MODE serves the recorded sample."""
+    if required() and not settings.DEMO_MODE:
+        _authenticate(request, sh_session)
