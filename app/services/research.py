@@ -38,6 +38,9 @@ JUNK_HOSTS = (
     "indeed.com", "glassdoor.com", "linkedin.com", "kraken.com", "investing.com", "marketwatch.com",
     "finance.yahoo.com", "tradingview.com", "coinmarketcap.com", "bloomberg.com", "reuters.com",
     "cnbc.com", "quora.com", "reddit.com", "wikipedia.org",
+    # company directories and map listings: a profile of a business, not its own site
+    "rocketreach.co", "mapquest.com", "zoominfo.com", "dnb.com", "yelp.com", "yellowpages.com",
+    "paginasamarillas.com",
 )
 # Bare "stock", "jobs" or "guide" name real products (inventory, job-management software): only
 # how-to / quote / career phrasings are junk.
@@ -47,7 +50,7 @@ JUNK_TITLE = re.compile(
     r"cotización|price today|empleos? en|vacantes|job openings|salary|salario)\b",
     re.IGNORECASE,
 )
-JUNK_PATH = re.compile(r"/(blog|news|noticias|articles?|career-advice|careers?|jobs?)(/|$)", re.IGNORECASE)
+JUNK_PATH = re.compile(r"/(blog|news|noticias|articles?|career-advice|careers?|jobs?)(/|$)|\.pdf$", re.IGNORECASE)
 # A word before a price that names no plan ("Pricing: $1", "Desde $50").
 NOT_A_PLAN = {
     "from", "only", "save", "starting", "up", "as", "just", "desde", "solo", "sólo", "hasta", "ahorra",
@@ -157,7 +160,7 @@ def extract_plan_pricing(text: str) -> str | None:
 
 
 def is_competitor_page(item: ResearchItem) -> bool:
-    """False for job guides, news, stock quotes and how-to articles: not a product in a market."""
+    """False for job guides, news, stock quotes, how-to articles, PDFs, directory and map listings."""
     url = urlparse(item.url)
     host = (url.hostname or "").lower()
     if any(host == h or host.endswith("." + h) for h in JUNK_HOSTS):
